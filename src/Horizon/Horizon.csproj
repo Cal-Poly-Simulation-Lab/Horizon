@@ -5,6 +5,56 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <!-- AssemblyInfo.cs is no longer needed and the information can be provided here in the .csproj file.
+    For now, the legacy AssemblyInfo.cs file will be kept (and automatically compiled during the MSBuild
+    process); the AssemblyInfo.cs file can be found in the ./config/ subdirectory. -->
+
+    <!-- PropertyGroup Items taken care of by AssemblyInfo.cs: --> 
+    <!-- <AssemblyName>Horizon</AssemblyName>
+    <RootNamespace>Horizon</RootNamespace>
+    <ApplicationIcon />
+    <StartupObject />
+    <Authors>YourName</Authors>
+    <Company>YourCompany</Company>
+    <Product>Horizon</Product>
+    <Description>YourProjectDescription</Description>
+    <Version>1.0.0.0</Version>
+    <FileVersion>1.0.0.0</FileVersion>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <PackageId>Horizon</PackageId> -->
+
   </PropertyGroup>
 
+  <!-- Include all other project reference (in the src file) -->
+  <ItemGroup>
+    <ProjectReference Include="../HSFScheduler/HSFScheduler.csproj" />
+    <ProjectReference Include="../HSFUniverse/HSFUniverse.csproj" />
+    <ProjectReference Include="../HSFSystem/HSFSystem.csproj" />
+    <ProjectReference Include="../MissionElements/MissionElements.csproj" />
+    <ProjectReference Include="../Utilities/Utilities.csproj" />
+    <ProjectReference Include="../UserModel/UserModel.csproj" />
+  </ItemGroup>
+
+  <!-- Include all necessary NuGet Packages here -->
+  <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.15"/>
+    <PackageReference Include="NUnit" Version="3.13.3"/>
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0"/>
+    <PackageReference Include="System.ValueTuple" Version="4.5.0"/>
+  </ItemGroup>
+
+  <!-- Include all configuration files, using wildcards -->
+  <ItemGroup>
+    <Content Update="config/*.json"> <!-- Relevant files targeted: appsettings.json-->
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="config/*.config"> <!-- Relevant files targeted: ErrorLog.config-->
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+
+
 </Project>
+
