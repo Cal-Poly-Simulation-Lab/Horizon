@@ -4,9 +4,10 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using Grib.Api;
 using System.IO;
 using System.Diagnostics.CodeAnalysis;
+
+//using Grib.Api //Grib.Api is a Windows-only NuGet package. Alternative methods for cross-platforms builds will need ot be reached. 
 
 namespace HSFUniverse
 {
@@ -201,90 +202,93 @@ namespace HSFUniverse
             {
                 throw new System.IO.FileNotFoundException("Filename not defined");
             }
-            using (GribFile file = new GribFile(_filePath))
-            {
-                /* Get the data for the values we want (u and v wind velocitys and height) */
-                var weatherData = from m in file
-                                  where m.StepType.Equals("instant") && (m.TypeOfLevel.Equals("isobaricInhPa") || m.TypeOfLevel.Equals("unknown") || m.TypeOfLevel.Equals("surface")) && ((m.ShortName.Equals("u")) || (m.ShortName.Equals("v")) || (m.ShortName.Equals("gh")) || (m.ShortName.Equals("t")))
-                                  select m;
-                foreach (GribMessage msg in weatherData)
-                {
-                    /* Get the GribMessage at the specific location */
-                    var msgLoc = from m in msg.GeoSpatialValues
-                                 where (m.Latitude.Equals(latitude)) && (m.Longitude.Equals(longitude))
-                                 select m;
-                    /* Get what pressure level the value is for */
-                    string pressureLevel = msg["level"].AsString();
+            
+            // using (GribFile file = new GribFile(_filePath))
+            // {
+            //     /* Get the data for the values we want (u and v wind velocitys and height) */
+            //     var weatherData = from m in file
+            //                       where m.StepType.Equals("instant") && (m.TypeOfLevel.Equals("isobaricInhPa") || m.TypeOfLevel.Equals("unknown") || m.TypeOfLevel.Equals("surface")) && ((m.ShortName.Equals("u")) || (m.ShortName.Equals("v")) || (m.ShortName.Equals("gh")) || (m.ShortName.Equals("t")))
+            //                       select m;
+            //     foreach (GribMessage msg in weatherData)
+            //     {
+            //         /* Get the GribMessage at the specific location */
+            //         var msgLoc = from m in msg.GeoSpatialValues
+            //                      where (m.Latitude.Equals(latitude)) && (m.Longitude.Equals(longitude))
+            //                      select m;
+            //         /* Get what pressure level the value is for */
+            //         string pressureLevel = msg["level"].AsString();
 
-                    /* Put the value in the corresponding dictionary by using the short name */
-                    switch (msg.ShortName)
-                    {
-                        case "u":
-                            {
-                                if (Convert.ToDouble(pressureLevel) != 0)
-                                {
-                                    u.Add(Convert.ToDouble(pressureLevel) * 1e2, msgLoc.Last().Value);
-                                }
-                                else
-                                {
-                                    u.Add(Convert.ToDouble(101325), msgLoc.Last().Value + 5);
-                                }
-                                break;
-                            }
-                        case "v":
-                            {
-                                if (Convert.ToDouble(pressureLevel) != 0)
-                                {
-                                    v.Add(Convert.ToDouble(pressureLevel) * 1e2, msgLoc.Last().Value);
-                                }
-                                else
-                                {
-                                    v.Add(Convert.ToDouble(101325), msgLoc.Last().Value + 4);
-                                }
-                                break;
-                            }
-                        case "t":
-                            {
-                                if (Convert.ToDouble(pressureLevel) != 0)
-                                {
-                                    t.Add(Convert.ToDouble(pressureLevel) * 1e2, msgLoc.Last().Value);
-                                }
-                                else
-                                {
-                                    t.Add(Convert.ToDouble(101325), msgLoc.Last().Value);
-                                }
-                                break;
-                            }
-                        case "gh":
-                            {
-                                if (Convert.ToDouble(pressureLevel) != 0)
-                                {
-                                    h.Add(Convert.ToDouble(pressureLevel) * 1e2, msgLoc.Last().Value);
-                                }
-                                else
-                                {
-                                    h.Add(Convert.ToDouble(101325), 0);
-                                }
-                                break;
-                            }
-                    }
-                }
-                /* Convert the pressure levels into geopotential heights */
-                u = u.ToDictionary(kp => h[kp.Key], kp => kp.Value);
-                v = v.ToDictionary(kp => h[kp.Key], kp => kp.Value);
-                t = t.ToDictionary(kp => h[kp.Key], kp => kp.Value);
-                /* http://stackoverflow.com/questions/2968356/linq-transform-dictionarykey-value-to-dictionaryvalue-key */
-                h = h.ToDictionary(kp => kp.Value, kp => kp.Key);
+            //         /* Put the value in the corresponding dictionary by using the short name */
+            //         switch (msg.ShortName)
+            //         {
+            //             case "u":
+            //                 {
+            //                     if (Convert.ToDouble(pressureLevel) != 0)
+            //                     {
+            //                         u.Add(Convert.ToDouble(pressureLevel) * 1e2, msgLoc.Last().Value);
+            //                     }
+            //                     else
+            //                     {
+            //                         u.Add(Convert.ToDouble(101325), msgLoc.Last().Value + 5);
+            //                     }
+            //                     break;
+            //                 }
+            //             case "v":
+            //                 {
+            //                     if (Convert.ToDouble(pressureLevel) != 0)
+            //                     {
+            //                         v.Add(Convert.ToDouble(pressureLevel) * 1e2, msgLoc.Last().Value);
+            //                     }
+            //                     else
+            //                     {
+            //                         v.Add(Convert.ToDouble(101325), msgLoc.Last().Value + 4);
+            //                     }
+            //                     break;
+            //                 }
+            //             case "t":
+            //                 {
+            //                     if (Convert.ToDouble(pressureLevel) != 0)
+            //                     {
+            //                         t.Add(Convert.ToDouble(pressureLevel) * 1e2, msgLoc.Last().Value);
+            //                     }
+            //                     else
+            //                     {
+            //                         t.Add(Convert.ToDouble(101325), msgLoc.Last().Value);
+            //                     }
+            //                     break;
+            //                 }
+            //             case "gh":
+            //                 {
+            //                     if (Convert.ToDouble(pressureLevel) != 0)
+            //                     {
+            //                         h.Add(Convert.ToDouble(pressureLevel) * 1e2, msgLoc.Last().Value);
+            //                     }
+            //                     else
+            //                     {
+            //                         h.Add(Convert.ToDouble(101325), 0);
+            //                     }
+            //                     break;
+            //                 }
+            //         }
+            //     }
+            //     /* Convert the pressure levels into geopotential heights */
+            //     u = u.ToDictionary(kp => h[kp.Key], kp => kp.Value);
+            //     v = v.ToDictionary(kp => h[kp.Key], kp => kp.Value);
+            //     t = t.ToDictionary(kp => h[kp.Key], kp => kp.Value);
+            //     /* http://stackoverflow.com/questions/2968356/linq-transform-dictionarykey-value-to-dictionaryvalue-key */
+            //     h = h.ToDictionary(kp => kp.Value, kp => kp.Key);
 
-                /* Put the values in to the sorted lists */
-                uVelocityData = new SortedList<double, double>(u, Comparer<double>.Default);
-                vVelocityData = new SortedList<double, double>(v, Comparer<double>.Default);
-                temperatureData = new SortedList<double, double>(t, Comparer<double>.Default);
-                pressureData = new SortedList<double, double>(h, Comparer<double>.Default);
+            //     /* Put the values in to the sorted lists */
+            //     uVelocityData = new SortedList<double, double>(u, Comparer<double>.Default);
+            //     vVelocityData = new SortedList<double, double>(v, Comparer<double>.Default);
+            //     temperatureData = new SortedList<double, double>(t, Comparer<double>.Default);
+            //     pressureData = new SortedList<double, double>(h, Comparer<double>.Default);
 
-                Console.WriteLine("Finished Sorting");
-            }
+            //     Console.WriteLine("Finished Sorting");
+            // }
         }
+
+
         /// <summary>
         /// Converts a DateTime object into a string that relates to the GFS output files
         /// </summary>

@@ -28,7 +28,7 @@ namespace HSFSystem
         public List<StateVariableKey<Quaternion>> Qkeys { get; protected set; } = new List<StateVariableKey<Quaternion>>();
         public List<StateVariableKey<Vector>> Vkeys { get; protected set; } = new List<StateVariableKey<Vector>>();
         public virtual SystemState _newState { get; set; }
-        public virtual Task _task { get; set; }
+        public virtual MissionElements.Task _task { get; set; } // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
         #endregion Attributes
 
         #region Constructors

@@ -45,8 +45,8 @@ namespace HSFSystem
             set { _pythonInstance._newState = value; }
         }
 
-        public override Task _task {
-            get { return (Task)_pythonInstance._task; }
+        public override MissionElements.Task _task {
+            get { return (MissionElements.Task)_pythonInstance._task; }  // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
             set { _pythonInstance._task = value; }
         }
         #endregion

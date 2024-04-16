@@ -8,6 +8,7 @@ using System.Linq;
 using Utilities;
 using MissionElements;
 using UserModel;
+using Task = MissionElements.Task; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
 
 namespace HSFScheduler
 {

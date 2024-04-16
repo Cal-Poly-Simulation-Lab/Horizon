@@ -6,10 +6,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
+
     <!-- AssemblyInfo.cs is no longer needed and the information can be provided here in the .csproj file.
     For now, the legacy AssemblyInfo.cs file will be kept (and automatically compiled during the MSBuild
     process); the AssemblyInfo.cs file can be found in the ./config/ subdirectory. -->
-
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    
     <!-- PropertyGroup Items taken care of by AssemblyInfo.cs: --> 
     <!-- <AssemblyName>Horizon</AssemblyName>
     <RootNamespace>Horizon</RootNamespace>
@@ -53,8 +55,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
-
 
 </Project>
 

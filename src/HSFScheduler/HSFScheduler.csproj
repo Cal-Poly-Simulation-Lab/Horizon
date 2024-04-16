@@ -17,6 +17,7 @@
     <ProjectReference Include="../MissionElements/MissionElements.csproj" />
     <ProjectReference Include="../UserModel/UserModel.csproj" />
     <ProjectReference Include="../Utilities/Utilities.csproj" />
+    <ProjectReference Include="../HSFSystem/HSFSystem.csproj" />
   </ItemGroup>
 
   <!-- Include all necessary NuGet Packages here -->

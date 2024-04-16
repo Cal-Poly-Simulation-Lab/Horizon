@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using HSFSystem;
 using MissionElements;
 using Utilities;
+using Task = MissionElements.Task; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
+
 
 namespace HSFScheduler
 {

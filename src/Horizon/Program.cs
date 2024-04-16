@@ -10,12 +10,13 @@ using HSFScheduler;
 using MissionElements;
 using UserModel;
 using HSFUniverse;
-//using HSFSubsystem;
 using HSFSystem;
 using log4net;
 using Utilities;
 using Microsoft.Scripting.Actions.Calls;
 using System.Net.Http.Headers;
+using Task = MissionElements.Task; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
+
 
 namespace Horizon
 {

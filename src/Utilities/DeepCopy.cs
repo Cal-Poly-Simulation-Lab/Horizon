@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.Json; //So maybe use NewtonSoft instead. 
 
 namespace Utilities
 {
@@ -17,13 +18,16 @@ namespace Utilities
         //http://www.codeproject.com/Articles/28952/Shallow-Copy-vs-Deep-Copy-in-NET
         public static T Copy<T>(T item)
         {
-            BinaryFormatter formatter = new BinaryFormatter();
-            MemoryStream stream = new MemoryStream();
-            formatter.Serialize(stream, item);
-            stream.Seek(0, SeekOrigin.Begin);
-            T result = (T)formatter.Deserialize(stream);
-            stream.Close();
+            // JsonSerializerOptions securely replaces obselete, insecure "BinaryFormatter" used by legacy HSF. 
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true
+                // Other Options as necessary
+            };
+            string jsonString = JsonSerializer.Serialize(item, options);
+            T result = JsonSerializer.Deserialize<T>(jsonString, options);
             return result;
+
         }
     }
 }

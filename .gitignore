@@ -11,6 +11,9 @@ bin/
 [Bb]in/
 [Dd]ebug/
 
+# Exclude my notes:
+notes.txt
+
 # MacOS Finder unnecessary file:
 .DS_Store
 .[Dd][Ss]_[Ss]tore
