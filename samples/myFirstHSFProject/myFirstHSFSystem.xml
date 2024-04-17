@@ -1,0 +1,17 @@
+<MODEL>
+  <ASSET assetName="Asset1">
+    <DynamicState
+      DynamicStateType="PREDETERMINED_ECI"
+      ICs="[7378.137; 0.0; 0.0; 0.0; 6.02088; 4.215866]">
+      <EOMS EOMSType="orbital_EOMS"></EOMS>
+    </DynamicState>
+    <SUBSYSTEM
+      subsystemName = "Camera"
+      type="scripted"
+      src="..\..\..\..\samples\myFirstHSFProject\Camera.py"
+      className="Camera">
+      <PARAMETER name="imageCaptureTime" type="double" value="3" />
+      <STATE type="Matrix" name="POINTVEC_KEY" key="ECI_Pointing_Vector(XYZ)" value="[0.0; 0.0; 0.0]"/>
+    </SUBSYSTEM>
+  </ASSET>
+</MODEL>

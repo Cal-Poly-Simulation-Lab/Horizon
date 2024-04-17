@@ -1,0 +1,385 @@
+<MODEL>
+
+	<ASSET assetName="Asset1">
+		<DynamicState
+			DynamicStateType="PREDETERMINED_ECI"
+			ICs="[7378.137; 0.0; 0.0; 0.0; 6.02088; 4.215866]">
+			<EOMS
+				EOMSType="orbital_EOMS">
+			</EOMS>
+		</DynamicState>
+		
+		<SUBSYSTEM
+			type="Access"
+			subsystemName = "Access">
+		</SUBSYSTEM>
+		
+		<SUBSYSTEM
+			type="scripted"
+			subsystemName = "ADCS"
+			src="..\..\..\..\samples\Aeolus\pythonScripts\adcs.py"
+			className="adcs">
+			<STATE
+				type="Matrix"
+        name="POINTVEC_KEY"
+				key="ECI_Pointing_Vector(XYZ)"
+				value="[0.0; 0.0; 0.0]">
+			</STATE>
+		</SUBSYSTEM>
+		
+		<SUBSYSTEM
+			type="scripted"
+			subsystemName = "EOSensor"
+			src = "..\..\..\..\samples\Aeolus\pythonScripts\eosensor.py"
+			className = "eosensor">
+      <PARAMETER name="lowQualityCaptureTime" type="double" value="3" />
+      <PARAMETER name="midQualityCaptureTime" type="double" value="5" />
+      <PARAMETER name="highQualityCaptureTime" type="double" value="7" />
+      <PARAMETER name="lowQualityNumPixels" type="double" value="5000" />
+      <PARAMETER name="midQualityNumPixels" type="double" value="10000" />
+      <PARAMETER name="highQualityNumPixels" type="double" value="15000" />
+      <STATE
+				type="Double" 
+        name="PIXELS_KEY"
+				key="numPixels" 
+				value="0.0">
+			</STATE>
+			<STATE
+				type="Double" 
+        name="INCIDENCE_KEY"
+				key="IncidenceAngle" 
+				value="0.0">
+			</STATE>
+			<STATE
+				type="Bool" 
+        name="EOON_KEY"
+				key="EOSensorOn" 
+				value="0.0">
+			</STATE>
+		</SUBSYSTEM>
+
+		<SUBSYSTEM
+			type="scripted"
+			subsystemName = "SSDR"
+			src = "..\..\..\..\samples\Aeolus\pythonScripts\ssdr.py"
+			className = "ssdr">
+      <PARAMETER name="bufferSize" type="double" value="5000" />
+      <STATE
+				type="Double"
+        name="DATABUFFERRATIO_KEY"
+				key="DataBufferFillRatio"
+				value="0.0">
+			</STATE>
+		</SUBSYSTEM>
+		
+		<SUBSYSTEM
+			type="scripted"
+			subsystemName = "Comm"
+			src="..\..\..\..\samples\Aeolus\pythonScripts\comm.py"
+			className="comm">
+			<STATE
+				type="Double"
+        name="DATARATE_KEY"
+				key="DataRate(MB/s)"
+				value="0.0">
+			</STATE>
+		</SUBSYSTEM>
+
+		<SUBSYSTEM
+			type="scripted"
+			subsystemName = "Power"
+			src = "..\..\..\..\samples\Aeolus\pythonScripts\power.py"
+			className = "power"
+			batterySize="1000000"
+			fullSolarPower="150"
+			penumbraSolarPower="75">
+      <PARAMETER name="batterySize" type="double" value="1000000" />
+      <PARAMETER name="fullSolarPower" type="double" value="150" />
+      <PARAMETER name="penumbraSolarPower" type="double" value="75" />
+			<STATE
+				type="Double"
+        name="DOD_KEY"
+				key="DepthofDischarge"
+				value="0.0">
+			</STATE>
+			<STATE
+				type="Double" 
+        name="POWIN_KEY"
+				key="SolarPanelPowerIn" 
+				value="0.0">
+			</STATE>
+		</SUBSYSTEM>
+		
+		<CONSTRAINT
+			value="0.25"
+			subsystemName = "Power"
+			type="FAIL_IF_HIGHER"
+			name="con1">
+			<STATEVAR 
+				type = "Double" 
+				key="DepthofDischarge">
+			</STATEVAR>
+		</CONSTRAINT>
+		
+		<CONSTRAINT
+			value="0.7"
+			subsystemName="SSDR"
+			type="FAIL_IF_HIGHER"
+			name="con2">
+			<STATEVAR 
+				type = "Double" 
+				key="DataBufferFillRatio">
+			</STATEVAR>
+		</CONSTRAINT>
+		
+	</ASSET>
+	<ASSET assetName="Asset2">
+		<DynamicState
+			DynamicStateType="PREDETERMINED_ECI"
+			ICs="[-7378.137; 0.0; 0.0; 0.0; -6.02088; 4.215866]">
+			<EOMS
+				EOMSType="orbital_EOMS">
+			</EOMS>
+		</DynamicState>
+		<SUBSYSTEM
+			type="Access"
+			subsystemName = "Access">
+		</SUBSYSTEM>
+		<SUBSYSTEM
+			type="ADCS"
+			subsystemName = "ADCS"
+			slewRate = "5">
+			<STATE
+				type="Matrix" 
+        name="POINTVEC_KEY"
+				key="ECI_Pointing_Vector(XYZ)" 
+				value="[0.0; 0.0; 0.0]">
+			</STATE>
+		</SUBSYSTEM>
+		<SUBSYSTEM
+			type="EOSensor"
+			subsystemName = "EOSensor"
+			lowQualityNumPixels="5000"
+			midQualityNumPixels="10000"
+			highQualityNumPixels="15000"
+			lowQualityCaptureTime="3"
+			midQualityCaptureTime="5"
+			highQualityCaptureTime="7">
+			<STATE
+				type="Double" 
+        name="PIXELS_KEY"
+				key="numPixels" 
+				value="0.0">
+			</STATE>
+			<STATE
+				type="Double" 
+        name="INCIDENCE_KEY"
+				key="IncidenceAngle" 
+				value="0.0">
+			</STATE>
+			<STATE
+				type="Bool" 
+        name="EOON_KEY"
+				key="EOSensorOn" 
+				value="0.0">
+			</STATE>
+		</SUBSYSTEM>
+		<SUBSYSTEM
+			type="Ssdr"
+			subsystemName = "SSDR"
+			bufferSize = "5000">
+			<STATE
+				type="Double" 
+        name="DATABUFFERRATIO_KEY"
+				key="DataBufferFillRatio" 
+				value="0.0">
+			</STATE>
+		</SUBSYSTEM>
+		<SUBSYSTEM
+			type="Comm"
+			subsystemName = "Comm">
+			<STATE
+				type="Double" 
+        name="DATARATE_KEY"
+				key="DataRate(MB/s)" 
+				value="0.0">
+			</STATE>		
+		</SUBSYSTEM>		
+		<SUBSYSTEM
+			type="Power"
+			subsystemName = "Power"
+			batterySize="1000000"
+			fullSolarPower="150"
+			penumbraSolarPower="75">
+			<STATE
+				type="Double" 
+        name="DOD_KEY"
+				key="DepthofDischarge" 
+				value="0.0">
+			</STATE>
+			<STATE
+				type="Double" 
+        name="POWIN_KEY"
+				key="SolarPanelPowerIn" 
+				value="0.0">
+			</STATE>
+		</SUBSYSTEM>
+		<CONSTRAINT
+			value="0.25"
+			subsystemName = "Power"
+			type="FAIL_IF_HIGHER"
+			name="con1">
+			<STATEVAR 
+				type = "Double" 
+				key="DepthofDischarge">
+			</STATEVAR>
+		</CONSTRAINT>
+		<CONSTRAINT
+			value="0.7"
+			subsystemName="SSDR"
+			type="FAIL_IF_HIGHER"
+			name="con2">
+			<STATEVAR 
+				type = "Double" 
+				key="DataBufferFillRatio">
+			</STATEVAR>
+		</CONSTRAINT>
+	</ASSET>
+	<!-- Asset 1 Deps-->
+	<DEPENDENCY
+		subsystemName = "ADCS"
+		assetName = "Asset1"
+		depSubsystemName = "Access"
+		depAssetName = "Asset1">
+	</DEPENDENCY>
+	<DEPENDENCY
+		subsystemName = "EOSensor"
+		assetName = "Asset1"
+		depSubsystemName = "ADCS"
+		depAssetName = "Asset1">
+	</DEPENDENCY>
+	<DEPENDENCY
+		subsystemName = "SSDR"
+		assetName = "Asset1"
+		depSubsystemName = "EOSensor"
+		depAssetName = "Asset1"
+		fcnName="SSDR_asset1_from_EOSensor_asset1">
+	</DEPENDENCY>
+	<DEPENDENCY
+		subsystemName = "Comm"
+		assetName = "Asset1"
+		depSubsystemName = "SSDR"
+		depAssetName = "Asset1"
+		fcnName="Comm_asset1_from_SSDR_asset1">
+	</DEPENDENCY>
+	<DEPENDENCY
+		subsystemName = "Power"
+		assetName = "Asset1"
+		depSubsystemName = "Comm"
+		depAssetName = "Asset1"
+		fcnName="Power_asset1_from_Comm_asset1">
+	</DEPENDENCY>
+	<DEPENDENCY
+		subsystemName = "Power"
+		assetName = "Asset1"
+		depSubsystemName = "ADCS"
+		depAssetName = "Asset1"
+		fcnName="Power_asset1_from_ADCS_asset1">
+	</DEPENDENCY>
+	<DEPENDENCY
+		subsystemName = "Power"
+		assetName = "Asset1"
+		depSubsystemName = "EOSensor"
+		depAssetName = "Asset1"
+		fcnName="Power_asset1_from_EOSensor_asset1">
+	</DEPENDENCY>
+	<DEPENDENCY
+		subsystemName = "Power"
+		assetName = "Asset1"
+		depSubsystemName = "SSDR"
+		depAssetName = "Asset1"
+		fcnName="Power_asset1_from_SSDR_asset1">
+	</DEPENDENCY>
+	<!-- Asset 2 Deps -->
+	<DEPENDENCY
+		subsystemName = "ADCS"
+		assetName = "Asset2"
+		depSubsystemName = "Access"
+		depAssetName = "Asset2">
+	</DEPENDENCY>
+	<DEPENDENCY
+		subsystemName = "EOSensor"
+		assetName = "Asset2"
+		depSubsystemName = "ADCS"
+		depAssetName = "Asset2">
+	</DEPENDENCY>
+	<DEPENDENCY
+		subsystemName = "SSDR"
+		assetName = "Asset2"
+		depSubsystemName = "EOSensor"
+		depAssetName = "Asset2"
+		fcnName="SSDR_asset1_from_EOSensor_asset1">
+	</DEPENDENCY>
+	<DEPENDENCY
+		subsystemName = "Comm"
+		assetName = "Asset2"
+		depSubsystemName = "SSDR"
+		depAssetName = "Asset2"
+		fcnName="Comm_asset1_from_SSDR_asset1">
+		<!--<DEPENDENCY subsystemName="SSDR" fcnName="Asset1.CommfromSSDR"></DEPENDENCY>-->
+	</DEPENDENCY>
+	<DEPENDENCY
+		subsystemName = "Power"
+		assetName = "Asset2"
+		depSubsystemName = "Comm"
+		depAssetName = "Asset2"
+		fcnName = "Power_asset1_from_Comm_asset1">
+	</DEPENDENCY>
+	<DEPENDENCY
+		subsystemName = "Power"
+		assetName = "Asset2"
+		depSubsystemName = "ADCS"
+		depAssetName = "Asset2"
+		fcnName = "Power_asset1_from_ADCS_asset1">
+	</DEPENDENCY>
+	<DEPENDENCY
+		subsystemName = "Power"
+		assetName = "Asset2"
+		depSubsystemName = "EOSensor"
+		depAssetName = "Asset2"
+		fcnName = "Power_asset1_from_EOSensor_asset1">
+	</DEPENDENCY>
+	<DEPENDENCY
+		subsystemName = "Power"
+		assetName = "Asset2"
+		depSubsystemName = "SSDR"
+		depAssetName = "Asset2"
+		fcnName = "Power_asset1_from_SSDR_asset1">
+	</DEPENDENCY>
+	<!-- Evaluator -->
+	<EVALUATOR
+		type = "targetvalueevaluator"
+		src ="..\..\..\samples\Aeolus\pythonScripts\eval.py"
+		className ="eval">
+		<KEYREQUEST
+			keyAsset = "Asset1"
+			keySub = "SSDR"
+			keyType = "Double">
+		</KEYREQUEST>
+		<KEYREQUEST
+			keyAsset ="Asset2"
+			keySub = "SSDR"
+			keyType = "Double">
+		</KEYREQUEST>
+		<KEYREQUEST
+			keyAsset ="Asset2"
+			keySub = "EOSensor"
+			keyType = "Bool">
+		</KEYREQUEST>
+		<KEYREQUEST
+			keyAsset ="Asset1"
+			keySub = "ADCS"
+			keyType = "Matrix">
+		</KEYREQUEST>
+</EVALUATOR>
+</MODEL>
