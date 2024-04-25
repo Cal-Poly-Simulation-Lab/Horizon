@@ -67,7 +67,7 @@ namespace HSFSystem
 
             string pythonFilePath ="", className = "";
             XmlParser.ParseScriptedSrc(scriptedSubXmlNode, ref pythonFilePath, ref className);
-            pythonFilePath = Path.Combine(Utilities.DevEnvironment.repoDirectory,pythonFilePath.Replace('\\','/')); //Replace backslashes with forward slashes, if applicable
+            pythonFilePath = Path.Combine(Utilities.DevEnvironment.RepoDirectory,pythonFilePath.Replace('\\','/')); //Replace backslashes with forward slashes, if applicable
 
             //  I believe this was added by Jack B. for unit testing.  Still need to sort out IO issues, but with this commented out
             //  the execuitable will look for python files in the same directory as the .exe file is located.
@@ -82,12 +82,12 @@ namespace HSFSystem
             var ops = engine.Operations;
             // Search paths are for importing modules from python scripts, not for executing python subsystem files
             var p = engine.GetSearchPaths();
-            p.Add(DevEnvironment.repoDirectory);
-            p.Add(Path.Combine(DevEnvironment.repoDirectory,"samples/PythonSubs"));
-            p.Add(Path.Combine(DevEnvironment.repoDirectory,"tools"));            
+            p.Add(DevEnvironment.RepoDirectory);
+            p.Add(Path.Combine(DevEnvironment.RepoDirectory,"samples/PythonSubs"));
+            p.Add(Path.Combine(DevEnvironment.RepoDirectory,"tools"));            
             
             //p.Add(AppDomain.CurrentDomain.BaseDirectory + @"..\..\..\samples\Aeolus\pythonScripts"); // Need to do something about this line
-            p.Add(Path.Combine(DevEnvironment.repoDirectory,"samples/Aeolus/pythonScripts"));
+            p.Add(Path.Combine(DevEnvironment.RepoDirectory,"samples/Aeolus/pythonScripts"));
             // Trying to use these so we can call numpy, etc...  Does not seem to work 8/31/23
             //p.Add(@"C:\Python310\Lib\site-packages\");
             //p.Add(@"C:\Python310\Lib");

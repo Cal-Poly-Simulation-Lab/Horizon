@@ -27,12 +27,12 @@ namespace HSFSystem
             var ops = engine.Operations;
             // Search paths are for importing modules from python scripts, not for executing python subsystem files
             var p = engine.GetSearchPaths();
-            p.Add(DevEnvironment.repoDirectory);
-            p.Add(Path.Combine(DevEnvironment.repoDirectory,"samples/PythonSubs"));
-            p.Add(Path.Combine(DevEnvironment.repoDirectory,"tools"));
+            p.Add(DevEnvironment.RepoDirectory);
+            p.Add(Path.Combine(DevEnvironment.RepoDirectory,"samples/PythonSubs"));
+            p.Add(Path.Combine(DevEnvironment.RepoDirectory,"tools"));
             
             engine.SetSearchPaths(p);
-            engine.ExecuteFile(Path.Combine(DevEnvironment.repoDirectory,"tools/HSF_Helper.py"), scope);
+            engine.ExecuteFile(Path.Combine(DevEnvironment.RepoDirectory,"tools/HSF_Helper.py"), scope);
             var pythonType = scope.GetVariable("HSFHelper");
             PythonInstance = ops.CreateInstance(pythonType);
         }

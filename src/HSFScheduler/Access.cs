@@ -131,7 +131,7 @@ namespace HSFScheduler
             string filename = "AccessReport.csv"; 
             string fullFilename = "";
             if (outputDir != null) { fullFilename = Path.Combine(outputDir,filename); }
-            else { fullFilename = Path.Combine(DevEnvironment.repoDirectory,"output","HorizonLog",filename); }
+            else { fullFilename = Path.Combine(DevEnvironment.RepoDirectory,"output","HorizonLog",filename); }
 
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullFilename))
             {

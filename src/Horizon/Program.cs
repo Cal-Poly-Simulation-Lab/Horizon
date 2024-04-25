@@ -60,12 +60,10 @@ namespace Horizon
         public Stack<Task> SystemTasks { get; set; } = new Stack<Task>();
 
         // Setting up global relative path attributes:
-        public static string executablePath = DevEnvironment.executablePath; 
-        public static string executableDirectory = DevEnvironment.executableDirectory; // Might not be executable directory{get; set;}
-        public static string srcDirectory = DevEnvironment.srcDirectory;   // This grabs the directory of the Horizon project (ie "Horizon/src/") {get; set; }
-        public static string? repoDirectory = DevEnvironment.repoDirectory; 
+         public static string? RepoDirectory = DevEnvironment.RepoDirectory;
 
-        
+
+
 
 
         public static int Main(string[] args) //
@@ -104,7 +102,7 @@ namespace Horizon
             program.log.Info("Max Schedule Value: " + maxSched);
 
             // Mehiel's way
-            string stateDataFilePath = Path.Combine(repoDirectory, "output/HorizonLog/Scratch");// + string.Format("output-{0:yyyy-MM-dd-hh-mm-ss}", DateTime.Now);
+            string stateDataFilePath = Path.Combine(DevEnvironment.RepoDirectory, "output/HorizonLog/Scratch");// + string.Format("output-{0:yyyy-MM-dd-hh-mm-ss}", DateTime.Now);
             SystemSchedule.WriteSchedule(program.Schedules[0], stateDataFilePath);
 
             //  Move this to a method that always writes out data about the dynamic state of assets, the target dynamic state data, other data?
@@ -124,7 +122,7 @@ namespace Horizon
             // The scenario (from exmaples or User) that HSF will be running:
             string scenario = "Aeolus";
             // This is the path or "subpath" to the Horizon/samples/ directory where the simulation input files are stored.
-            string subpath = Path.Combine(repoDirectory, "samples"); 
+            string subpath = Path.Combine(RepoDirectory, "samples"); 
 
             switch(scenario)
             {
@@ -231,7 +229,7 @@ namespace Horizon
         {
             // Initialize Output File
             var outputFileName = string.Format("output-{0:yyyy-MM-dd}-*", DateTime.Now);
-            string outputPath = Path.Combine(repoDirectory, "output/HorizonLog");
+            string outputPath = Path.Combine(RepoDirectory, "output/HorizonLog");
             if (this.OutputPath != null) {outputPath = this.OutputPath; } // Update the outputPath to the user specified input, if applicable
             Directory.CreateDirectory(outputPath); // Create the output directory if it doesn't already exist. 
             var txt = ".txt";
