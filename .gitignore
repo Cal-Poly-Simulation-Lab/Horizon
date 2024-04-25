@@ -4,12 +4,15 @@
 !Horizon.sln
 # Ignore locally produced build elements:
 .vs/
+.vscode/
 *.vs
 obj/
 bin/
 [Oo]bj/
 [Bb]in/
 [Dd]ebug/
+# Horizon output (should be self-generated within repo):
+output/
 
 # Exclude my notes:
 notes.txt

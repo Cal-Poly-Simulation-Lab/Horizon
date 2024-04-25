@@ -16,7 +16,8 @@ using Utilities;
 using Microsoft.Scripting.Actions.Calls;
 using System.Net.Http.Headers;
 using Task = MissionElements.Task; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
-
+using System.Diagnostics;
+using System.CodeDom;
 
 namespace Horizon
 {
@@ -58,6 +59,15 @@ namespace Horizon
         public string OutputPath { get; set; }
         public Stack<Task> SystemTasks { get; set; } = new Stack<Task>();
 
+        // Setting up global relative path attributes:
+        public static string executablePath = DevEnvironment.executablePath; 
+        public static string executableDirectory = DevEnvironment.executableDirectory; // Might not be executable directory{get; set;}
+        public static string srcDirectory = DevEnvironment.srcDirectory;   // This grabs the directory of the Horizon project (ie "Horizon/src/") {get; set; }
+        public static string? repoDirectory = DevEnvironment.repoDirectory; 
+
+        
+
+
         public static int Main(string[] args) //
         {
             Program program = new Program();
@@ -94,7 +104,7 @@ namespace Horizon
             program.log.Info("Max Schedule Value: " + maxSched);
 
             // Mehiel's way
-            string stateDataFilePath = @"C:\HorizonLog\Scratch";// + string.Format("output-{0:yyyy-MM-dd-hh-mm-ss}", DateTime.Now);
+            string stateDataFilePath = Path.Combine(repoDirectory, "output/HorizonLog/Scratch");// + string.Format("output-{0:yyyy-MM-dd-hh-mm-ss}", DateTime.Now);
             SystemSchedule.WriteSchedule(program.Schedules[0], stateDataFilePath);
 
             //  Move this to a method that always writes out data about the dynamic state of assets, the target dynamic state data, other data?
@@ -108,19 +118,24 @@ namespace Horizon
             //Console.ReadKey();
             return 0;
         }
+
         public void InitInput(string[] args)
         {
-            string scenario = "myFirstHSFProjectDependency";
-            string subpath = "";
+            // The scenario (from exmaples or User) that HSF will be running:
+            string scenario = "Aeolus";
+            // This is the path or "subpath" to the Horizon/samples/ directory where the simulation input files are stored.
+            string subpath = Path.Combine(repoDirectory, "samples"); 
+
             switch(scenario)
             {
                 case "Aeolus":
                     // Set Defaults
-                    subpath = @"..\..\..\..\samples\Aeolus\";
-                    SimulationInputFilePath = subpath + @"AeolusSimulationInput.xml";
-                    TargetDeckFilePath = subpath + @"v2.2-300targets.xml";
+                    //subpath = @"..\..\..\..\samples\Aeolus\";
+                    subpath = Path.Combine(subpath,"Aeolus");
+                    SimulationInputFilePath = Path.Combine(subpath, "AeolusSimulationInput.xml");
+                    TargetDeckFilePath = Path.Combine(subpath, "v2.2-300targets.xml");
                     // Asset 1 Scripted, Asset 2 C#
-                    ModelInputFilePath = subpath + @"DSAC_Static_Mod_Scripted.xml";
+                    ModelInputFilePath = Path.Combine(subpath, "DSAC_Static_Mod_Scripted.xml");
                     // Asset 1 mix Scripted/C#, Asset 2 C#
                     //ModelInputFilePath = subpath + @"DSAC_Static_Mod_PartialScripted.xml"; 
                     // Asset 1 C#, Asset 2 C#
@@ -129,29 +144,32 @@ namespace Horizon
 
                 case "myFirstHSFProject":
                     // Set myFirstHSFProject file paths
-                    subpath = @"..\..\..\..\samples\myFirstHSFProject\";
-                    SimulationInputFilePath = subpath + @"myFirstHSFScenario.xml";
-                    TargetDeckFilePath = subpath + @"myFirstHSFTargetDeck.xml";
-                    ModelInputFilePath = subpath + @"myFirstHSFSystem.xml";
+                    //subpath = @"..\..\..\..\samples\myFirstHSFProject\";
+                    subpath = Path.Combine(subpath,"myFirstHSFProject");
+                    SimulationInputFilePath = Path.Combine(subpath, "myFirstHSFScenario.xml");
+                    TargetDeckFilePath = Path.Combine(subpath, "myFirstHSFTargetDeck.xml");
+                    ModelInputFilePath = Path.Combine(subpath, "myFirstHSFSystem.xml");
                     break;
 
-                case "myFirstHSFProjectLook":
+                case "myFirstHSFProjectConstraint":
                     // Set myFirstHSFProjectConstraint file paths
-                    subpath = @"..\..\..\..\samples\myFirstHSFProjectConstraint\";
-                    SimulationInputFilePath = subpath + @"myFirstHSFScenario.xml";
-                    TargetDeckFilePath = subpath + @"myFirstHSFTargetDeck.xml";
-                    ModelInputFilePath = subpath + @"myFirstHSFSystemLook.xml";
+                    //subpath = @"..\..\..\..\samples\myFirstHSFProjectConstraint\";
+                    subpath = Path.Combine(subpath,"myFirstHSFProjectConstraint");
+                    SimulationInputFilePath = Path.Combine(subpath, "myFirstHSFScenario.xml");
+                    TargetDeckFilePath = Path.Combine(subpath, "myFirstHSFTargetDeck.xml");
+                    ModelInputFilePath = Path.Combine(subpath, "myFirstHSFSystemLook.xml");
                     break;
                 case "myFirstHSFProjectDependency":
                     // Set myFirstHSFProjectDependency file paths
-                    subpath = @"..\..\..\..\samples\myFirstHSFProjectDependency\";
-                    SimulationInputFilePath = subpath + @"myFirstHSFScenario.xml";
-                    TargetDeckFilePath = subpath + @"myFirstHSFTargetDeck.xml";
-                    ModelInputFilePath = subpath + @"myFirstHSFSystemDependency.xml";
+                    //subpath = @"..\..\..\..\samples\myFirstHSFProjectDependency\";
+                    subpath = Path.Combine(subpath,"myFirstHSFProjectDependency");
+                    SimulationInputFilePath = Path.Combine(subpath, "myFirstHSFScenario.xml");
+                    TargetDeckFilePath = Path.Combine(subpath, "myFirstHSFTargetDeck.xml");
+                    ModelInputFilePath = Path.Combine(subpath, "myFirstHSFSystemDependency.xml");
                     break;
             }
 
-            bool simulationSet = false, targetSet = false, modelSet = false;
+            bool simulationSet = false, targetSet = false, modelSet = false; bool outputSet = false;
 
             // Get the input filenames
             int i = 0;
@@ -160,7 +178,7 @@ namespace Horizon
                 i++;
                 switch (input)
                 {
-                    case " - s":
+                    case " -s":
                         SimulationInputFilePath = args[i];
                         simulationSet = true;
                         Console.WriteLine("Using custom simulation file: " + SimulationInputFilePath);
@@ -177,6 +195,12 @@ namespace Horizon
                         modelSet = true;
                         Console.WriteLine("Using custom model file: " + ModelInputFilePath);
                         log.Info("Using custom model file: " + ModelInputFilePath);
+                        break;
+                    case "-o": // In the CLI args-in, this would be set as a directory path. 
+                        this.OutputPath = args[i];
+                        outputSet = true;
+                        Console.WriteLine("Using custom output path: " + OutputPath);
+                        log.Info("Using custom output path: " + OutputPath);
                         break;
                 }
             }
@@ -197,13 +221,19 @@ namespace Horizon
             {
                 log.Info("Using Default Model File");
             }
+            if (!outputSet)
+            {
+                log.Info("Using Default Output Filepath");
+            }
 
         }
         public void InitOutput()
         {
             // Initialize Output File
             var outputFileName = string.Format("output-{0:yyyy-MM-dd}-*", DateTime.Now);
-            string outputPath = @"C:\HorizonLog\";
+            string outputPath = Path.Combine(repoDirectory, "output/HorizonLog");
+            if (this.OutputPath != null) {outputPath = this.OutputPath; } // Update the outputPath to the user specified input, if applicable
+            Directory.CreateDirectory(outputPath); // Create the output directory if it doesn't already exist. 
             var txt = ".txt";
             string[] fileNames = System.IO.Directory.GetFiles(outputPath, outputFileName, System.IO.SearchOption.TopDirectoryOnly);
             double number = 0;

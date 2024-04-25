@@ -1,6 +1,6 @@
 <SCENARIO
   scenarioName="Aeolus"
-  src="C:\Users\emehiel\source\repos\Horizon\samples\Aeolus\"
+  src="samples\Aeolus"
   modelSrc="DSAC_Static_Mod_Scripted.xml"
   targetSrc="v2.2-300targets.xml"
   pythonSrc="pythonScripts\"

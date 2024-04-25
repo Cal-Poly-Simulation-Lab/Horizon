@@ -7,6 +7,7 @@ using System.Xml;
 using HSFSystem;
 using MissionElements;
 using UserModel;
+using Utilities;
 using Task = MissionElements.Task; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
 
 
@@ -125,9 +126,12 @@ namespace HSFScheduler
         /// <param name="pregeneratedAccesses"></param>
         public static void writeAccessReport(Stack<Access> pregeneratedAccesses)
         {
+
             string outputDir = SimParameters.OutputDirector;
-            string filename = "HorizonLog\\AccessReport.csv";
-            string fullFilename = outputDir + "\\" + filename;
+            string filename = "AccessReport.csv"; 
+            string fullFilename = "";
+            if (outputDir != null) { fullFilename = Path.Combine(outputDir,filename); }
+            else { fullFilename = Path.Combine(DevEnvironment.repoDirectory,"output","HorizonLog",filename); }
 
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullFilename))
             {

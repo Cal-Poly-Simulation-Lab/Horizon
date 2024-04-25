@@ -8,7 +8,7 @@
     <SUBSYSTEM
       subsystemName = "CameraLook"
       type="scripted"
-      src="..\..\..\..\samples\myFirstHSFProjectDependency\CameraLook.py"
+      src="samples\myFirstHSFProjectDependency\CameraLook.py"
       className="CameraLook">
       <PARAMETER name="imageCaptureTime" type="double" value="3" />
       <STATE type="Matrix" name="POINTVEC_KEY" key="ECI_Pointing_Vector(XYZ)" value="[0.0; 0.0; 0.0]"/>
@@ -17,7 +17,7 @@
     <SUBSYSTEM
       subsystemName = "DataBuffer"
       type = "scripted"
-      src = "..\..\..\..\samples\myFirstHSFProjectDependency\DataBuffer.py"
+      src = "samples\myFirstHSFProjectDependency\DataBuffer.py"
       className = "DataBuffer">
       <PARAMETER name ="bufferSize" type="double" value="500"/>
       <STATE type="double" name="DataBufferRatio" key="dataBufferFillRatio" value="0.0"/>

@@ -17,7 +17,7 @@
 		<SUBSYSTEM
 			type="scripted"
 			subsystemName = "ADCS"
-			src="..\..\..\..\samples\Aeolus\pythonScripts\adcs.py"
+			src="samples\Aeolus\pythonScripts\adcs.py"
 			className="adcs">
 			<STATE
 				type="Matrix"
@@ -30,7 +30,7 @@
 		<SUBSYSTEM
 			type="scripted"
 			subsystemName = "EOSensor"
-			src = "..\..\..\..\samples\Aeolus\pythonScripts\eosensor.py"
+			src = "samples\Aeolus\pythonScripts\eosensor.py"
 			className = "eosensor">
       <PARAMETER name="lowQualityCaptureTime" type="double" value="3" />
       <PARAMETER name="midQualityCaptureTime" type="double" value="5" />
@@ -61,7 +61,7 @@
 		<SUBSYSTEM
 			type="scripted"
 			subsystemName = "SSDR"
-			src = "..\..\..\..\samples\Aeolus\pythonScripts\ssdr.py"
+			src = "samples\Aeolus\pythonScripts\ssdr.py"
 			className = "ssdr">
       <PARAMETER name="bufferSize" type="double" value="5000" />
       <STATE
@@ -75,7 +75,7 @@
 		<SUBSYSTEM
 			type="scripted"
 			subsystemName = "Comm"
-			src="..\..\..\..\samples\Aeolus\pythonScripts\comm.py"
+			src="samples\Aeolus\pythonScripts\comm.py"
 			className="comm">
 			<STATE
 				type="Double"
@@ -88,7 +88,7 @@
 		<SUBSYSTEM
 			type="scripted"
 			subsystemName = "Power"
-			src = "..\..\..\..\samples\Aeolus\pythonScripts\power.py"
+			src = "samples\Aeolus\pythonScripts\power.py"
 			className = "power"
 			batterySize="1000000"
 			fullSolarPower="150"
@@ -359,7 +359,7 @@
 	<!-- Evaluator -->
 	<EVALUATOR
 		type = "targetvalueevaluator"
-		src ="..\..\..\samples\Aeolus\pythonScripts\eval.py"
+		src ="samples\Aeolus\pythonScripts\eval.py"
 		className ="eval">
 		<KEYREQUEST
 			keyAsset = "Asset1"

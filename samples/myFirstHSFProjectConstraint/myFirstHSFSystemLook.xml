@@ -8,7 +8,7 @@
     <SUBSYSTEM
       subsystemName = "CameraLook"
       type="scripted"
-      src="..\..\..\..\samples\myFirstHSFProjectConstraint\CameraLook.py"
+      src="samples\myFirstHSFProjectConstraint\CameraLook.py"
       className="CameraLook">
       <PARAMETER name="imageCaptureTime" type="double" value="3" />
       <STATE type="Matrix" name="POINTVEC_KEY" key="ECI_Pointing_Vector(XYZ)" value="[0.0; 0.0; 0.0]"/>
