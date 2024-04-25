@@ -59,13 +59,7 @@ namespace Horizon
         public string OutputPath { get; set; }
         public Stack<Task> SystemTasks { get; set; } = new Stack<Task>();
 
-        // Setting up global relative path attributes:
-         public static string? RepoDirectory = DevEnvironment.RepoDirectory;
-
-
-
-
-
+        // Main Program
         public static int Main(string[] args) //
         {
             Program program = new Program();
@@ -122,7 +116,7 @@ namespace Horizon
             // The scenario (from exmaples or User) that HSF will be running:
             string scenario = "Aeolus";
             // This is the path or "subpath" to the Horizon/samples/ directory where the simulation input files are stored.
-            string subpath = Path.Combine(RepoDirectory, "samples"); 
+            string subpath = Path.Combine(DevEnvironment.RepoDirectory, "samples"); 
 
             switch(scenario)
             {
@@ -229,7 +223,7 @@ namespace Horizon
         {
             // Initialize Output File
             var outputFileName = string.Format("output-{0:yyyy-MM-dd}-*", DateTime.Now);
-            string outputPath = Path.Combine(RepoDirectory, "output/HorizonLog");
+            string outputPath = Path.Combine(DevEnvironment.RepoDirectory, "output/HorizonLog");
             if (this.OutputPath != null) {outputPath = this.OutputPath; } // Update the outputPath to the user specified input, if applicable
             Directory.CreateDirectory(outputPath); // Create the output directory if it doesn't already exist. 
             var txt = ".txt";
