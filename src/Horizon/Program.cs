@@ -114,7 +114,7 @@ namespace Horizon
 
         public void InitInput(List<string> argsList)
         {
-            // This would be in a config file - not used right now (4/26/24)
+            // This would be in a config file - not used right now (4/26/24) -EM
             string basePath = @"C:\Users\emehiel\Source\Repos\Horizon8\";
             string subPath = "";
 
@@ -138,6 +138,7 @@ namespace Horizon
                 subPath = Path.Combine(basePath, argsList[indx + 1]);
             }
 
+            // Default startup project
             if (argsList.Count == 0)
             {
                 argsList.Add("-scen");

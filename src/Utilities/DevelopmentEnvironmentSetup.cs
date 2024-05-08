@@ -9,8 +9,8 @@ namespace Utilities
     public static class DevEnvironment
     {
         // Relative pathing set up:
-        public static string ExecutablePath {get; } = Environment.ProcessPath; // {get; set;}
-        public static string ExecutableDirectory {get; }= Path.GetDirectoryName(ExecutablePath); // Might not be executable directory{get; set;}
+        public static string ExecutablePath {get; } = Environment.ProcessPath; // Gets the current executable path of Horizon. 
+        public static string ExecutableDirectory {get; }= Path.GetDirectoryName(ExecutablePath); // Returns the executable directory of Horizon. 
         
         // Currently, the main repository directory is 5 directories up from where the executable lives within the directory
         // (during Debug and Run mode). Released version(s) of Horizon will likely need to rework this pathing setup. This
