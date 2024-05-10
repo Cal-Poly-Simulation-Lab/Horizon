@@ -3,6 +3,7 @@
 
 using HSFUniverse;
 using MissionElements;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -19,27 +20,11 @@ namespace HSFSystem
         #endregion
 
         #region Constructors
-        /// <summary>
-        /// Constructor for built in subsystem
-        /// </summary>
-        /// <param name="CommXmlNode"></param>
-        /// <param name="asset"></param>
-        public Comm(XmlNode CommXmlNode)
-        {
-            //DefaultSubName = "Comm";
-        }
 
-        /// <summary>
-        /// Constructor for scripted subsystem
-        /// </summary>
-        /// <param name="CommXmlNode"></param>
-        /// <param name="asset"></param>
-        /*
-        public Comm(XmlNode CommXmlNode, Asset asset) : base(CommXmlNode, asset)
+        public Comm(JObject commJson)
         {
-            
+
         }
-        */
         #endregion
 
         #region Methods
@@ -53,12 +38,12 @@ namespace HSFSystem
         {
             var DATARATE_KEY = Dkeys[0];
 
-            if (_task.Type == "comm")
+            if (Task.Type == "comm")
             {
                 HSFProfile<double> newProf = DependencyCollector(proposedEvent);
                 if (!newProf.Empty())
                     proposedEvent.State.AddValues(DATARATE_KEY, newProf);
-                    //proposedEvent.State.SetProfile(DATARATE_KEY, newProf);
+                //proposedEvent.State.SetProfile(DATARATE_KEY, newProf);
             }
             return true;
         }

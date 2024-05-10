@@ -56,21 +56,25 @@ namespace HSFScheduler
                 return true;
 
             var events = proposedSchedule.AllStates.Events;
-            
+
             //if (events.Count != 0)
             //{
-                //if (events.Count > 1)
-                //    subsystem._oldState = events.ElementAt(events.Count - 2).State;
-                //else
-                //    subsystem._oldState = null;
-                try
-                {
-                    return subsystem.CheckDependentSubsystems(events.Peek(), environment);
-                }
-                catch
-                {
-                    throw new Exception("Empty set of events on proposed schedule");
-                }
+            //if (events.Count > 1)
+            //    subsystem._oldState = events.ElementAt(events.Count - 2).State;
+            //else
+            //    subsystem._oldState = null;
+            bool result = false;
+            try
+            {
+                result = subsystem.CheckDependentSubsystems(events.Peek(), environment);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in Checker call for subsystem {subsystem.Name}. With exception {ex}");
+
+                Console.WriteLine(ex.ToString());
+            }
+            return result;
                 //if (!subsystem.CheckDependentSubsystems(events.Peek(), environment))
                 //{
                 //    return false;

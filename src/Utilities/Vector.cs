@@ -5,13 +5,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Xml.Serialization;
-using System.Xml;
-using System.Linq;
+using Newtonsoft.Json;
 
 namespace Utilities
 {
-    [Serializable()]
     public class Vector : ISerializable, IEnumerable
     {
         #region Properties
@@ -19,8 +16,7 @@ namespace Utilities
         /// The number of elements in the vector
         /// </summary>
         /// 
-        
-        [XmlIgnore]
+
         public int Length { get; set; }
 
         #endregion
@@ -45,6 +41,16 @@ namespace Utilities
             _elements = new List<double>(new double[n]);
         }
 
+        [JsonConstructor]
+        public Vector(List<object> elements)
+        {
+            _elements = new List<double>();
+            Length = elements.Count;
+            foreach (var e in elements)
+            {
+                _elements.Add(Convert.ToDouble(e));
+            }
+        }
         public Vector(List<double> elements)
         {
             Length = elements.Count;
@@ -62,11 +68,11 @@ namespace Utilities
         }
 
         public Vector(SerializationInfo info, StreamingContext context)
-         {
-             Length = info.GetInt32("Length");
-             _elements = (List<double>)info.GetValue("_elements", typeof(List<double>));
-         }
-         
+        {
+            Length = info.GetInt32("Length");
+            _elements = (List<double>)info.GetValue("_elements", typeof(List<double>));
+        }
+
         #endregion
 
         #region Overrrides
@@ -79,8 +85,8 @@ namespace Utilities
         {
             string s = "[";
 
-                foreach (double element in _elements)
-                    s += element.ToString() + "," + " ";
+            foreach (double element in _elements)
+                s += element.ToString() + "," + " ";
 
 
             s = s.Substring(0, s.Length - 2);
@@ -98,7 +104,7 @@ namespace Utilities
         {
             return ToString() == obj.ToString();
         }
-        
+
         /// <summary>
         /// Gets the hash code of a Matrix based on the ToString() method
         /// </summary>
@@ -121,7 +127,7 @@ namespace Utilities
         {
             if (a.Length != b.Length)
                 throw new ArgumentException("Vectors must be of the same length.");
-            
+
             double buf = 0;
             for (int i = 1; i <= a.Length; i++)
             {
@@ -149,7 +155,7 @@ namespace Utilities
             temp[2] = a[1] * b[2] - a[2] * b[1];
 
             Vector c = new Vector(temp);
-                return c;
+            return c;
         }
 
         /// <summary>
@@ -201,7 +207,7 @@ namespace Utilities
         /// <returns></returns>
         public static Vector operator +(double a, Vector B)
         {
-            
+
             Vector C = new Vector(B.Length);
 
             C = B + a;
@@ -286,7 +292,7 @@ namespace Utilities
                 {
                     d[c] = d[c] + a[r] * B[r, c];
                 }
-                
+
             }
 
             return d;
@@ -373,7 +379,7 @@ namespace Utilities
                 return false;
             else
             {
-                for (int i = 1; i <= A.Length-1; i++)
+                for (int i = 1; i <= A.Length - 1; i++)
                     if (A[i] != B[i])
                         return false;
             }
@@ -390,7 +396,7 @@ namespace Utilities
         {
             return !(A == B);
         }
-        public static bool AreEqual(Vector A, Vector B,double percentOff)
+        public static bool AreEqual(Vector A, Vector B, double percentOff)
         {
             double avg = 1;
             double acceptable;
@@ -399,7 +405,7 @@ namespace Utilities
                 return false;
             else
             {
-                for (i = 1; i <= A.Length-1; i++)
+                for (i = 1; i <= A.Length - 1; i++)
                     avg = (A[i] + B[i]) / 2;
                 acceptable = percentOff * avg;
                 if (Math.Abs(A[i] - B[i]) > acceptable)
@@ -420,7 +426,7 @@ namespace Utilities
         {
             bool isreal = true;
             throw new NotImplementedException("Matrix.IsReal()");
-            
+
         }
 
         /// <summary>
@@ -434,7 +440,7 @@ namespace Utilities
 
         public void SetValue(int col, double value) ///Morgan Added this
         {
-            if( col > 0 && col <= 100)
+            if (col > 0 && col <= 100)
                 this[col] = value; // why do we access it like this?
             else
                 throw new ArgumentException("Element indicies out of Vector bounds");
@@ -452,7 +458,7 @@ namespace Utilities
         /// <returns></returns>
         public static double Max(Vector A)
         {
-            
+
             double max = A[1];
             foreach (double value in A)
             {
@@ -460,7 +466,7 @@ namespace Utilities
             }
             return max;
         }
-      
+
         public static double Min(Vector A)
         {
             double min = A[1];
@@ -470,7 +476,7 @@ namespace Utilities
             }
             return min;
         }
-       
+
         /// <summary>
         /// 
         /// </summary>
@@ -509,10 +515,10 @@ namespace Utilities
         {
             Vector C = (Vector)A.Clone();
 
-                    for (int c = 1; c <= A.Length; c++)
-                    {
-                        C[c] *= C[c-1];
-                    }
+            for (int c = 1; c <= A.Length; c++)
+            {
+                C[c] *= C[c - 1];
+            }
             return C;
 
         }
@@ -525,6 +531,15 @@ namespace Utilities
         public static implicit operator Vector(List<double> c)
         {
             return new Vector(c);
+        }
+
+        public static implicit operator List<double>(Vector v)
+        {
+            List<double> list = new List<double>();
+            foreach (double e in v)
+                list.Add(e);
+
+            return list;
         }
 
         public static explicit operator double(Vector m)
@@ -573,7 +588,7 @@ namespace Utilities
             return new VectorEnum(this);
         }
 
-            
+
         #endregion
 
         #region Accessors
@@ -586,11 +601,11 @@ namespace Utilities
         {
             get
             {
-                return _elements[index-1];
+                return _elements[index - 1];
             }
             set
             {
-                 _elements[index-1] =  value;
+                _elements[index - 1] = value;
             }
         }
 
@@ -601,7 +616,7 @@ namespace Utilities
         /// <param name="cols"></param>
         /// <returns></returns>
         /// 
-       
+
         public Vector this[MatrixIndex rows]
         {
             get
@@ -623,7 +638,7 @@ namespace Utilities
                 }
             }
         }
-        
+
         #endregion
     }
 
@@ -637,13 +652,13 @@ namespace Utilities
         {
             MatrixData = data;
         }
-        
+
         public bool MoveNext()
         {
             position++;
             return (position < MatrixData.Length);
         }
-        
+
         public void Reset()
         {
             position = -1;

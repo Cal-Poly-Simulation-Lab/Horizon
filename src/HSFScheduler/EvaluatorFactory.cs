@@ -10,91 +10,72 @@ using System.Threading.Tasks;
 using System.Xml;
 using MissionElements;
 using Utilities;
+using Newtonsoft.Json.Linq;
+using UserModel;
 
 namespace HSFScheduler
 {
     public class EvaluatorFactory
     {
-        /// <summary>
-        /// Static method to generate an evaluator from XML node
-        /// </summary>
-        /// <param name="evalNode"></param>
-        /// <returns></returns>
-        public static Evaluator GetEvaluator(XmlNode evalNode, List <Subsystem> subList)
+
+        public static Evaluator GetEvaluator(JObject evaluatorJson, List<Subsystem> subsystemList)
         {
             Evaluator schedEvaluator = null;
-            if (evalNode == null) // If no evaluator node is provided,
-            {
-                schedEvaluator = new DefaultEvaluator(); // ensures at least default is used
-                Console.WriteLine("Default Evaluator Loaded");
-            }
-            else // try to get the right evaluator
-            {
 
-                string evalType = evalNode.Attributes["type"].Value.ToString().ToLower();
+            if (JsonLoader<JToken>.TryGetValue("KeyRequests", evaluatorJson, out JToken keyRequests))
 
-                if (evalType != null)
+                if (JsonLoader<string>.TryGetValue("Type", evaluatorJson, out string type))
                 {
-                    if (evalType.Equals("scripted"))
+                    if (type.Equals("scripted", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        EvaluatorFactory EvaluatorFactory = new EvaluatorFactory(); // is this correct??
-                        List<dynamic> keychain = EvaluatorFactory.BuildKeychain(evalNode.SelectNodes("KEYREQUEST"), subList);
-                        schedEvaluator = new ScriptedEvaluator(evalNode, keychain);
+                        List<dynamic> keychain = BuildKeyChain(keyRequests, subsystemList);
+                        schedEvaluator = new ScriptedEvaluator(evaluatorJson, keychain);
                         Console.WriteLine("Scripted Evaluator Loaded");
                     }
-                    else if (evalType.Equals("targetvalueevaluator"))
+                    else if (type.ToLower().Equals("TargetValueEvaluator", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        EvaluatorFactory EvaluatorFactory = new EvaluatorFactory(); // is this correct??
-                        List<dynamic> keychain = EvaluatorFactory.BuildKeychain(evalNode.SelectNodes("KEYREQUEST"), subList);
+                        List<dynamic> keychain = BuildKeyChain(keyRequests, subsystemList);
                         schedEvaluator = new TargetValueEvaluator(keychain);
                         Console.WriteLine("Target Value Evaluator Loaded");
                     }
-                }
-                if (schedEvaluator == null) // Last ditch, evaluator node is provided, but not built by the factory
-                {
-                    if (evalType != null)
+                    else
                     {
-                        Console.WriteLine("Attempt to load input evaluator failed, loading Default Evaluator...");
+                        schedEvaluator = new DefaultEvaluator(); // ensures at least default is used
+                        Console.WriteLine("Default Evaluator Loaded...  This may cause problems...");
                     }
-                    schedEvaluator = new DefaultEvaluator(); // ensures at least default is used
-                    Console.WriteLine("Default Evaluator Loaded");
                 }
-            }
+                else
+                {
+                    Console.WriteLine("Attempt to load evaluator failed, loading Default Evaluator...  This may cause problems...");
+                    schedEvaluator = new DefaultEvaluator(); // ensures at least default is used
+                }
+
             return schedEvaluator;
         }
 
-        private List<dynamic> BuildKeychain (XmlNodeList keyRequests, List<Subsystem> subList)
+        private static List<dynamic> BuildKeyChain(JToken keyRequests, List<Subsystem> subsystems)
         {
-            //List<StateVariableKey<dynamic>> keychain = new List<StateVariableKey<dynamic>>(); // lets see if dynamic works here??? Nope.
-            List<dynamic> keychain = new List<dynamic>(); // Here!
-            foreach (XmlNode keySourceNode in keyRequests)
+            List<dynamic> keychain = new List<dynamic>();
+
+            foreach (JObject key in keyRequests)
             {
-                string InputSub = keySourceNode.Attributes["keySub"].Value.ToString().ToLower();
-                string InputAsset = keySourceNode.Attributes["keyAsset"].Value.ToString().ToLower();
-                string InputType = keySourceNode.Attributes["keyType"].Value.ToString().ToLower();
-                //int idx;
-                //try
-                //{
-                //    idx = Int32.Parse(keySourceNode.Attributes["keyIndex"].Value.ToString());
-                //}
-                //catch
-                //{
-                //    Console.WriteLine("Key index requested is not Int32!");
-                //    throw new ArgumentException("Key index requested is not Int32!");
-                //}
-                Subsystem subRequested = subList.Find(s => s.Name == InputAsset + "." + InputSub);
+                JsonLoader<string>.TryGetValue("subsystem", key, out string InputSub);
+                InputSub = InputSub.ToLower();
+                JsonLoader<string>.TryGetValue("asset", key, out string InputAsset);
+                InputAsset = InputAsset.ToLower();
+                JsonLoader<string>.TryGetValue("type", key, out string InputType);
+                InputType = InputType.ToLower();
+                //string InputSub = keySourceNode.Attributes["keySub"].Value.ToString().ToLower();
+                //string InputAsset = keySourceNode.Attributes["keyAsset"].Value.ToString().ToLower();
+                //string InputType = keySourceNode.Attributes["keyType"].Value.ToString().ToLower();
+
+                Subsystem subRequested = subsystems.Find(s => s.Name == InputAsset + "." + InputSub);
 
                 if (subRequested == null)
                 {
                     Console.WriteLine("Asset/Subsystem pair requested was not found!");
                     throw new ArgumentException("Asset/Subsystem pair requested was not found!");
                 }
-
-                //if (InputType.Equals("int"))
-                //{
-                //    Utilities.StateVariableKey<Int32> keyRequested = subRequested.Ikeys[idx];
-                //    keychain.Add(keyRequested);
-                //}
                 if (InputType.Equals("int"))
                 {
                     foreach (StateVariableKey<Int32> keyOfTypeRequested in subRequested.Ikeys)

@@ -20,8 +20,8 @@ using System.Net.Http.Headers;
 using Task = MissionElements.Task; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
 using System.Diagnostics;
 using System.CodeDom;
-//using Newtonsoft.Json;
-//using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 //using System.Web.Configuration;
 using IronPython.Compiler.Ast;
 using System.Diagnostics.Eventing.Reader;
@@ -77,7 +77,7 @@ namespace Horizon
             
             List<string> argsList = args.ToList();
             program.InitInput(argsList);
-            program.InitOutput();
+            program.InitOutput(argsList);
             program.LoadScenario();
             program.LoadTasks();
             program.LoadSubsystems();
@@ -260,7 +260,7 @@ namespace Horizon
             }
 
         }
-        public void InitOutput()
+        public void InitOutput(List<string> argsList)
         {
             // Initialize Output File
             var outputFileName = string.Format("output-{0:yyyy-MM-dd}-*", DateTime.Now);

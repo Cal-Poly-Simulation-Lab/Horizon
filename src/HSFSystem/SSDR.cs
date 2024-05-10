@@ -10,6 +10,7 @@ using MissionElements;
 using Utilities;
 using log4net;
 using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json.Linq;
 
 namespace HSFSystem
 {
@@ -21,6 +22,13 @@ namespace HSFSystem
         protected StateVariableKey<double> DATABUFFERRATIO_KEY;
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public SSDR(JObject ssdrJson)
+        {
+            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
+            JToken paramJson;
+            if (ssdrJson.TryGetValue("bufferSize", stringCompare, out paramJson))
+                this._bufferSize = paramJson.Value<double>();
+        }
         /// <summary>
         /// Constructor for built in subsystem
         /// Default: BufferSize = 4098
@@ -36,18 +44,6 @@ namespace HSFSystem
         }
 
         /// <summary>
-        /// Constructor for use by scripted subsystem
-        /// </summary>
-        /// <param name="SSDRXmlNode"></param>
-        /// <param name="asset"></param>
-        /*
-        public SSDR(XmlNode SSDRXmlNode, Asset asset) : base(SSDRXmlNode, asset)
-        {
-            
-        }
-        */
-
-        /// <summary>
         /// An override of the Subsystem CanPerform method
         /// </summary>
         /// <param name="proposedEvent"></param>
@@ -59,12 +55,12 @@ namespace HSFSystem
 
 
             //var DATABUFFERRATIO_KEY2 = this.Dkeys.Find(s => s.VariableName == "asset1.databufferfillratio");
-            if (_task.Type == "imaging")
+            if (Task.Type == "imaging")
             {
                 double ts = proposedEvent.GetTaskStart(Asset);
                 double te = proposedEvent.GetTaskEnd(Asset);
 
-                double oldbufferratio = _newState.GetLastValue(DATABUFFERRATIO_KEY).Value;
+                double oldbufferratio = NewState.GetLastValue(DATABUFFERRATIO_KEY).Value;
 
                 //Delegate DepCollector;
                 //SubsystemDependencyFunctions.TryGetValue("DepCollector", out DepCollector);
@@ -78,7 +74,7 @@ namespace HSFSystem
                 HSFProfile<double> newdataratio = newdataratein.upperLimitIntegrateToProf(ts, te, 1, 1, ref exceeded, 0, oldbufferratio);
                 if (!exceeded)
                 {
-                    _newState.AddValues(DATABUFFERRATIO_KEY, newdataratio);
+                    NewState.AddValues(DATABUFFERRATIO_KEY, newdataratio);
                     return true;
                 }
 
@@ -86,20 +82,20 @@ namespace HSFSystem
                 Console.WriteLine("SSDR buffer full");
                 return false;
             }
-            else if (_task.Type == "comm")
+            else if (Task.Type == "comm")
             {
                 double ts = proposedEvent.GetTaskStart(Asset);
                 proposedEvent.SetTaskEnd(Asset, ts + 60.0);
                 double te = proposedEvent.GetTaskEnd(Asset);
 
-                double data = _bufferSize * _newState.GetLastValue(Dkeys.First()).Value;
+                double data = _bufferSize * NewState.GetLastValue(DATABUFFERRATIO_KEY).Value;
                 double dataqueout = data / 2 > 50 ? data / 2 : data;
 
                 if (data - dataqueout < 0)
                     dataqueout = data;
 
                 if (dataqueout > 0)
-                    _newState.AddValue(DATABUFFERRATIO_KEY, te, (data - dataqueout) / _bufferSize);
+                    NewState.AddValue(DATABUFFERRATIO_KEY, te, (data - dataqueout) / _bufferSize);
                 return true;
             }
             return true;

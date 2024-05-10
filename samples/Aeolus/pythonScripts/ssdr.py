@@ -30,29 +30,29 @@ from IronPython.Compiler import CallTarget0
 class ssdr(HSFSystem.Subsystem):
 
     def CanPerform(self, event, universe):
-        #print(self._task.Type)
-        if (self._task.Type == "imaging"):
+        #print(self.Task.Type)
+        if (self.Task.Type == "imaging"):
             ts = event.GetTaskStart(self.Asset)
             te = event.GetTaskEnd(self.Asset)
 
-            oldbufferratio = self._newState.GetLastValue(self.DATABUFFERRATIO_KEY).Item2
+            oldbufferratio = self.NewState.GetLastValue(self.databufferfillratio_key)[1]
             newdataratein = HSFProfile[System.Double]()
             newdataratein = self.DependencyCollector(event) / self.bufferSize
             exceeded = False
             newdataratio = HSFProfile[System.Double]()
             newdataratio = newdataratein.upperLimitIntegrateToProf(ts, te, 1, 1, exceeded, 0, oldbufferratio)
             if (exceeded == False):
-                self._newState.AddValues(self.DATABUFFERRATIO_KEY, newdataratio[0])
+                self.NewState.AddValues(self.databufferfillratio_key, newdataratio[0])
                 #print("SSDR CanPreform, Imaging Task, Dataratio")
                 #print(newdataratio[0])
                 return True
+            
             return False
-        if(self._task.Type == "comm"):
-            print("Entry of SSDR Comm Task")
+        if (self.Task.Type == "comm"):
             ts = event.GetTaskStart(self.Asset)
             event.SetTaskEnd(self.Asset, ts + 60.0)
             te = event.GetTaskEnd(self.Asset)
-            data = self.bufferSize * self._newState.GetLastValue(self.Dkeys[0]).Item2
+            data = self.bufferSize * self.NewState.GetLastValue(self.databufferfillratio_key)[1]
             if( data / 2 > 50):
                 dataqueout = data/2
             else:
@@ -60,9 +60,10 @@ class ssdr(HSFSystem.Subsystem):
             if (data - dataqueout < 0):
                 dataqueout = data
             if (dataqueout > 0):
-                self._newState.AddValue(self.DATABUFFERRATIO_KEY, te, (data - dataqueout) / self._bufferSize)
-            print("SSDR CanPreform, Comm Task")
+                self.NewState.AddValue(self.databufferfillratio_key, te, (data - dataqueout) / self.bufferSize)
+
             return True
+        
         return True
 
     def CanExtend(self, event, universe, extendTo):
@@ -74,7 +75,7 @@ class ssdr(HSFSystem.Subsystem):
         return prof1
 
     def Comm_asset1_from_SSDR_asset1(self, event):
-        datarate = 5000 * (event.State.GetValueAtTime(self.DATABUFFERRATIO_KEY, event.GetTaskStart(self.Asset)).Item2 - event.State.GetValueAtTime(self.DATABUFFERRATIO_KEY, event.GetTaskEnd(self.Asset)).Item2) / (event.GetTaskEnd(self.Asset) - event.GetTaskStart(self.Asset))
+        datarate = 5000 * (event.State.GetValueAtTime(self.databufferfillratio_key, event.GetTaskStart(self.Asset)).Item2 - event.State.GetValueAtTime(self.databufferfillratio_key, event.GetTaskEnd(self.Asset)).Item2) / (event.GetTaskEnd(self.Asset) - event.GetTaskStart(self.Asset))
         prof1 = HSFProfile[System.Double]()
         if (datarate != 0):
             prof1[event.GetTaskStart(self.Asset)] = datarate

@@ -7,18 +7,20 @@ using Utilities;
 using HSFUniverse;
 using MissionElements;
 using System.Xml;
+using System.Runtime.CompilerServices;
 
 namespace HSFSystem
 {
     [Serializable]
-    public abstract class Subsystem {
+    public abstract class Subsystem
+    {
         #region Attributes
         //public virtual bool IsEvaluated { get; set; }
         public String Type { get; set; }
         public bool IsEvaluated { get; set; }
         public Asset Asset { get; set; }
         public virtual List<Subsystem> DependentSubsystems { get; set; } = new List<Subsystem>();
-        public string Name { get; protected set; }
+        public string Name { get; set; }
         //public static string DefaultSubName { get; protected set; }
         public virtual Dictionary<string, Delegate> SubsystemDependencyFunctions { get; set; }
         public List<StateVariableKey<int>> Ikeys { get; private set; } = new List<StateVariableKey<int>>();
@@ -27,8 +29,8 @@ namespace HSFSystem
         public List<StateVariableKey<Matrix<double>>> Mkeys { get; protected set; } = new List<StateVariableKey<Matrix<double>>>();
         public List<StateVariableKey<Quaternion>> Qkeys { get; protected set; } = new List<StateVariableKey<Quaternion>>();
         public List<StateVariableKey<Vector>> Vkeys { get; protected set; } = new List<StateVariableKey<Vector>>();
-        public virtual SystemState _newState { get; set; }
-        public virtual MissionElements.Task _task { get; set; } // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
+        public virtual SystemState NewState { get; set; }
+        public virtual MissionElements.Task Task { get; set; }
         #endregion Attributes
 
         #region Constructors
@@ -36,21 +38,23 @@ namespace HSFSystem
         {
 
         }
-        public Subsystem(string name) {
+        public Subsystem(string name)
+        {
             Name = name;
         }
         public Subsystem(XmlNode xmlNode, Asset asset)
         {
-            
+
         }
         public Subsystem(XmlNode xmlNode, Dependency deps, Asset asset)
         {
-            
+
         }
         #endregion
 
         #region Methods
-        public virtual Subsystem clone() {
+        public virtual Subsystem clone()
+        {
             return DeepCopy.Copy<Subsystem>(this);
         }
 
@@ -92,9 +96,16 @@ namespace HSFSystem
             if (DependentSubsystems.Count == 0)
             {
                 IsEvaluated = true;
-                _task = proposedEvent.GetAssetTask(Asset); //Find the correct task for the subsystem
-                _newState = proposedEvent.State;
-                bool result = CanPerform(proposedEvent, environment);
+                Task = proposedEvent.GetAssetTask(Asset); //Find the correct task for the subsystem
+                NewState = proposedEvent.State;
+                bool result = false;
+                try
+                {
+                    result = CanPerform(proposedEvent, environment);
+                }
+                catch (Exception ex) {
+                    Console.WriteLine(ex.ToString());
+                }
                 //  Need to deal with this issue in next update
                 //double te = proposedEvent.GetTaskEnd(Asset);
                 //double ee = proposedEvent.GetEventEnd(Asset);
@@ -110,8 +121,8 @@ namespace HSFSystem
                         if (sub.CheckDependentSubsystems(proposedEvent, environment))
                         {
                             IsEvaluated = true;
-                            _task = proposedEvent.GetAssetTask(Asset); //Find the correct task for the subsystem
-                            _newState = proposedEvent.State;
+                            Task = proposedEvent.GetAssetTask(Asset); //Find the correct task for the subsystem
+                            NewState = proposedEvent.State;
                             if (!CanPerform(proposedEvent, environment))
                                 return false;
                             //  Need to deal with this issue in next update
@@ -205,6 +216,7 @@ namespace HSFSystem
         /// <returns></returns>
         public static string parseNameFromXmlNode(XmlNode subXmlNode, string assetName)
         {
+
             string Name;
             if (subXmlNode.Attributes["subsystemName"] != null)
                 Name = assetName + "." + subXmlNode.Attributes["subsystemName"].Value.ToString().ToLower();
@@ -236,7 +248,7 @@ namespace HSFSystem
         public SystemState GetSubStateAtTime(SystemState currentSystemState, double time)
         {
             SystemState state = new SystemState();
-            foreach(var key in Ikeys)
+            foreach (var key in Ikeys)
             {
                 //state.AddValues(key, new HSFProfile<int>(time, currentSystemState.GetValueAtTime(key, time).Value));
                 state.Idata.Add(key, new HSFProfile<int>(time, currentSystemState.GetValueAtTime(key, time).Value));
@@ -267,9 +279,10 @@ namespace HSFSystem
             }
             return state;
         }
-        
+
         // Add keys depending on the type of the key
-        public void addKey(StateVariableKey<int> keyIn) {
+        public void addKey(StateVariableKey<int> keyIn)
+        {
             if (Ikeys == null) //Only construct what you need
             {
                 Ikeys = new List<StateVariableKey<int>>();
@@ -277,7 +290,8 @@ namespace HSFSystem
             Ikeys.Add(keyIn);
         }
 
-        public void addKey(StateVariableKey<double> keyIn) {
+        public void addKey(StateVariableKey<double> keyIn)
+        {
             if (Dkeys == null) //Only construct what you need
             {
                 Dkeys = new List<StateVariableKey<double>>();
@@ -285,7 +299,8 @@ namespace HSFSystem
             Dkeys.Add(keyIn);
         }
 
-        public void addKey(StateVariableKey<bool> keyIn) {
+        public void addKey(StateVariableKey<bool> keyIn)
+        {
             if (Bkeys == null) //Only construct what you need
             {
                 Bkeys = new List<StateVariableKey<bool>>();
@@ -293,7 +308,8 @@ namespace HSFSystem
             Bkeys.Add(keyIn);
         }
 
-        public void addKey(StateVariableKey<Matrix<double>> keyIn) {
+        public void addKey(StateVariableKey<Matrix<double>> keyIn)
+        {
             if (Mkeys == null) //Only construct what you need
             {
                 Mkeys = new List<StateVariableKey<Matrix<double>>>();
@@ -301,7 +317,8 @@ namespace HSFSystem
             Mkeys.Add(keyIn);
         }
 
-        public void addKey(StateVariableKey<Quaternion> keyIn) {
+        public void addKey(StateVariableKey<Quaternion> keyIn)
+        {
             if (Qkeys == null) //Only construct what you need
             {
                 Qkeys = new List<StateVariableKey<Quaternion>>();

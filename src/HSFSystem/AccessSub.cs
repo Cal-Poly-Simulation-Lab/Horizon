@@ -6,12 +6,14 @@ using System.Collections.Generic;
 using System.Xml;
 using HSFUniverse;
 using MissionElements;
+using Newtonsoft.Json.Linq;
 using Utilities;
 
 namespace HSFSystem
 {
     public class AccessSub : Subsystem
     {
+        public AccessSub(JObject accessJson) { }
         /// <summary>
         /// Constructor for the built in subsystem (cannot be scripted)
         /// </summary>
@@ -22,11 +24,11 @@ namespace HSFSystem
             //DefaultSubName = "AccessToTarget";
         }
 
-        public override bool CanPerform( Event proposedEvent, Domain environment) 
+        public override bool CanPerform(Event proposedEvent, Domain environment)
         {
             DynamicState position = Asset.AssetDynamicState;
             Vector assetPosECI = position.PositionECI(proposedEvent.GetTaskStart(Asset));
-            Vector targetPosECI = _task.Target.DynamicState.PositionECI(proposedEvent.GetTaskStart(Asset));
+            Vector targetPosECI = Task.Target.DynamicState.PositionECI(proposedEvent.GetTaskStart(Asset));
             return GeometryUtilities.hasLOS(assetPosECI, targetPosECI);
         }
 

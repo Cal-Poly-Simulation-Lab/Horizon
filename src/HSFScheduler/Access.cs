@@ -84,7 +84,7 @@ namespace HSFScheduler
                 foreach (Task task in tasks)
                 {
                     // ...for all time....    
-                    for (double accessTime = SimParameters.SimStartSeconds; accessTime <= SimParameters.SimEndSeconds; accessTime += SchedParameters.SimStepSeconds)
+                    for (double accessTime = SimParameters.SimStartSeconds; accessTime <= SimParameters.SimEndSeconds; accessTime += SimParameters.SimStepSeconds)
                     {
                         // create a new access, or extend the access endTime if this is an update to an existing access
                         bool hasAccess = Utilities.GeometryUtilities.hasLOS(asset.AssetDynamicState.PositionECI(accessTime), task.Target.DynamicState.PositionECI(accessTime));
@@ -94,7 +94,7 @@ namespace HSFScheduler
                             if (accessesByAsset.Count == 0 || accessTime == SimParameters.SimStartSeconds || accessesByAsset.Peek().Task.Target.Name != task.Target.Name)
                                 isNewAccess = true;
                             else
-                                isNewAccess = (accessTime - accessesByAsset.Peek().AccessEnd) > SchedParameters.SimStepSeconds;
+                                isNewAccess = (accessTime - accessesByAsset.Peek().AccessEnd) > SimParameters.SimStepSeconds;
                             if (isNewAccess)
                             {
                                 Access newAccess = new Access(asset, task);
@@ -127,7 +127,7 @@ namespace HSFScheduler
         public static void writeAccessReport(Stack<Access> pregeneratedAccesses)
         {
 
-            string outputDir = SimParameters.OutputDirector;
+            string outputDir = SimParameters.OutputDirectory;
             string filename = "AccessReport.csv"; 
             string fullFilename = "";
             if (outputDir != null) { fullFilename = Path.Combine(outputDir,filename); }

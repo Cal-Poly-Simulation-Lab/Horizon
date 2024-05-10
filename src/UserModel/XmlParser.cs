@@ -29,29 +29,6 @@ namespace UserModel
             className = node.Attributes["className"].Value.ToString();
         }
 
-        /// <summary>
-        /// Get the simulation input XML node from the to be used in the SimParameters constructor
-        /// </summary>
-        /// <param name="simulationInputFilePath"></param>
-        /// <returns></returns>
-        public static void ParseSimulationInput(string simulationInputFilePath)
-        {
-            var XmlDoc = new XmlDocument();
-            XmlDoc.Load(simulationInputFilePath);
-
-            // Load the scenario parameters forom the XML simulation input file
-            XmlNode simulationInputXMLNode = XmlDoc.GetElementsByTagName("SCENARIO")[0];
-            var scenarioName = simulationInputXMLNode.Attributes["scenarioName"].Value;
-            log.Info("EXECUITING SCENARIO: "+ scenarioName);
-
-            // Load the simulation parameters from the XML simulation input file
-            XmlNode simParametersXMLNode = simulationInputXMLNode["SIMULATION_PARAMETERS"];
-            bool simParamsLoaded = SimParameters.LoadSimParameters(simParametersXMLNode, scenarioName);
-
-            // Load the scheduler parameters defined in the XML simulation input file
-            XmlNode schedParametersXMLNode = simulationInputXMLNode["SCHEDULER_PARAMETERS"];
-            bool paramsLoaded = SchedParameters.LoadSchedParameters(schedParametersXMLNode);
-        }
 
         /// <summary>
         /// Get target node from input file to be passed to target constructor

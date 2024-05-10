@@ -114,12 +114,12 @@ namespace HSFSystem
         {
             double ts = proposedEvent.GetTaskStart(Asset);
 
-            if(_task == null)
+            if(Task == null)
             {
                 return true; // TODO Is this what we want to do?
 
             }
-            if (_task.Type == "flyalong")
+            if (Task.Type == "flyalong")
             {
                 HSFProfile<double> newProf = DependencyCollector(proposedEvent);
                 if (!newProf.Empty())
@@ -144,7 +144,7 @@ namespace HSFSystem
             Matrix<double> measure = new Matrix<double>(1, 6);
             measure[1,new MatrixIndex(1, 3)] = acc;
             measure[1,new MatrixIndex(4,6)] = gyr;
-            _newState.AddValue(MEASURE_KEY, ts, measure);
+            NewState.AddValue(MEASURE_KEY, ts, measure);
             //_newState.AddValue(MEASURE_KEY, new HSFProfile<Matrix<double>>(ts, measure));
             return true;
         }

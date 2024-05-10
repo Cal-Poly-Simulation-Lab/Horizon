@@ -11,6 +11,7 @@ using HSFUniverse;
 using MissionElements;
 using UserModel;
 using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json.Linq;
 
 namespace HSFSystem
 {
@@ -24,10 +25,22 @@ namespace HSFSystem
         protected double _penumbraSolarPanelPower = 75;
 
         protected StateVariableKey<double> DOD_KEY;
-        protected StateVariableKey<double> POWIN_KEY; 
+        protected StateVariableKey<double> POWIN_KEY;
         #endregion Attributes
 
         #region Constructors
+        public Power(JObject PowerJson)
+        {
+            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
+            JToken paramJson;
+            if (PowerJson.TryGetValue("batterySize", stringCompare, out paramJson))
+                this._batterySize = paramJson.Value<double>();
+            if (PowerJson.TryGetValue("fullSolarPower", stringCompare, out paramJson))
+                this._fullSolarPanelPower = paramJson.Value<double>();
+            if (PowerJson.TryGetValue("penumbraSolarPower", stringCompare, out paramJson))
+                this._penumbraSolarPanelPower = paramJson.Value<double>();
+
+        }
         /// <summary>
         /// Constructor for built in subsystem
         /// Defaults: batterySize = 1000000, fullSolarPanelPower =150, penumbraSolarPanelPower = 75
@@ -35,13 +48,13 @@ namespace HSFSystem
         /// <param name="PowerNode"></param>
         /// <param name="asset"></param>
         public Power(XmlNode PowerNode)
-        { 
-            
+        {
+
             if (PowerNode.Attributes["batterySize"] != null)
                 _batterySize = (double)Convert.ChangeType(PowerNode.Attributes["batterySize"].Value, typeof(double));
             if (PowerNode.Attributes["fullSolarPower"] != null)
                 _fullSolarPanelPower = (double)Convert.ChangeType(PowerNode.Attributes["fullSolarPower"].Value, typeof(double));
-            if(PowerNode.Attributes["penumbraSolarPower"] != null)
+            if (PowerNode.Attributes["penumbraSolarPower"] != null)
                 _penumbraSolarPanelPower = (double)Convert.ChangeType(PowerNode.Attributes["penumbraSolarPower"].Value, typeof(double));
         }
 
@@ -133,7 +146,7 @@ namespace HSFSystem
             }
 
             // get the old DOD
-            double olddod = _newState.GetLastValue(Dkeys.First()).Item2;
+            double olddod = NewState.GetLastValue(Dkeys.First()).Item2;
 
             // collect power profile out
             Delegate DepCollector;
@@ -142,16 +155,16 @@ namespace HSFSystem
             powerOut = powerOut + powerSubPowerOut;
             // collect power profile in
             DynamicState position = Asset.AssetDynamicState;
-            HSFProfile<double> powerIn = CalcSolarPanelPowerProfile(es, te, _newState, position, universe);
+            HSFProfile<double> powerIn = CalcSolarPanelPowerProfile(es, te, NewState, position, universe);
             // calculate dod rate
             HSFProfile<double> dodrateofchange = ((powerOut - powerIn) / _batterySize);
 
-            bool exceeded= false ;
+            bool exceeded = false;
             double freq = 1.0;
             HSFProfile<double> dodProf = dodrateofchange.lowerLimitIntegrateToProf(es, te, freq, 0.0, ref exceeded, 0, olddod);
             //why is exceeded not checked anywhere??
-           
-            _newState.AddValues(DOD_KEY, dodProf);
+
+            NewState.AddValues(DOD_KEY, dodProf);
             return true;
         }
 
