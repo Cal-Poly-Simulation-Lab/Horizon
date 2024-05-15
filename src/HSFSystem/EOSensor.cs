@@ -8,6 +8,7 @@ using MissionElements;
 using System.Xml;
 using Utilities;
 using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json.Linq;
 
 namespace HSFSystem
 {
@@ -29,6 +30,23 @@ namespace HSFSystem
         #endregion
 
         #region Constructors
+        public EOSensor(JObject eoSensorJson)
+        {
+            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
+            JToken paramJson;
+            if (eoSensorJson.TryGetValue("lowQualityPixels", stringCompare, out paramJson))
+                this._lowQualityPixels = paramJson.Value<double>();
+            if (eoSensorJson.TryGetValue("lowQualityTime", stringCompare, out paramJson))
+                this._lowQualityTime = paramJson.Value<double>();
+            if (eoSensorJson.TryGetValue("midQualityPixels", stringCompare, out paramJson))
+                this._midQualityPixels = paramJson.Value<double>();
+            if (eoSensorJson.TryGetValue("midQualityTime", stringCompare, out paramJson))
+                this._midQualityTime = paramJson.Value<double>();
+            if (eoSensorJson.TryGetValue("highQualityPixels", stringCompare, out paramJson))
+                this._highQualityPixels = paramJson.Value<double>();
+            if (eoSensorJson.TryGetValue("highQualityTime", stringCompare, out paramJson))
+                this._highQualityTime = paramJson.Value<double>();
+        }
         /// <summary>
         /// Constructor for built in subsystem
         /// Defaults: lowQualityPixels = 5000, midQualityPixels = 10000, highQualityPixels = 15000
@@ -80,10 +98,10 @@ namespace HSFSystem
             var INCIDENCE_KEY = Dkeys[1];
             var EOON_KEY = Bkeys[0];
 
-            if (_task.Type == "imaging")
+            if (Task.Type == "imaging")
             {
                 //set pixels and time to caputre based on target value
-                int value = _task.Target.Value;
+                int value = Task.Target.Value;
                 double pixels = _lowQualityPixels;
                 double timetocapture = _lowQualityTime;
                 if (value <= _highQualityTime && value >= _midQualityTime) //Morgan took out magic numbers
@@ -117,7 +135,7 @@ namespace HSFSystem
                 DynamicState position = Asset.AssetDynamicState;
                 double timage = ts + timetocapture / 2;
                 Matrix<double> m_SC_pos_at_tf_ECI = position.PositionECI(timage);
-                Matrix<double> m_target_pos_at_tf_ECI = _task.Target.DynamicState.PositionECI(timage);
+                Matrix<double> m_target_pos_at_tf_ECI = Task.Target.DynamicState.PositionECI(timage);
                 Matrix<double> m_pv = m_target_pos_at_tf_ECI - m_SC_pos_at_tf_ECI;
                 Matrix<double> pos_norm = -m_SC_pos_at_tf_ECI / Matrix<double>.Norm(-m_SC_pos_at_tf_ECI);
                 Matrix<double> pv_norm = m_pv / Matrix<double>.Norm(m_pv);
@@ -125,17 +143,17 @@ namespace HSFSystem
                 double incidenceang = 90 - 180 / Math.PI * Math.Acos(Matrix<double>.Dot(pos_norm, pv_norm));
 
                 // set state data
-                _newState.AddValue(INCIDENCE_KEY, timage, incidenceang);
-                _newState.AddValue(INCIDENCE_KEY, timage + 1, 0.0);
+                NewState.AddValue(INCIDENCE_KEY, timage, incidenceang);
+                NewState.AddValue(INCIDENCE_KEY, timage + 1, 0.0);
 
-                _newState.AddValue(PIXELS_KEY, timage, pixels);
-                _newState.AddValue(PIXELS_KEY, timage + 1, 0.0);
+                NewState.AddValue(PIXELS_KEY, timage, pixels);
+                NewState.AddValue(PIXELS_KEY, timage + 1, 0.0);
 
-                _newState.AddValue(EOON_KEY, ts, true);
-                _newState.AddValue(EOON_KEY, te, false);
+                NewState.AddValue(EOON_KEY, ts, true);
+                NewState.AddValue(EOON_KEY, te, false);
             }
-                return true;
-            
+            return true;
+
         }
 
         /// <summary>

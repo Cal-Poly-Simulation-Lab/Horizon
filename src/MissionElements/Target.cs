@@ -4,6 +4,9 @@
 using System;
 using System.Xml;
 using HSFUniverse;
+using log4net;
+using Newtonsoft.Json.Linq;
+using UserModel;
 
 namespace MissionElements
 {
@@ -22,7 +25,69 @@ namespace MissionElements
         // The value of the target 
         public int Value { get; private set; }
 
+        // Logger for log file
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         #region Constructors
+
+        /// <summary>
+        /// Standard constructor.  Creates a Target from JSON data.
+        /// </summary>
+        /// <param name="targetJson"></param>
+        public Target(JObject targetJson)
+        {
+            string msg;
+
+            if (JsonLoader<string>.TryGetValue("name", targetJson, out string name))
+            {
+                Name = name;
+            }
+            else
+            {
+                msg = $"Target loading error.  Targets must have a NAME.";
+                log.Fatal(msg);
+                Console.WriteLine(msg);
+                throw new ArgumentOutOfRangeException(msg);
+            }
+            if (JsonLoader<string>.TryGetValue("type", targetJson, out string type))
+            {
+                Type = type;
+            }
+            else
+            {
+                msg = $"Target loading error.  Targets must have a TYPE for target {Name}.";
+                log.Fatal(msg);
+                Console.WriteLine(msg);
+                throw new ArgumentOutOfRangeException(msg);
+            }
+            if (JsonLoader<string>.TryGetValue("value", targetJson, out int value))
+            {
+                Value = value;
+            }
+            else
+            {
+                msg = $"Target loading error.  Targets must have a VALUE for target {Name}.";
+                log.Fatal(msg);
+                Console.WriteLine(msg);
+                throw new ArgumentOutOfRangeException(msg);
+            }
+            //Name = (string)targetJson.GetValue("name", stringCompare);
+            //Type = (string)targetJson.GetValue("type", stringCompare);
+            //Value = (int)targetJson.GetValue("value", stringCompare);
+            if (JsonLoader<JObject>.TryGetValue("dynamicState", targetJson, out JObject dynamicStateJson))
+            {
+                DynamicState = new DynamicState(dynamicStateJson);
+            }
+            else
+            {
+                msg = $"Target loading error.  Targets must have a DYNAMICS STATE for target {Name}.";
+                log.Fatal(msg);
+                Console.WriteLine(msg);
+                throw new ArgumentOutOfRangeException(msg);
+            }
+            //JObject dynamicStateJson = (JObject)targetJson.GetValue("dynamicState", stringCompare);
+            //DynamicState = new DynamicState(dynamicStateJson);
+        }
         public Target(String name, string type, DynamicState dynamicState, int value)
         {
             Name = name;
@@ -31,19 +96,6 @@ namespace MissionElements
             Value = value;
         }
         #endregion
-
-        /// <summary>
-        /// Creates a new target from the xmlNode data
-        /// </summary>
-        /// <param name="targetXmlNode"></param>
-        public Target(XmlNode targetXmlNode)
-        {
-            Name = targetXmlNode.Attributes["TargetName"].Value;
-            Type = targetXmlNode.Attributes["TargetType"].Value.ToString();
-            //Type = (TargetType)Enum.Parse(typeof(TargetType), typeString);
-            DynamicState = new DynamicState(targetXmlNode.ChildNodes.Item(0));
-            Value = Convert.ToInt32(targetXmlNode.Attributes["Value"].Value);
-        }
 
         /// <summary>
         /// Override of the Object ToString Method

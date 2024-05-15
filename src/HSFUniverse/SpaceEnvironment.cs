@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,7 +28,10 @@ namespace HSFUniverse
         {
             Sun = sun;
         }*/
-
+        public SpaceEnvironment(JObject environmentJson)
+        {
+            CreateUniverse(environmentJson);
+        }
         public SpaceEnvironment(XmlNode environmentNode)
         {
             CreateUniverse(environmentNode);
@@ -40,7 +44,50 @@ namespace HSFUniverse
             Sun = new Sun(false);
             Atmos = new StandardAtmosphere();
         }
+        protected override void CreateUniverse(JObject environmentJson)
+        {
+            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
 
+            if (environmentJson.GetValue("Sun", stringCompare) != null)
+            {
+                // Create the Sun based on the XMLNode                
+                JObject sunJson = (JObject)environmentJson.GetValue("Sun", stringCompare);
+                // Check the Sun XMLNode for the attribute
+                if (sunJson.GetValue("isSunVectConstant", stringCompare) != null)
+                {
+                    bool sunVectConst = Convert.ToBoolean(sunJson.GetValue("isSunVectConstant", stringCompare));
+                    Sun = new Sun(sunVectConst);
+                }
+                else
+                {
+                    Sun = new Sun();
+                }
+            }
+            else
+            {
+                Sun = new Sun();
+            }
+            if (environmentJson.GetValue("Atmosphere", stringCompare) != null)
+            {
+                // Create the Sun based on the XMLNode                
+                JObject atmosNode = (JObject)environmentJson.GetValue("Atmosphere", stringCompare);
+                // Check the Sun XMLNode for the attribute
+                string s = Convert.ToString(atmosNode.GetValue("type", stringCompare));
+                switch (s)
+                {
+                    case "StandardAtmosphere":
+                        Atmos = new StandardAtmosphere();
+                        break;
+                    case "RealTimeAtmosphere":
+                        Atmos = new RealTimeAtmosphere();
+                        break;
+                }
+            }
+            else
+            {
+                Atmos = new StandardAtmosphere();
+            }
+        }
         protected override void CreateUniverse(XmlNode environmentNode)
         {
             // Check the XMLNode for the presence of a child SUN node

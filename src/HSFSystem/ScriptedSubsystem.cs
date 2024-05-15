@@ -12,6 +12,7 @@ using System.IO;
 using System.Reflection;
 using Utilities;
 using System.Security.Cryptography.X509Certificates;
+using Newtonsoft.Json.Linq;
 
 namespace HSFSystem
 {
@@ -24,7 +25,7 @@ namespace HSFSystem
         // Overide the accessors in order to modify the python instance
         public override List<Subsystem> DependentSubsystems
         {
-            get { return ( List<Subsystem>)_pythonInstance.DependentSubsystems; }
+            get { return (List<Subsystem>)_pythonInstance.DependentSubsystems; }
             set { _pythonInstance.DependentSubsystems = (List<Subsystem>)value; }
         }
 
@@ -40,74 +41,93 @@ namespace HSFSystem
         //    set { _pythonInstance.IsEvaluated = (bool)value; }
         //}
 
-        public override SystemState _newState {
-            get { return (SystemState)_pythonInstance._newState; }
-            set { _pythonInstance._newState = value; }
+        public override SystemState NewState
+        {
+            get { return (SystemState)_pythonInstance.NewState; }
+            set { _pythonInstance.NewState = value; }
         }
 
-        public override MissionElements.Task _task {
-            get { return (MissionElements.Task)_pythonInstance._task; }  // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
-            set { _pythonInstance._task = value; }
+        public override MissionElements.Task Task
+        {
+            get { return (MissionElements.Task)_pythonInstance.Task; }
+            set { _pythonInstance.Task = value; }
         }
+
+        private readonly string src = "";
+        private readonly string className = "";
         #endregion
 
         #region Constructors
         /// <summary>
-        /// Constructor to initialize the python subsystem
+        /// Constructor to build ScriptedSubsystem from JSON input
         /// </summary>
-        /// <param name="scriptedSubXmlNode"></param>
+        /// <param name="scriptedSubsystemJson"></param>
         /// <param name="asset"></param>
-        public ScriptedSubsystem(XmlNode scriptedSubXmlNode, Asset asset)
+        /// <exception cref="ArgumentException"></exception>
+        public ScriptedSubsystem(JObject scriptedSubsystemJson, Asset asset)
         {
-            // TO make sure, the asset, name, keys, and other properties are set for the C# instance and the python instance
-            // I'm not convinced about this.  I think either the ScriptedSubsystem needs to have the Keys and Data, or the
-            // python instance needs to have the Keys and Data, but not both.
-            Asset = asset;
-            GetSubNameFromXmlNode(scriptedSubXmlNode);
+            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
 
-            string pythonFilePath ="", className = "";
-            XmlParser.ParseScriptedSrc(scriptedSubXmlNode, ref pythonFilePath, ref className);
-            pythonFilePath = Path.Combine(Utilities.DevEnvironment.RepoDirectory,pythonFilePath.Replace('\\','/')); //Replace backslashes with forward slashes, if applicable
-
-            //  I believe this was added by Jack B. for unit testing.  Still need to sort out IO issues, but with this commented out
-            //  the execuitable will look for python files in the same directory as the .exe file is located.
-            //  Need to do better specifying the input and output paths.
-            //if (!pythonFilePath.StartsWith("..\\")) //patch work for nunit testing which struggles with relative paths
+            this.Asset = asset;
+            //if(scriptedSubsystemJson.TryGetValue("name", stringCompare, out JToken nameJason))
+            //    this.Name = this.Asset.Name.ToLower() + "." + nameJason.ToString().ToLower();
+            //else
             //{
-            //    string baselocation = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\"));
-            //    pythonFilePath = Path.Combine(baselocation, @pythonFilePath);
+            //    Console.WriteLine($"Error loading subsytem of type {this.Type}, missing Name attribute");
+            //    throw new ArgumentException($"Error loading subsytem of type {this.Type}, missing Name attribute\"");
             //}
+
+            if (scriptedSubsystemJson.TryGetValue("src", stringCompare, out JToken srcJason))
+            {
+                this.src = srcJason.ToString();
+                this.src = Path.Combine(Utilities.DevEnvironment.RepoDirectory, src.Replace('\\', '/')); //Replace backslashes with forward slashes, if applicable
+            }
+            else
+            {
+                Console.WriteLine($"Error loading subsytem of type {this.Type}, missing Src attribute");
+                throw new ArgumentException($"Error loading subsytem of type {this.Type}, missing Src attribute");
+            }
+
+            if (scriptedSubsystemJson.TryGetValue("className", stringCompare, out JToken classNameJason))
+                this.className = classNameJason.ToString();
+            else
+            {
+                Console.WriteLine($"Error loading subsytem of type {this.Type}, missing ClassName attribute");
+                throw new ArgumentException($"Error loading subsytem of type {this.Type}, missing ClassName attribute");
+            }
+
+            InitSubsystem(scriptedSubsystemJson);
+        }
+
+        private void InitSubsystem(params object[] parameters)
+        {
             var engine = Python.CreateEngine();
             var scope = engine.CreateScope();
             var ops = engine.Operations;
             // Search paths are for importing modules from python scripts, not for executing python subsystem files
             var p = engine.GetSearchPaths();
-            p.Add(DevEnvironment.RepoDirectory);
-            p.Add(Path.Combine(DevEnvironment.RepoDirectory,"samples/PythonSubs"));
-            p.Add(Path.Combine(DevEnvironment.RepoDirectory,"tools"));            
-            
-            //p.Add(AppDomain.CurrentDomain.BaseDirectory + @"..\..\..\samples\Aeolus\pythonScripts"); // Need to do something about this line
-            p.Add(Path.Combine(DevEnvironment.RepoDirectory,"samples/Aeolus/pythonScripts"));
+            p.Add(AppDomain.CurrentDomain.BaseDirectory + @"..\..\..\PythonSubs");
+            p.Add(AppDomain.CurrentDomain.BaseDirectory + @"..\..\..\");
+            p.Add(AppDomain.CurrentDomain.BaseDirectory + @"..\..\..\samples\Aeolus\pythonScripts");
+
             // Trying to use these so we can call numpy, etc...  Does not seem to work 8/31/23
-            //p.Add(@"C:\Python310\Lib\site-packages\");
-            //p.Add(@"C:\Python310\Lib");
-            // Jason Beals: Add code/functionality to set and find Python environment used for HSF. Can add user input package requirements too
-            // 04/24/24
+            p.Add(@"C:\Python310\Lib\site-packages\");
+            p.Add(@"C:\Python310\Lib");
 
             engine.SetSearchPaths(p);
-            engine.ExecuteFile(pythonFilePath, scope);
+            engine.ExecuteFile(src, scope);
             var pythonType = scope.GetVariable(className);
-            _pythonInstance = ops.CreateInstance(pythonType);//, scriptedSubXmlNode, asset);
+            // Look into this, string matters - related to file name, I think
+            _pythonInstance = ops.CreateInstance(pythonType);//, parameters);
             Delegate depCollector = _pythonInstance.GetDependencyCollector();
             SubsystemDependencyFunctions = new Dictionary<string, Delegate>
             {
                 { "DepCollector", depCollector }
             };
 
-            _pythonInstance.Asset = asset;
+            _pythonInstance.Asset = this.Asset;
             _pythonInstance.Name = this.Name;
             DependentSubsystems = new List<Subsystem>();
-
         }
         #endregion
 
@@ -115,13 +135,7 @@ namespace HSFSystem
 
         public void SetStateVariable<T>(ScriptedSubsystemHelper HSFHelper, string StateName, StateVariableKey<T> key)
         {
-            /*
-            An argument error was thrown here... Is this possibly because of StateVariableKey<T> SetStateVariable constructor overload?
-            As far as I can tell, the _pythonInstance seems to be the python file every time... HSFHelper has been replaced to set the
-            attribute within itself "self" and it works this way but this might not be the proper fix. -JB 4/25/24
-             */
             HSFHelper.PythonInstance.SetStateVariable(_pythonInstance, StateName, key);
-            //HSFHelper.PythonInstance.SetStateVariable(StateName,key);
 
         }
 
@@ -148,8 +162,15 @@ namespace HSFSystem
             //IsEvaluated = true;
 
             // Call the can perform method that is in the python class
-            dynamic perform = _pythonInstance.CanPerform(proposedEvent, environment);
-            return (bool)perform;
+            bool perform = false;
+            try
+            {
+                perform = _pythonInstance.CanPerform(proposedEvent, environment);
+            } catch (Exception ex)
+            {
+                Console.WriteLine($"Error in subsystem CanPerform call {this.Name} for task type {Task.Type}. With exception {ex}");
+            }
+            return perform;
         }
 
         public override bool CanExtend(Event proposedEvent, Domain environment, double evalToTime)

@@ -5,6 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using UserModel;
 
 namespace HSFUniverse
 {
@@ -15,25 +18,35 @@ namespace HSFUniverse
         /// </summary>
         /// <param name="modelXmlNodel"></param>
         /// <returns></returns>
-        public static Domain GetUniverseClass(XmlNode modelXmlNodel)
+        public static Domain GetUniverseClass(JObject environmentJson)
         {
-            Domain universe = (Domain)new SpaceEnvironment(); // cannot initialize variable inside conditional
-            string universeType = modelXmlNodel.Attributes["UniverseType"].Value.ToString().ToLower();
+            Domain universe;
+            if (JsonLoader<string>.TryGetValue("type", environmentJson, out string type))
+            {
+                type = type.ToLower();
 
-            if (universeType.Equals("scripted"))
-            {
-                universe = (Domain)new ScriptedUniverse(modelXmlNodel);
-            }
-            else // non-scripted universes
-            {
-                if (universeType.Equals("spaceenvironment"))
+                //string type = environmentJson.GetValue("type", stringCompare).ToString().ToLower();
+
+                if (type.Equals("scripted"))
                 {
-                    universe = (Domain)new SpaceEnvironment(modelXmlNodel);
+                    universe = (Domain)new ScriptedUniverse(environmentJson);
                 }
-                else if (universeType.Equals("airborneenvironment"))
+                else if (type.Equals("spaceenvironment"))
+                {
+                    universe = (Domain)new SpaceEnvironment(environmentJson);
+                }
+                else if (type.Equals("airborneenvironment"))
                 {
                     throw new NotImplementedException("Airborne Environment needs to be implemented!");
                 }
+                else
+                {
+                    throw new ArgumentOutOfRangeException($"Evironment is not set to a HSF Environment type, type {type} was found.");
+                }
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException($"Evironment must contain a TYPE.");
             }
 
             return universe;

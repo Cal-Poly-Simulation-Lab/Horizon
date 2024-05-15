@@ -5,6 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Xml;
 using log4net;
+using Newtonsoft.Json.Linq;
+using UserModel;
+using static IronPython.Modules._ast;
 
 namespace MissionElements
 {
@@ -14,8 +17,9 @@ namespace MissionElements
     [Serializable]
     public class Task
     {
+        public string Name { get; private set; }
         // the type of task being performed (will always be converted to a lowercase string in the constructor
-         public string Type { get; private set; }
+        public string Type { get; private set; }
 
         // the target associated with the task 
         public Target Target { get; private set; }
@@ -33,47 +37,74 @@ namespace MissionElements
         /// <param name="type"></param>
         /// <param name="target"></param>
         /// <param name="maxTimesToPerform"></param>
-        public Task(string type, Target target, int maxTimesToPerform)
+        public Task(string name, string type, Target target, int maxTimesToPerform)
         {
+            Name = name;
             Type = type.ToLower();
             Target = target;
             MaxTimesToPerform = maxTimesToPerform;
         }
 
         /// <summary>
-        /// Load Targets into a list to be passed to scheduler
+        /// Load Targets into a list to be passed to scheduler using JSON data
         /// </summary>
-        /// <param name="targetDeckXMLNode"></param>
+        /// <param name="taskListJson"></param>
         /// <param name="tasks"></param>
         /// <returns></returns>
-        public static bool loadTargetsIntoTaskList(XmlNode targetDeckXMLNode, Stack<Task> tasks)
+        public static bool LoadTasks(JObject taskListJson, Stack<Task> tasks)
         {
-            if (targetDeckXMLNode == null)
+            if (taskListJson == null)
                 return false;
-            log.Info("Loading target deck...");
-            int maxTimesPerform = 1;
-            bool allLoaded = true;
-            string taskType;
-            foreach (XmlNode targetNode in targetDeckXMLNode.ChildNodes)
-            {
-                if (targetNode.Attributes["TaskType"] != null)
-                    taskType = targetNode.Attributes["TaskType"].Value.ToString();
-                else {
-                    log.Fatal("Missing Task Type");
-                    return false;
-                }
-                //var taskTypeEnum = (TaskType)Enum.Parse(typeof(TaskType), taskType);
-                if (targetNode.Attributes["MaxTimes"] != null)
-                {
-                    Int32.TryParse(targetNode.Attributes["MaxTimes"].Value.ToString(), out maxTimesPerform);
-                    tasks.Push(new Task(taskType, new Target(targetNode), maxTimesPerform));
-                }
-                else
-                    tasks.Push(new Task(taskType, new Target(targetNode), maxTimesPerform));
-            }
-            log.Info("Number of Targets Loaded: "+ tasks.Count);
 
-            return allLoaded;
+            log.Info("Loading tasks into simulation... for scenario" + SimParameters.ScenarioName);
+            Console.WriteLine("Loading tasks into simulation... for scenario {0}.  ", SimParameters.ScenarioName);
+
+            int maxTimesPerform = 1;
+            string msg;
+
+            if (JsonLoader<JToken>.TryGetValue("tasks", taskListJson, out JToken taskList))
+            {
+                foreach (JObject taskJson in taskList)
+                {
+                    if (!JsonLoader<string>.TryGetValue("name", taskJson, out string taskName))
+                    {
+                        msg = $"Task loading error.  Tasks must have a NAME.";
+                        log.Fatal(msg);
+                        Console.WriteLine(msg);
+                        return false;
+                    }
+
+                    if (!JsonLoader<string>.TryGetValue("type", taskJson, out string taskType))
+                    {
+                        msg = $"Task loading error.  Tasks must have a TYPE at task named '{taskName}'";
+                        log.Fatal(msg);
+                        Console.WriteLine(msg);
+                        return false;
+                    }
+
+                    if (!JsonLoader<int>.TryGetValue("maxTimes", taskJson, out maxTimesPerform))
+                    {
+                        msg = $"Task loading warning.  Task loaded without Max Times parameter for task '{taskName}'";
+                        log.Warn(msg);
+                        Console.WriteLine(msg);
+                    }
+
+                    if (JsonLoader<JToken>.TryGetValue("target", taskJson, out JToken targetJson))
+                        tasks.Push(new Task(taskName, taskType, new Target((JObject)targetJson), maxTimesPerform));
+                    else
+                    {
+                        msg = $"Task loading error.  Tasks must have a TARGET for task '{taskName}'";
+                        log.Fatal(msg);
+                        Console.WriteLine(msg);
+                        return false;
+                    }
+                }
+            }
+            msg = $"Loaded {tasks.Count} tasks for scenario {SimParameters.ScenarioName}.";
+            log.Info(msg);
+            Console.WriteLine(msg);
+
+            return true;
         }
         #region Overrides
         /// <summary>

@@ -8,6 +8,7 @@ using System.Xml;
 using MissionElements;
 using HSFUniverse;
 using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json.Linq;
 //using Logging;
 
 namespace HSFSystem
@@ -22,6 +23,13 @@ namespace HSFSystem
         #endregion Attributes
 
         #region Constructors
+        public ADCS() { }
+        public ADCS(JObject adcsJson)
+        {
+            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
+            if (adcsJson.TryGetValue("slewRate", stringCompare, out JToken slewRateJson))
+                this._slewRate = slewRateJson.Value<double>();
+        }
         /// <summary>
         /// Constructor for built in subsystems
         /// Defaults: Slew time: 10s
@@ -46,11 +54,11 @@ namespace HSFSystem
         /// <param name="ADCSNode"></param>
         /// <param name="asset"></param>
 
-       /* public ADCS(XmlNode ADCSNode, Asset asset) : base(ADCSNode, asset)
-        {
-            
-        }
-       */
+        /* public ADCS(XmlNode ADCSNode, Asset asset) : base(ADCSNode, asset)
+         {
+
+         }
+        */
 
         #endregion Constructors
 
@@ -65,15 +73,15 @@ namespace HSFSystem
         {
             //  Not a fan of this, but will do for now.  Switching to Python....
             var POINTVEC_KEY = Mkeys.Find(k => k.VariableName == Asset.Name + ".eci_pointing_vector(xyz)");
-            
+
             double es = proposedEvent.GetEventStart(Asset);
             double ts = proposedEvent.GetTaskStart(Asset);
-            double te = proposedEvent.GetTaskEnd(Asset);            
-            
+            double te = proposedEvent.GetTaskEnd(Asset);
+
             // from Brown, Pp. 99
             DynamicState position = Asset.AssetDynamicState;
             Matrix<double> m_SC_pos_at_ts_ECI = position.PositionECI(ts);
-            Matrix<double> m_target_pos_at_ts_ECI = _task.Target.DynamicState.PositionECI(ts);
+            Matrix<double> m_target_pos_at_ts_ECI = Task.Target.DynamicState.PositionECI(ts);
             Matrix<double> m_pv = m_target_pos_at_ts_ECI - m_SC_pos_at_ts_ECI;
 
             Matrix<double> sc_n = m_SC_pos_at_ts_ECI / Matrix<double>.Norm(m_SC_pos_at_ts_ECI);
@@ -81,10 +89,10 @@ namespace HSFSystem
 
 
             double slewAngle = Math.Acos(Matrix<double>.Dot(pv_n, -sc_n)) * 180 / Math.PI;
-                        
+
             //double timetoslew = (rand()%5)+8;
-            double timetoslew = slewAngle/_slewRate;
-            
+            double timetoslew = slewAngle / _slewRate;
+
             if (es + timetoslew > ts)
             {
                 if (es + timetoslew > te)
@@ -100,7 +108,7 @@ namespace HSFSystem
             // set state data
             //var POINTVEC_KEY = this.Mkeys[0];
             //_newState.SetProfile(POINTVEC_KEY, new HSFProfile<Matrix<double>>(ts, m_pv));
-            _newState.AddValue(POINTVEC_KEY, ts, m_pv);
+            NewState.AddValue(POINTVEC_KEY, ts, m_pv);
             proposedEvent.SetTaskStart(Asset, ts);
             return true;
         }

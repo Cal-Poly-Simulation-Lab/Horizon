@@ -30,8 +30,8 @@ from IronPython.Compiler import CallTarget0
 class eosensor(HSFSystem.Subsystem):
     
     def CanPerform(self, event, universe):
-         if (self._task.Type == "imaging"):
-             value = self._task.Target.Value
+         if (self.Task.Type == "imaging"):
+             value = self.Task.Target.Value
              pixels = self.lowQualityNumPixels
              timetocapture = self.lowQualityCaptureTime
              if (value <= self.highQualityCaptureTime and value >= self.midQualityCaptureTime):
@@ -53,23 +53,25 @@ class eosensor(HSFSystem.Subsystem):
              position = self.Asset.AssetDynamicState
              timage = ts + timetocapture / 2
              m_SC_pos_at_tf_ECI = position.PositionECI(timage)
-             m_target_pos_at_tf_ECI = self._task.Target.DynamicState.PositionECI(timage)
+             m_target_pos_at_tf_ECI = self.Task.Target.DynamicState.PositionECI(timage)
              m_pv = m_target_pos_at_tf_ECI - m_SC_pos_at_tf_ECI
              pos_norm = -m_SC_pos_at_tf_ECI / Matrix[System.Double].Norm(-m_SC_pos_at_tf_ECI)
              pv_norm = m_pv / Matrix[System.Double].Norm(m_pv)
 
              incidenceang = 90 - 180 / Math.PI * Math.Acos(Matrix[System.Double].Dot(pos_norm, pv_norm))
-             self._newState.AddValue(self.INCIDENCE_KEY, timage, incidenceang)
-             self._newState.AddValue(self.INCIDENCE_KEY, timage + 1, 0.0)
-             self._newState.AddValue(self.PIXELS_KEY,timage, pixels)
-             self._newState.AddValue(self.PIXELS_KEY, timage + 1, 0.0)
-             self._newState.AddValue(self.EOON_KEY, ts, True)
-             self._newState.AddValue(self.EOON_KEY, te, False)
+             self.NewState.AddValue(self.incidence_key, timage, incidenceang)
+             self.NewState.AddValue(self.incidence_key, timage + 1, 0.0)
+             self.NewState.AddValue(self.pixels_key,timage, pixels)
+             self.NewState.AddValue(self.pixels_key, timage + 1, 0.0)
+             self.NewState.AddValue(self.eoon_key, ts, True)
+             self.NewState.AddValue(self.eoon_key, te, False)
              #print("EOSensor CanPreform, Imaging Task, IncidenceAng")
              #print(incidenceang)
              #print("EOSensor CanPreform, Imaging Task, Pixels")
              #print(pixels)
              return True
+         else:
+            return True    
 
     def CanExtend(self, event, universe, extendTo):
         return super(eosensor, self).CanExtend(event, universe, extendTo)
@@ -77,13 +79,13 @@ class eosensor(HSFSystem.Subsystem):
     def Power_asset1_from_EOSensor_asset1(self, event):
         prof1 = HSFProfile[System.Double]()
         prof1[event.GetEventStart(self.Asset)] = 10
-        if (event.State.GetValueAtTime(self.EOON_KEY, event.GetTaskStart(self.Asset)).Item2):
+        if (event.State.GetValueAtTime(self.eoon_key, event.GetTaskStart(self.Asset)).Item2):
             prof1[event.GetTaskStart(self.Asset)] = 60
             prof1[event.GetTaskEnd(self.Asset)] = 10
         return prof1
 
     def SSDR_asset1_from_EOSensor_asset1(self, event):
-        return event.State.GetProfile(self.PIXELS_KEY) / 500
+        return event.State.GetProfile(self.pixels_key) / 500
 
     def DepFinder(self, depFnName):  # Search for method from string input
         fnc = getattr(self, depFnName)
