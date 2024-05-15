@@ -11,6 +11,7 @@ bin/
 [Oo]bj/
 [Bb]in/
 [Dd]ebug/
+
 # Horizon output (should be self-generated within repo):
 output/
 

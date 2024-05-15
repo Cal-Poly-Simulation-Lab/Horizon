@@ -266,14 +266,23 @@ namespace Horizon
             var outputFileName = string.Format("output-{0:yyyy-MM-dd}-*", DateTime.Now);
             string outputPath = "";
 
-            if (argsList.Contains("-o"))
+            // This is the way that works with initInput args in only. Using other way for now
+            // if (this.OutputPath != null) {outputPath = this.OutputPath; } // Use user-specified if applicable // Update the outputPath to the user specified input, if applicable
+            // else {outputPath = Path.Combine(DevEnvironment.RepoDirectory, "output/HorizonLog");} // Otherwise use default
+            // Directory.CreateDirectory(outputPath); // Create the output directory if it doesn't already exist. 
+
+            if (!argsList.Contains("-o"))
             {
                 int indx = argsList.IndexOf("-o");
                 outputPath = argsList[indx + 1];
             }
             else
-                outputPath = @"C:\HorizonLog\";
+                outputPath = Path.Combine(DevEnvironment.RepoDirectory, "output/HorizonLog");
 
+            // Create the output directory if it doesn't already exist.
+            Directory.CreateDirectory(outputPath); 
+
+            // Filter out other output files for naming ocnvention
             var txt = ".txt";
             string[] fileNames = System.IO.Directory.GetFiles(outputPath, outputFileName, System.IO.SearchOption.TopDirectoryOnly);
             double number = 0;
