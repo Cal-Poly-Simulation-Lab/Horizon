@@ -36,7 +36,6 @@ namespace HSFUniverse
 
         // Do we want to change DynamicsStateType from ENUM to string?
         public DynamicStateType Type { get; private set; }
-        public IntegratorType IntegratorType { get; private set; }
         public DynamicEOMS Eoms { get; private set; }
         public IntegratorParameters IntegratorParameters = new IntegratorParameters();
         private IntegratorOptions IntegratorOptions = new IntegratorOptions();
@@ -76,17 +75,15 @@ namespace HSFUniverse
         /// Test Constructor
         /// </summary>
         /// <param name="type"></param>
-        /// <param name="integratorType"></param>
         /// <param name="eoms"></param>
         /// <param name="initialConditions"></param>
-        public DynamicState(DynamicStateType type, IntegratorType integratorType, DynamicEOMS eoms, Vector initialConditions)
+        public DynamicState(DynamicStateType type, DynamicEOMS eoms, Vector initialConditions)
         {
             StateData = new SortedList<double, Vector>((int)(SimParameters.SimEndSeconds / SimParameters.SimStepSeconds))
             {
                 { 0.0, initialConditions }
             };
             Type = type;
-            IntegratorType = integratorType;
             Eoms = eoms;
         }
         #endregion
@@ -338,6 +335,5 @@ namespace HSFUniverse
     // Need to think about this and the alternative below.  This is an issue that Christian may have looked at.
     public enum DynamicStateType { STATIC_LLA, STATIC_ECI, PREDETERMINED_LLA, PREDETERMINED_ECI, DYNAMIC_LLA, DYNAMIC_ECI, STATIC_LVLH, NULL_STATE };
     //public enum DynamicStateType { STATIC, DYNAMIC, PREDETERMINED, NULL };
-    // Propagator types supported by HSF
-    public enum IntegratorType { TRAPZ, RK4, RK45, SPG4, NONE };
+
 }
