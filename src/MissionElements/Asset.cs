@@ -11,7 +11,6 @@ using UserModel;
 
 namespace MissionElements
 {
-    [Serializable]
     public class Asset
     {
         #region Attributes

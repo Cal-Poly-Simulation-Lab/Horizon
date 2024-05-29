@@ -1,8 +1,6 @@
 ﻿// Copyright (c) 2016 California Polytechnic State University
 // Authors: Morgan Yost (morgan.yost125@gmail.com) Eric A. Mehiel (emehiel@calpoly.edu)
 
-using System;
-using System.Xml;
 using HSFUniverse;
 using log4net;
 using Newtonsoft.Json.Linq;
@@ -10,7 +8,6 @@ using UserModel;
 
 namespace MissionElements
 {
-    [Serializable]
     public class Target
     {
         // The name of the target 
@@ -71,9 +68,6 @@ namespace MissionElements
                 Console.WriteLine(msg);
                 throw new ArgumentOutOfRangeException(msg);
             }
-            //Name = (string)targetJson.GetValue("name", stringCompare);
-            //Type = (string)targetJson.GetValue("type", stringCompare);
-            //Value = (int)targetJson.GetValue("value", stringCompare);
             if (JsonLoader<JObject>.TryGetValue("dynamicState", targetJson, out JObject dynamicStateJson))
             {
                 DynamicState = new DynamicState(dynamicStateJson);
@@ -85,16 +79,8 @@ namespace MissionElements
                 Console.WriteLine(msg);
                 throw new ArgumentOutOfRangeException(msg);
             }
-            //JObject dynamicStateJson = (JObject)targetJson.GetValue("dynamicState", stringCompare);
-            //DynamicState = new DynamicState(dynamicStateJson);
         }
-        public Target(String name, string type, DynamicState dynamicState, int value)
-        {
-            Name = name;
-            Type = type.ToLower();
-            DynamicState = dynamicState;
-            Value = value;
-        }
+
         #endregion
 
         /// <summary>

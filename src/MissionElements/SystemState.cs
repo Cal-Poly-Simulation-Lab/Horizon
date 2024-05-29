@@ -950,51 +950,9 @@ namespace MissionElements
                     AddValue(new StateVariableKey<bool>(keyName), time, valueJson.Value<bool>());
                 else if (type.Equals("quaternion"))
                     AddValue(new StateVariableKey<Quaternion>(keyName), time, new Quaternion(valueJson.ToString()));
+                else if (type.Equals("vector"))
+                    AddValue(new StateVariableKey<Vector>(keyName), time, new Vector(valueJson.ToString()));
 
-        }
-        public void SetInitialSystemState(XmlNode StateNode, string keyName)
-        {
-            string type = StateNode.Attributes["type"].Value.ToLower();
-            //string stateVariableName = asset.Name + "." + ICNode.Attributes["key"].Value.ToLower(); // This may be changing to not use asset.name
-            double time = SimParameters.SimStartSeconds;
-
-            if (type.ToLower().Equals("int") || type.ToLower().Equals("integer"))
-            {
-                Int32.TryParse(StateNode.Attributes["value"].Value, out int stateValue);
-                AddValue(new StateVariableKey<int>(keyName), time, stateValue);
-            }
-            else if (type.ToLower().Equals("double"))
-            {
-                Double.TryParse(StateNode.Attributes["value"].Value, out double stateValue);
-                AddValue(new StateVariableKey<double>(keyName), time, stateValue);
-            }
-            else if (type.ToLower().Equals("bool"))
-            {
-                string val = StateNode.Attributes["value"].Value;
-                bool stateValue = false;
-                if (val.ToLower().Equals("true") || val.Equals("1"))
-                    stateValue = true;
-                AddValue(new StateVariableKey<bool>(keyName), time, stateValue);
-            }
-            else if (type.ToLower().Equals("matrix"))
-            {
-                Matrix<double> stateValue = new Matrix<double>(StateNode.Attributes["value"].Value);
-                AddValue(new StateVariableKey<Matrix<double>>(keyName), time, stateValue);
-            }
-            else if (type.ToLower().Equals("quat") || type.ToLower().Equals("quaternion"))
-            {
-                Quaternion stateValue = new Quaternion(StateNode.Attributes["value"].Value);
-                AddValue(new StateVariableKey<Quaternion>(keyName), time, stateValue);
-            }
-            else if (type.ToLower().Equals("vector"))
-            {
-                Vector stateValue = new Vector(StateNode.Attributes["value"].Value);
-                AddValue(new StateVariableKey<Vector>(keyName), time, stateValue);
-            }
-            else
-            {
-                Console.WriteLine($"State variable {keyName} of type {type} is not supported by HSF.");
-            }
         }
     }
 }

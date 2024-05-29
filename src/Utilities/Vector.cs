@@ -58,7 +58,7 @@ namespace Utilities
         }
         public Vector(string VectorString)
         {
-            string[] elements = VectorString.Split(';');
+            string[] elements = VectorString.Split(',');
             elements[0] = elements[0].TrimStart('[');
             elements[elements.Length - 1] = elements[elements.Length - 1].TrimEnd(']');
             double[] dElem;
@@ -67,20 +67,14 @@ namespace Utilities
             _elements = new List<double>(dElem);
         }
 
-        public Vector(SerializationInfo info, StreamingContext context)
-        {
-            Length = info.GetInt32("Length");
-            _elements = (List<double>)info.GetValue("_elements", typeof(List<double>));
-        }
-
         #endregion
 
         #region Overrrides
-        // TOD) (Eric):  This should match the constructor based on a string...
+        // TODO (Eric):  This should match the constructor based on a string...
         /// <summary>
         /// Converts a Matrix to a string
         /// </summary>
-        /// <returns>string</returns>
+        /// <returns>Vector componets represented as a JSON list</returns>
         public override string ToString()
         {
             string s = "[";

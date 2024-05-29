@@ -36,15 +36,11 @@ namespace HSFUniverse
 
         // Do we want to change DynamicsStateType from ENUM to string?
         public DynamicStateType Type { get; private set; }
-        public IntegratorType IntegratorType { get; private set; }
-
-        public DynamicEOMS Eoms { get; private set; }
-
-        public IntegratorParameters IntegratorParameters = new IntegratorParameters();
-
-        private IntegratorOptions IntegratorOptions = new IntegratorOptions();
-
+        //public IntegratorType IntegratorType { get; private set; }
         private SortedList<double, Vector> StateData { get; set; }
+        private IntegratorOptions IntegratorOptions = new IntegratorOptions();
+        public IntegratorParameters IntegratorParameters = new IntegratorParameters();
+        public DynamicEOMS Eoms { get; private set; }
 
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -342,5 +338,5 @@ namespace HSFUniverse
     public enum DynamicStateType { STATIC_LLA, STATIC_ECI, PREDETERMINED_LLA, PREDETERMINED_ECI, DYNAMIC_LLA, DYNAMIC_ECI, STATIC_LVLH, NULL_STATE };
     //public enum DynamicStateType { STATIC, DYNAMIC, PREDETERMINED, NULL };
     // Propagator types supported by HSF
-    public enum IntegratorType { TRAPZ, RK4, RK45, SPG4, NONE };
+    // public enum IntegratorType { TRAPZ, RK4, RK45, SPG4, NONE };
 }

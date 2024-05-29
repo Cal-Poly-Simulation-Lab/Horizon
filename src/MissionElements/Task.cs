@@ -59,6 +59,7 @@ namespace MissionElements
             log.Info("Loading tasks into simulation... for scenario" + SimParameters.ScenarioName);
             Console.WriteLine("Loading tasks into simulation... for scenario {0}.  ", SimParameters.ScenarioName);
 
+            // Default number of times to perform a task
             int maxTimesPerform = 1;
             string msg;
 

@@ -1,0 +1,53 @@
+{
+  "$id": "https://json-schema.org/draft/2019-09/schema",
+  "$schemas": "https://json-schema.org/draft/2019-09/schema",
+  "title": "HSF Simulation Input",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the simulation scenario"
+    },
+    "version": {
+      "type": "number",
+      "description": "The version number of the simulation and scenario"
+    },
+    "simulationParameters": {
+      "type": "object",
+      "properties": {
+        "startJD": {
+          "type": "number",
+          "minimum": 0
+        },
+        "startSeconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "endSeconds": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "stepSeconds": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [ "startJD", "startSeconds", "endSeconds", "stepSeconds" ]
+    },
+    "schedulerParameters": {
+      "type": "object",
+      "properties": {
+        "maxSchedules": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cropTo": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [ "maxSchedules", "cropTo" ]
+    }
+  },
+  "required": [ "name", "version", "simulationParameters", "schedulerParameters" ]
+}
