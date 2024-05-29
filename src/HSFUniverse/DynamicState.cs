@@ -76,6 +76,7 @@ namespace HSFUniverse
         /// Test Constructor
         /// </summary>
         /// <param name="type"></param>
+        /// <param name="integratorType"></param>
         /// <param name="eoms"></param>
         /// <param name="initialConditions"></param>
         public DynamicState(DynamicStateType type, IntegratorType integratorType, DynamicEOMS eoms, Vector initialConditions)
@@ -87,7 +88,6 @@ namespace HSFUniverse
             Type = type;
             IntegratorType = integratorType;
             Eoms = eoms;
-            //_stateDataTimeStep = stateDataTimeStep;
         }
         #endregion
 
