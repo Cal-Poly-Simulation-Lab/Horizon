@@ -25,7 +25,7 @@ class Access:
             print(s)
             #print(c[0].Name)
 
-        print("\n")
+        print("\n Total num schedules: " + str(len(combos)))
         return combos
 
 

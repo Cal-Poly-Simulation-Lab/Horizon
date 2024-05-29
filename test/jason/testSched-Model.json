@@ -1,0 +1,194 @@
+{
+  "model": {
+    "assets": 
+      {
+        "name": "Asset1",
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "stateData": [ 7378.137, 0, 0, 0, 6.02088, 4.215866 ],
+          "Eoms": {
+            "type": "None"
+          },
+          "integratorOptions": {},
+          "integratorParameters": []
+        },
+        "subsystems": [
+          {
+            "type": "scripted",
+            "name": "ADCS",
+            "src": "samples\\Aeolus\\pythonScripts\\adcs.py",
+            "className": "adcs",
+            "states": [
+              {
+                "type": "Matrix",
+                "name": "pointvec_key",
+                "key": "ECI_Pointing_Vector(XYZ)",
+                "value": [ 0, 0, 0 ]
+              }
+            ]
+          },
+          {
+            "type": "Scripted",
+            "name": "EOSensor",
+            "src": "samples\\Aeolus\\pythonScripts\\eosensor.py",
+            "className": "eosensor",
+            "parameters": [
+              {
+                "name": "lowQualityCaptureTime",
+                "type": "double",
+                "value": 3
+              },
+              {
+                "name": "midQualityCaptureTime",
+                "type": "double",
+                "value": 5
+              },
+              {
+                "name": "highQualityCaptureTime",
+                "type": "double",
+                "value": 7
+              },
+              {
+                "name": "lowQualityNumPixels",
+                "type": "double",
+                "value": 5000
+              },
+              {
+                "name": "midQualityNumPixels",
+                "type": "double",
+                "value": 10000
+              },
+              {
+                "name": "highQualityNumPixels",
+                "type": "double",
+                "value": 15000
+              }
+            ],
+            "states": [
+              {
+                "type": "double",
+                "name": "pixels_key",
+                "key": "numPixels",
+                "value": 0.0
+              },
+              {
+                "type": "double",
+                "name": "incidence_key",
+                "key": "incidenceAngle",
+                "value": 0.0
+              },
+              {
+                "type": "bool",
+                "name": "eoon_key",
+                "key": "EOSensorOn",
+                "value": false
+              }
+            ]
+          },
+          {
+            "type": "scripted",
+            "name": "SSDR",
+            "src": "samples\\Aeolus\\pythonScripts\\ssdr.py",
+            "className": "ssdr",
+            "parameters": [
+              {
+                "name": "bufferSize",
+                "type": "double",
+                "value": 5000
+              }
+            ],
+            "states": [
+              {
+                "type": "double",
+                "name": "dataBufferFillRatio_key",
+                "key": "DataBufferFillRatio",
+                "value": 0.0
+              }
+            ]
+          },
+          {
+            "type": "scripted",
+            "name": "Comm",
+            "src": "samples\\Aeolus\\pythonScripts\\comm.py",
+            "className": "comm",
+            "states": [
+              {
+                "type": "double",
+                "name": "datarate_key",
+                "key": "DataRate(MB/s)",
+                "value": 0.0
+              }
+            ]
+          },
+          {
+            "type": "Scripted",
+            "name": "Power",
+            "src": "samples\\Aeolus\\pythonScripts\\power.py",
+            "className": "power",
+            "parameters": [
+              {
+                "name": "batterySize",
+                "type": "double",
+                "value": 1000000
+              },
+              {
+                "name": "fullSolarPower",
+                "type": "double",
+                "value": 150
+              },
+              {
+                "name": "penumbraSolarPower",
+                "type": "double",
+                "value": 75
+              }
+            ],
+            "states": [
+              {
+                "type": "double",
+                "name": "dod_key",
+                "key": "DepthOfDischarge",
+                "value": 0.0
+              },
+              {
+                "type": "double",
+                "name": "powin_key",
+                "key": "SolarPanelPowerIn",
+                "value": 0.0
+              }
+            ]
+          }
+        ],
+        "constraints": [
+          {
+            "value": 0.25,
+            "subsystemName": "Power",
+            "type": "FAIL_IF_HIGHER",
+            "name": "con1",
+            "state": {
+              "type": "double",
+              "key": "DepthOfDischarge"
+            }
+          },
+          {
+            "value": 0.7,
+            "subsystemName": "SSDR",
+            "type": "FAIL_IF_HIGHER",
+            "name": "con2",
+            "state": {
+              "type": "double",
+              "key": "DataBufferFillRatio"
+            }
+          }
+        ]
+      },
+
+    
+    "dependencies": [],
+    "evaluator": {
+      "type": "TargetValueEvaluator",
+      "src": "..\\..\\..\\test\\jason\\eval.py",
+      "className": "EVAL",
+      "keyRequests": []
+    }
+  }
+}
