@@ -33,11 +33,6 @@ namespace HSFScheduler
             Asset = asset;
             Task = task;
         }
-
-        public Access(XmlNode AccessXmlNode)
-        {
-
-        }
         #endregion
 
         #region methods
