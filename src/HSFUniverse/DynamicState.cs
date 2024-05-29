@@ -86,7 +86,6 @@ namespace HSFUniverse
             };
             Type = type;
             Eoms = eoms;
-            //_stateDataTimeStep = stateDataTimeStep;
         }
         #endregion
 
