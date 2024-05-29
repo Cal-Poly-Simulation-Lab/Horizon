@@ -37,13 +37,9 @@ namespace HSFUniverse
         // Do we want to change DynamicsStateType from ENUM to string?
         public DynamicStateType Type { get; private set; }
         public IntegratorType IntegratorType { get; private set; }
-
         public DynamicEOMS Eoms { get; private set; }
-
         public IntegratorParameters IntegratorParameters = new IntegratorParameters();
-
         private IntegratorOptions IntegratorOptions = new IntegratorOptions();
-
         private SortedList<double, Vector> StateData { get; set; }
 
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -80,17 +76,18 @@ namespace HSFUniverse
         /// Test Constructor
         /// </summary>
         /// <param name="type"></param>
+        /// <param name="integratorType"></param>
         /// <param name="eoms"></param>
         /// <param name="initialConditions"></param>
-        public DynamicState(DynamicStateType type, DynamicEOMS eoms, Vector initialConditions)
+        public DynamicState(DynamicStateType type, IntegratorType integratorType, DynamicEOMS eoms, Vector initialConditions)
         {
             StateData = new SortedList<double, Vector>((int)(SimParameters.SimEndSeconds / SimParameters.SimStepSeconds))
             {
                 { 0.0, initialConditions }
             };
             Type = type;
+            IntegratorType = integratorType;
             Eoms = eoms;
-            //_stateDataTimeStep = stateDataTimeStep;
         }
         #endregion
 
