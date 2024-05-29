@@ -17,6 +17,7 @@
     <ProjectReference Include="../../src/UserModel/UserModel.csproj" />
     <ProjectReference Include="../../src/Utilities/Utilities.csproj" />
     <ProjectReference Include="../../src/HSFSystem/HSFSystem.csproj" />
+    <ProjectReference Include="../../src/HSFScheduler/HSFScheduler.csproj" />
   </ItemGroup>
 
   <ItemGroup>
