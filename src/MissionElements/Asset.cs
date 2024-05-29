@@ -21,15 +21,12 @@ namespace MissionElements
         #endregion
 
         #region Constructors
-        public Asset() {
-            IsTaskable = false;
-        }
 
-        public Asset(DynamicState dynamicState, string name)
+        public Asset(DynamicState dynamicState, string name, bool isTaskable)
         {
             Name = name;
             AssetDynamicState = dynamicState;
-            IsTaskable = false;
+            IsTaskable = isTaskable;
         }
         /// <summary>
         /// Standard constructor from JSON Object
