@@ -10,6 +10,7 @@ public class Tests
     [Test]
     public void Test1()
     {
+        Console.WriteLine("this is the main one.");
         Assert.Pass();
     }
 }
