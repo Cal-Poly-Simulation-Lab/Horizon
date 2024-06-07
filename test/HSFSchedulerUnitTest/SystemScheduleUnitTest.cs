@@ -149,11 +149,17 @@ namespace HSFSchedulerUnitTest
                 testTaskList.Add(new MissionElements.Task("Task" + Convert.ToString(i+1),"testTaskType",testTargetList[i],maxTimes));
                 
                 // Now we create a test Access and push it on top of the stack 
-                testAccessStack.Push(new Access(testAsset, testTask)); //create the testAccessStack
+                testAccessStack.Push(new Access(testAsset, testTask));
 
                 //Can change Access Times here ....
+
+
             }
 
+            // Now need to use Scheduler.CanAddTasks() to check if the schedules work (or does SystemSchedule do this)
+
+
+            // Then Scheudler.Checker() to add to list of schedules (maybe in seperate test/this is main Scheduler Unit Test scope). 
 
 
         }
