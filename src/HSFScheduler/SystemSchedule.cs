@@ -74,7 +74,7 @@ namespace HSFScheduler
                     
                     //  If Event Start + Step Size > Sim End Time - Set Event End time to Sim End Time
                     if (newEventStartTime + SimParameters.SimStepSeconds > SimParameters.SimEndSeconds)
-                        eventEnds.Add(access.Asset, SimParameters.SimStepSeconds);
+                        eventEnds.Add(access.Asset, SimParameters.SimEndSeconds);
                     //  Else, set Event End time to Event Start Time + Sim Step
                     else
                         eventEnds.Add(access.Asset, newEventStartTime + SimParameters.SimStepSeconds);
