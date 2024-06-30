@@ -10,7 +10,7 @@ namespace HSFUniverse
     [Serializable]
     public abstract class DynamicEOMS : EOMS
     {
-        public Domain environment { get; set; }
+        public Domain Environment { get; set; }
 
         public DynamicEOMS()
         {
@@ -29,7 +29,7 @@ namespace HSFUniverse
         {
             get
             {
-                return this[t, y, param, environment];
+                return this[t, y, param, Environment];
             }
         }
 
@@ -40,12 +40,8 @@ namespace HSFUniverse
 
         public override Matrix<double> PythonAccessor(double t, Matrix<double> y, IntegratorParameters param)
         {
-            return this[t, y, param, environment];
+            return this[t, y, param, Environment];
         }
 
-        public void SetEnvironment(Domain environment)
-        {
-            this.environment = environment;
-        }
     }
 }

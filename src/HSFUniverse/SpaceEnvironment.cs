@@ -10,7 +10,6 @@ using Utilities;
 
 namespace HSFUniverse
 {
-    [Serializable]
     public class SpaceEnvironment : Domain
     {
         #region Attributes
@@ -22,19 +21,11 @@ namespace HSFUniverse
         public SpaceEnvironment()
         {
             CreateUniverse();
-            Convert.ToDouble(34);
         }
-        /*public SpaceEnvironment(Sun sun)
-        {
-            Sun = sun;
-        }*/
+
         public SpaceEnvironment(JObject environmentJson)
         {
             CreateUniverse(environmentJson);
-        }
-        public SpaceEnvironment(XmlNode environmentNode)
-        {
-            CreateUniverse(environmentNode);
         }
         #endregion
 
@@ -87,53 +78,6 @@ namespace HSFUniverse
             {
                 Atmos = new StandardAtmosphere();
             }
-        }
-        protected override void CreateUniverse(XmlNode environmentNode)
-        {
-            // Check the XMLNode for the presence of a child SUN node
-            if (environmentNode["SUN"] != null)
-            {
-                // Create the Sun based on the XMLNode                
-                XmlNode sunNode = environmentNode["SUN"];
-                // Check the Sun XMLNode for the attribute
-                if (sunNode.Attributes["isSunVectConstant"] != null)
-                {
-                    bool sunVectConst = Convert.ToBoolean(sunNode.Attributes["isSunVectConstant"].Value);
-                    Sun = new Sun(sunVectConst);
-                }
-                else
-                {
-                    Sun = new Sun();
-                }
-            }
-            else
-            {
-                Sun = new Sun();
-            }
-            if (environmentNode["ATMOSPHERE"] != null)
-            {
-                // Create the Sun based on the XMLNode                
-                XmlNode atmosNode = environmentNode["ATMOSPHERE"];
-                //string atmotype = atmosNode.Attributes["type"].ToString;
-                // Check the Sun XMLNode for the attribute
-                string s = Convert.ToString(atmosNode.Attributes["type"].Value);
-                switch (s)
-                {
-                    case "StandardAtmosphere":
-                        Atmos = new StandardAtmosphere();
-                        break;
-                    case "RealTimeAtmosphere":
-                        Atmos = new RealTimeAtmosphere();
-                        break;
-                }
-
-
-            }
-            else
-            {
-                Atmos = new StandardAtmosphere();
-            }
-
         }
 
         /// <summary>

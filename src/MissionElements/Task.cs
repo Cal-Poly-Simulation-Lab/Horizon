@@ -90,8 +90,8 @@ namespace MissionElements
                         Console.WriteLine(msg);
                     }
 
-                    if (JsonLoader<JToken>.TryGetValue("target", taskJson, out JToken targetJson))
-                        tasks.Push(new Task(taskName, taskType, new Target((JObject)targetJson), maxTimesPerform));
+                    if (JsonLoader<JObject>.TryGetValue("target", taskJson, out JObject targetJson))
+                        tasks.Push(new Task(taskName, taskType, new Target(targetJson), maxTimesPerform));
                     else
                     {
                         msg = $"Task loading error.  Tasks must have a TARGET for task '{taskName}'";

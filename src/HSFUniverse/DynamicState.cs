@@ -48,28 +48,59 @@ namespace HSFUniverse
 
         public DynamicState(JObject dynamicStateJson)
         {
-            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
-
+            string msg;
             // Make this a string...
-            Type = (DynamicStateType)Enum.Parse(typeof(DynamicStateType), dynamicStateJson.GetValue("type", stringCompare).ToString().ToUpper());
-            Vector ics = JsonConvert.DeserializeObject<Vector>(dynamicStateJson.GetValue("stateData", stringCompare).ToString());
-            StateData = new SortedList<double, Vector>
+            //Type = (DynamicStateType)Enum.Parse(typeof(DynamicStateType), dynamicStateJson.GetValue("type", stringCompare).ToString().ToUpper());
+            if (JsonLoader<JObject>.TryGetValue("type", dynamicStateJson, out string type))
             {
-                { SimParameters.SimStartSeconds, ics }
-            };
-            if (!(Type == DynamicStateType.STATIC_LLA || Type == DynamicStateType.STATIC_ECI || Type == DynamicStateType.STATIC_LVLH || Type == DynamicStateType.NULL_STATE))
-            {
-                Eoms = EOMFactory.GetEOMS(dynamicStateJson.GetValue("eoms", stringCompare));
-
-                // TODO Set IntegratorOptions to the default for each Integrator Type
-                if (dynamicStateJson.TryGetValue("integratorOptions", stringCompare, out JToken intOptsJson))
-                    IntegratorOptions = JsonConvert.DeserializeObject<IntegratorOptions>(intOptsJson.ToString());
-                else
-                    IntegratorOptions = new IntegratorOptions();
+                Type = (DynamicStateType)Enum.Parse(typeof(DynamicStateType), type.ToUpper());
             }
             else
-                // TODO Set IntegratorOptions to the default for each Integrator Type
-                Eoms = null;
+            {
+                msg = $"Missing DynamicState 'type' attribute in {dynamicStateJson}";
+                Console.WriteLine(msg);
+                log.Error(msg);
+                throw new ArgumentOutOfRangeException(msg);
+            }
+            if (JsonLoader<JToken>.TryGetValue("stateData", dynamicStateJson, out JToken stateDataJson))
+            {
+                Vector ics = JsonConvert.DeserializeObject<Vector>(stateDataJson.ToString());
+                StateData = new SortedList<double, Vector>
+                {
+                    { SimParameters.SimStartSeconds, ics }
+                };
+            }
+            else
+            {
+                msg = $"Missing DynamicState 'stateData' attribute in {dynamicStateJson}";
+                Console.WriteLine(msg);
+                log.Error(msg);
+                throw new ArgumentOutOfRangeException(msg);
+            }
+
+            if (JsonLoader<JObject>.TryGetValue("eoms", dynamicStateJson, out JObject eomsJson))
+                Eoms = EOMFactory.GetEOMS(eomsJson);
+            else
+            {
+                msg = $"Missing a EOMS attribute for DynamicState in {dynamicStateJson}";
+                Console.WriteLine(msg);
+                log.Error(msg);
+                throw new ArgumentOutOfRangeException(msg);
+            }
+
+            // TODO Set IntegratorOptions to the default for each Integrator Type
+            if (JsonLoader<JToken>.TryGetValue("integratorOptions", dynamicStateJson, out JToken intOptsJson))
+            {
+                IntegratorOptions = JsonConvert.DeserializeObject<IntegratorOptions>(intOptsJson.ToString());
+            }
+            else
+            {
+                msg = $"Integrator options error or not found for DynamicState in {dynamicStateJson}.  Using default integrator options.";
+                Console.WriteLine(msg);
+                log.Warn(msg);
+                IntegratorOptions = new IntegratorOptions();
+            }
+
         }
 
         /// <summary>

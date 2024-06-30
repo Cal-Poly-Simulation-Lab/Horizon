@@ -40,7 +40,7 @@ class Camera(HSFSystem.Subsystem):
         targetPositionECI = event.GetAssetTask(self.Asset).Target.DynamicState.PositionECI(ts)
         pointingVectorECI = targetPositionECI - scPositionECI
         
-        event.State.AddValue(self.POINTVEC_KEY, ts, pointingVectorECI)
+        event.State.AddValue(self.pointvec_key, ts, pointingVectorECI)
         event.SetTaskStart(self.Asset, ts)
         event.SetTaskEnd(self.Asset, ts + self.imageCaptureTime)
       

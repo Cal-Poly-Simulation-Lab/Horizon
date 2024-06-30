@@ -11,7 +11,7 @@ using UserModel;
 
 namespace HSFUniverse
 {
-    public class UniverseFactory
+    public class EnvironmentFactory
     {
         /// <summary>
         /// A method to interpret the Xml file and create a universe instance
@@ -20,20 +20,18 @@ namespace HSFUniverse
         /// <returns></returns>
         public static Domain GetUniverseClass(JObject environmentJson)
         {
-            Domain universe;
+            Domain environment;
             if (JsonLoader<string>.TryGetValue("type", environmentJson, out string type))
             {
                 type = type.ToLower();
 
-                //string type = environmentJson.GetValue("type", stringCompare).ToString().ToLower();
-
                 if (type.Equals("scripted"))
                 {
-                    universe = (Domain)new ScriptedUniverse(environmentJson);
+                    environment = (Domain)new ScriptedEnvironment(environmentJson);
                 }
                 else if (type.Equals("spaceenvironment"))
                 {
-                    universe = (Domain)new SpaceEnvironment(environmentJson);
+                    environment = (Domain)new SpaceEnvironment(environmentJson);
                 }
                 else if (type.Equals("airborneenvironment"))
                 {
@@ -41,7 +39,7 @@ namespace HSFUniverse
                 }
                 else
                 {
-                    throw new ArgumentOutOfRangeException($"Evironment is not set to a HSF Environment type, type {type} was found.");
+                    throw new ArgumentOutOfRangeException($"Evironment is not set to a HSF Environment type, type {type} was not found.");
                 }
             }
             else
@@ -49,7 +47,7 @@ namespace HSFUniverse
                 throw new ArgumentOutOfRangeException($"Evironment must contain a TYPE.");
             }
 
-            return universe;
+            return environment;
         }
     }
 }
