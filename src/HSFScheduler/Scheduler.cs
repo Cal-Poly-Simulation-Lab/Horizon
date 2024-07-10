@@ -168,6 +168,7 @@ namespace HSFScheduler
 
 
                     if (Checker.CheckSchedule(system, potentialSchedule)) {
+                        //potentialSchedule.GetEndState().GetLastValue()
                         systemCanPerformList.Add(potentialSchedule);
                         numSched++;
                     }

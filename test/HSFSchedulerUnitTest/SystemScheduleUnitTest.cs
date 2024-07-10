@@ -2,6 +2,7 @@ using HSFScheduler;
 using HSFUniverse;
 using MissionElements;
 using Utilities;
+using UserModel;
 
 namespace HSFSchedulerUnitTest
 {
@@ -120,16 +121,37 @@ namespace HSFSchedulerUnitTest
 
             // Check if the TaskStart, TaskEnd, EventStart, EventEnd are 0 when exiting the constructor.
             Assert.That(topEvent.EventStarts[testAsset],Is.EqualTo(0)); //Assert.AreEqual(topEvent.EventStarts[testAsset],0);
-            Assert.That(topEvent.EventEnds[testAsset],Is.EqualTo(0));
+            Assert.That(topEvent.EventEnds[testAsset],Is.EqualTo(12.0));
             Assert.That(topEvent.TaskStarts[testAsset],Is.EqualTo(0));
             Assert.That(topEvent.TaskEnds[testAsset],Is.EqualTo(0));
  
         }
 
+        [Test]
         public void TestFundamentalTimeStep()
         {
             Console.Write("TestFundamentalTimestep() ... "); 
+            double eventStartTime = 0.0; 
 
+            // Make SystemSchedule with default state History (mostly null & with null initial state) and the access stack
+            List<Stack<Access>> testAccessStackList = CreateAccessStackCases();
+            List<SystemSchedule> sslist = new();
+            foreach (Stack<Access> tas in testAccessStackList)
+            {
+                // Create the four different system schedules (because all using the same asset)
+                // All using the same default StateHistory as well
+                SystemSchedule systemSchedule = new SystemSchedule(stateHistory,tas,eventStartTime);
+                var topEvent = systemSchedule.AllStates.Events.Peek(); 
+                sslist.Add(systemSchedule);
+
+
+            }
+            
+
+        }
+
+        public List<Stack<Access>> CreateAccessStackCases()
+        {
             /* So here we go through each Access in Stack<Access> newAccessStack and create a list of 
             List<SystemSchedule> potentialSystemSchdules
             Then, the Checker is called foreach potentialSchedule in potentialSystemSchedules ... */
@@ -139,28 +161,62 @@ namespace HSFSchedulerUnitTest
             List<int> testTargetValues = [5,8,11,14];
             List<Target> testTargetList = new();
             List<MissionElements.Task> testTaskList = new(); int maxTimes = 1;
-            Stack<Access> testAccessStack = new();
 
             // Though we set up Tasks so we can create an Access with an Asset and a Task.
             for (int i = 0; i < testTargetValues.Count(); i++)
             {
-                 // So First, we must set up a Target and task with that target
+                 // So first, we must set up a Target
                 testTargetList.Add(new Target("testTarget" + Convert.ToString(i+1),"testType",testDynamicState,testTargetValues[i]));
+                // Then use th target to generate a Task
                 testTaskList.Add(new MissionElements.Task("Task" + Convert.ToString(i+1),"testTaskType",testTargetList[i],maxTimes));
-                
-                // Now we create a test Access and push it on top of the stack 
-                testAccessStack.Push(new Access(testAsset, testTask));
-
-                //Can change Access Times here ....
-
-
+            
             }
+
+                // Create four different access (cases):
+                double stepEndTime = SimParameters.SimStepSeconds;
+
+                // These cases will all only be a stack of one since we only have one asset here. 
+                // Thus create a List for all of these to output in:
+                List<Stack<Access>> testAccessStackList = new(); 
+                
+                // Case #1: Access start at event start, ends longer than Event End time
+                Access access = new Access(testAsset, testTaskList[0]);
+                access.AccessEnd = stepEndTime + 2.0; // Ends 2 seconds after event end time.
+                Stack<Access> testAccessStack1 = new();
+                testAccessStack1.Push(access);
+                testAccessStackList.Add(testAccessStack1);
+
+                // Case #2: Access Starts at Event Start; Ends before Event End
+                access = new Access(testAsset, testTaskList[1]);
+                access.AccessEnd = stepEndTime - 2.0; // Ends 2 before after event end time.
+                Stack<Access> testAccessStack2 = new(); 
+                testAccessStack2.Push(access);
+                testAccessStackList.Add(testAccessStack2);
+
+                // Case #3: Access Starts at After Event Start; Ends before Event End
+                access = new Access(testAsset, testTaskList[2]);
+                access.AccessStart = 2.0; 
+                access.AccessEnd = stepEndTime - 2.0; // Ends 2 seconds before event end time. 
+                Stack<Access> testAccessStack3 = new();
+                testAccessStack3.Push(access);
+                testAccessStackList.Add(testAccessStack3);
+
+                // Case #4: Access Starts after Event Start; Ends after Event End
+                access = new Access(testAsset, testTaskList[3]);
+                access.AccessStart = 2.0; 
+                access.AccessEnd = stepEndTime + 2.0; // Ends 2 seconds after event end time. 
+                Stack<Access> testAccessStack4 = new();
+                testAccessStack4.Push(access);
+                testAccessStackList.Add(testAccessStack4);
+                
+                // Return out
+                return testAccessStackList;
+
 
             // Now need to use Scheduler.CanAddTasks() to check if the schedules work (or does SystemSchedule do this)
 
 
             // Then Scheudler.Checker() to add to list of schedules (maybe in seperate test/this is main Scheduler Unit Test scope). 
-
 
         }
     }
