@@ -27,17 +27,13 @@ namespace HSFUniverse
         #endregion
 
         #region Constructors
-        public ScriptedEOMS(JToken scriptedEOMsJson)
+        public ScriptedEOMS(JObject scriptedEOMsJson)
         {
             src = (string)scriptedEOMsJson["src"];
             className = (string)scriptedEOMsJson["className"];
+            if (JsonLoader<JObject>.TryGetValue("environment", scriptedEOMsJson, out JObject environmentJson ))
+                Environment = new ScriptedEnvironment(environmentJson);
             InitPython(scriptedEOMsJson);
-        }
-
-        public ScriptedEOMS(XmlNode scriptedNode)
-        {
-            XmlParser.ParseScriptedSrc(scriptedNode, ref src, ref className);
-            InitPython(scriptedNode);
         }
 
         private void InitPython(params object[] parameters)

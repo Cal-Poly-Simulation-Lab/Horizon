@@ -79,7 +79,7 @@ namespace Horizon
             program.InitInput(argsList);
             program.InitOutput(argsList);
             program.LoadScenario();
-            program.LoadTasks();
+            //program.LoadTasks();
             program.LoadSubsystems();
             program.LoadEvaluator();
             program.CreateSchedules();
@@ -186,7 +186,7 @@ namespace Horizon
                                 //subpath = @"..\..\..\..\samples\myFirstHSFProject\";
                                 subPath = Path.Combine(subPath, "myFirstHSFProject");
                                 SimulationFilePath = Path.Combine(subPath, "myFirstHSFScenario.json");
-                                TaskDeckFilePath = Path.Combine(subPath, "myFirstHSFTargetDeck.json");
+                                TaskDeckFilePath = Path.Combine(subPath, "myFirstHSFTaskList.json");
                                 ModelFilePath = Path.Combine(subPath, "myFirstHSFSystem.json");
                                 simulationSet = true;
                                 targetSet = true;
@@ -309,7 +309,7 @@ namespace Horizon
                 throw new ArgumentException(msg);
             }
             // Load Base Dependencies
-            if(JsonLoader<JToken>.TryGetValue("dependencies", scenarioJson, out JToken dependenciesJson))
+            if(JsonLoader<JObject>.TryGetValue("dependencies", scenarioJson, out JObject dependenciesJson))
             {
                 Console.WriteLine($"Base Dependecies Loaded for {name} at {SimulationFilePath}");
                 log.Info($"Base Dependecies Loaded for {name} at {SimulationFilePath}");
@@ -323,9 +323,9 @@ namespace Horizon
             }
 
             // Load Simulation Parameters
-            if (JsonLoader<JToken>.TryGetValue("simulationParameters", scenarioJson, out JToken simulationJson))
+            if (JsonLoader<JObject>.TryGetValue("simulationParameters", scenarioJson, out JObject simulationJson))
             {
-                SimParameters.LoadSimulationJson((JObject)simulationJson, name);
+                SimParameters.LoadSimulationJson(simulationJson, name);
             }
             else
             {
@@ -336,9 +336,9 @@ namespace Horizon
             }
 
             // Load Scheduler Parameters
-            if (JsonLoader<JToken>.TryGetValue("schedulerParameters", scenarioJson, out JToken schedulerJson))
+            if (JsonLoader<JObject>.TryGetValue("schedulerParameters", scenarioJson, out JObject schedulerJson))
             {
-                SchedParameters.LoadScheduleJson((JObject)schedulerJson);
+                SchedParameters.LoadScheduleJson(schedulerJson);
             }
             else
             {
@@ -374,7 +374,7 @@ namespace Horizon
                     // Load Environment
                     if (JsonLoader<JObject>.TryGetValue("environment", modelJson, out JObject environmentJson))
                     {
-                        SystemUniverse = UniverseFactory.GetUniverseClass(environmentJson);
+                        SystemUniverse = EnvironmentFactory.GetUniverseClass(environmentJson);
                     }
                     else
                     {
@@ -389,7 +389,7 @@ namespace Horizon
                         foreach (JObject assetJson in assetsListJson)
                         {
                             Asset asset = new Asset(assetJson);
-                            asset.AssetDynamicState.Eoms.SetEnvironment(SystemUniverse);
+                            asset.AssetDynamicState.Eoms.Environment = SystemUniverse;
                             AssetList.Add(asset);
 
                             // Load Subsystems

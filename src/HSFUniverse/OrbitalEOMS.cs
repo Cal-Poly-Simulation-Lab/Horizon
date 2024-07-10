@@ -11,7 +11,6 @@ using Utilities;
 
 namespace HSFUniverse
 {
-    [Serializable]
     public class OrbitalEOMS: DynamicEOMS
     {
         protected double _mu;
@@ -42,10 +41,6 @@ namespace HSFUniverse
 
                 return dy;
             }
-        }
-        public Matrix<double> getA_UnitTestOnly()
-        {
-            return _A;
         }
     }
 }
