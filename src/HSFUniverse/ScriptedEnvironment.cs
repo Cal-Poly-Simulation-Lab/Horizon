@@ -13,7 +13,7 @@ using Newtonsoft.Json.Linq;
 
 namespace HSFUniverse
 {
-        public class ScriptedUniverse : Domain
+        public class ScriptedEnvironment : Domain
     {
         #region Attributes
         private dynamic _pythonInstance;
@@ -24,9 +24,10 @@ namespace HSFUniverse
         #endregion
         
         #region Constructors
-        public ScriptedUniverse(JObject scriptedUniverseJson)
+        public ScriptedEnvironment(JObject scriptedUniverseJson)
         {
             StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
+            JsonLoader<string>.TryGetValue("src", scriptedUniverseJson, out src);
             src = scriptedUniverseJson.GetValue("src", stringCompare).ToString();
             className = scriptedUniverseJson.GetValue("className", stringCompare).ToString();
             InitPython(scriptedUniverseJson);

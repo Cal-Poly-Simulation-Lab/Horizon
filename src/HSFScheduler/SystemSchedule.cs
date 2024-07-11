@@ -104,7 +104,7 @@ namespace HSFScheduler
         /// <param name="newAccessList"></param>
         /// <param name="newTaskStartTime"></param>
         /// <returns></returns>
-        public bool CanAddTasks(Stack<Access> newAccessList, double newTaskStartTime)
+        public bool CanAddTasks(Stack<Access> newAccessList, double currentTime)
         {
             int count = 0;
 
@@ -112,7 +112,7 @@ namespace HSFScheduler
             {
                 if (!AllStates.isEmpty(access.Asset))
                 {
-                    if (AllStates.GetLastEvent().GetEventEnd(access.Asset) > newTaskStartTime)
+                    if (AllStates.GetLastEvent().GetEventEnd(access.Asset) > currentTime)
                         return false;
                 }
 

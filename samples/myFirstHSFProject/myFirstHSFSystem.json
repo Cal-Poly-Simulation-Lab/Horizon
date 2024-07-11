@@ -1,0 +1,39 @@
+{
+  "model": {
+    "assets": [
+      {
+        "name": "Asset1",
+        "dynamicState": {
+          "type": "DYNAMIC_ECI",
+          "stateData": [ 7378.137, 0, 0, 0, 6.02088, 4.215866 ],
+          "Eoms": {
+            "type": "orbitalEOMS"
+          }
+        },
+        "subsystems": [
+          {
+            "type": "scripted",
+            "name": "Camera",
+            "src": "samples\\myFirstHSFProject\\Camera.py",
+            "className": "Camera",
+            "states": [
+              {
+                "type": "Matrix",
+                "name": "pointvec_key",
+                "key": "ECI_Pointing_Vector(XYZ)",
+                "value": [ 0, 0, 0 ]
+              }
+            ],
+            "parameters": [
+              {
+                "name": "imageCaptureTime",
+                "type": "double",
+                "value": 3
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

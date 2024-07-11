@@ -1,0 +1,174 @@
+{
+  "tasks": [
+    {
+      "name": "Task 1",
+      "type": "IMAGING",
+      "maxTimes": 10,
+      "target": {
+        "name": "Target 1",
+        "type": "ImageTarget",
+        "value": 3,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "stateData": [ 1, 2, 0 ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "Task 2",
+      "type": "IMAGING",
+      "maxTimes": 10,
+      "target": {
+        "name": "Target 2",
+        "type": "ImageTarget",
+        "value": 2,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "stateData": [ 2, 4, 0 ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "Task 3",
+      "type": "IMAGING",
+      "maxTimes": 10,
+      "target": {
+        "name": "Target 3",
+        "type": "ImageTarget",
+        "value": 1,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "stateData": [ 3, 6, 0 ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "Task 4",
+      "type": "IMAGING",
+      "maxTimes": 10,
+      "target": {
+        "name": "Target 4",
+        "type": "ImageTarget",
+        "value": 13,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "stateData": [ 4, 8, 0 ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "Task 5",
+      "type": "IMAGING",
+      "maxTimes": 10,
+      "target": {
+        "name": "Target 5",
+        "type": "ImageTarget",
+        "value": 10,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "stateData": [ 5, 10, 0 ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "Task 6",
+      "type": "IMAGING",
+      "maxTimes": 10,
+      "target": {
+        "name": "Target 6",
+        "type": "ImageTarget",
+        "value": 7,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "stateData": [ 6, 12, 0 ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "Task 7",
+      "type": "IMAGING",
+      "maxTimes": 10,
+      "target": {
+        "name": "Target 7",
+        "type": "ImageTarget",
+        "value": 8,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "stateData": [ 7, 14, 0 ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "Task 8",
+      "type": "IMAGING",
+      "maxTimes": 10,
+      "target": {
+        "name": "Target 8",
+        "type": "ImageTarget",
+        "value": 5,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "stateData": [ 8, 16, 0 ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "Task 9",
+      "type": "IMAGING",
+      "maxTimes": 10,
+      "target": {
+        "name": "Target 9",
+        "type": "ImageTarget",
+        "value": 9,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "stateData": [ 9, 18, 0 ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "Task 10",
+      "type": "IMAGING",
+      "maxTimes": 10,
+      "target": {
+        "name": "Target 10",
+        "type": "ImageTarget",
+        "value": 14,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "stateData": [ 10, 20, 0 ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    }
+  ]
+}
