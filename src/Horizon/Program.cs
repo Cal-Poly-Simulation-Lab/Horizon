@@ -79,7 +79,7 @@ namespace Horizon
             program.InitInput(argsList);
             program.InitOutput(argsList);
             program.LoadScenario();
-            //program.LoadTasks();
+            program.LoadTasks();
             program.LoadSubsystems();
             program.LoadEvaluator();
             program.CreateSchedules();
@@ -87,6 +87,7 @@ namespace Horizon
 
             int i = 0;
             //Morgan's Way
+            Console.WriteLine($"Publishing simulation results to {program.OutputPath}");
             StreamWriter sw = File.CreateText(program.OutputPath);
             foreach (SystemSchedule sched in program.Schedules)
             {
@@ -295,6 +296,7 @@ namespace Horizon
             }
             number++;
             outputFileName = outputFileName.Remove(outputFileName.Length - 1) + number + string.Format("_{0:HH:mm:ss}",DateTime.Now);
+            outputFileName = outputFileName.Replace(':', '_');
             outputPath = Path.Combine(outputPath,outputFileName + txt); 
             this.OutputPath = outputPath;
         }

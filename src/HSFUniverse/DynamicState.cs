@@ -95,9 +95,9 @@ namespace HSFUniverse
             }
             else
             {
-                msg = $"Integrator options error or not found for DynamicState in {dynamicStateJson}.  Using default integrator options.";
-                Console.WriteLine(msg);
-                log.Warn(msg);
+                //msg = $"Integrator options error or not found for DynamicState in {dynamicStateJson}.  Using default integrator options.";
+                //Console.WriteLine(msg);
+                //log.Warn(msg);
                 IntegratorOptions = new IntegratorOptions();
             }
 
