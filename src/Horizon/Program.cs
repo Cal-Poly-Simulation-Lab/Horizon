@@ -79,7 +79,7 @@ namespace Horizon
             program.InitInput(argsList);
             program.InitOutput(argsList);
             program.LoadScenario();
-            //program.LoadTasks();
+            program.LoadTasks();
             program.LoadSubsystems();
             program.LoadEvaluator();
             program.CreateSchedules();
@@ -113,8 +113,6 @@ namespace Horizon
             //{
             //    File.WriteAllText(@"..\..\..\" + asset.Name + "_dynamicStateData.csv", asset.AssetDynamicState.ToString());
             //}
-
-            Console.ReadKey();
             return 0;
         }
         public void InitInput(List<string> argsList)
@@ -147,7 +145,7 @@ namespace Horizon
             {
                 argsList.Add("-scen");
                 // Set this to the default scenario you would like to run
-                string scenarioName = "Aeolus";
+                string scenarioName = "myFirstHSFProject";
                 argsList.Add(scenarioName);
                 // This is the path or "subpath" to the Horizon/samples/ directory where the simulation input files are stored.
                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
