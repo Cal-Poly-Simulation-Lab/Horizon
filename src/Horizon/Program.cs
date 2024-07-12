@@ -271,14 +271,15 @@ namespace Horizon
             // else {outputPath = Path.Combine(DevEnvironment.RepoDirectory, "output/HorizonLog");} // Otherwise use default
             // Directory.CreateDirectory(outputPath); // Create the output directory if it doesn't already exist. 
 
-            if (!argsList.Contains("-o"))
+            if (argsList.Contains("-o"))
             {
                 int indx = argsList.IndexOf("-o");
                 outputPath = argsList[indx + 1];
             }
             else
+            {
                 outputPath = Path.Combine(DevEnvironment.RepoDirectory, "output/HorizonLog");
-
+            }
             // Create the output directory if it doesn't already exist.
             Directory.CreateDirectory(outputPath); 
 
@@ -288,13 +289,13 @@ namespace Horizon
             double number = 0;
             foreach (var fileName in fileNames)
             {
-                char version = fileName[fileName.Length - txt.Length - 1];
+                char version = fileName[fileName.Length - txt.Length - 10];
                 if (number < Char.GetNumericValue(version))
                     number = Char.GetNumericValue(version);
             }
             number++;
-            outputFileName = outputFileName.Remove(outputFileName.Length - 1) + number;
-            outputPath += outputFileName + txt;
+            outputFileName = outputFileName.Remove(outputFileName.Length - 1) + number + string.Format("_{0:HH:mm:ss}",DateTime.Now);
+            outputPath = Path.Combine(outputPath,outputFileName + txt); 
             this.OutputPath = outputPath;
         }
 
