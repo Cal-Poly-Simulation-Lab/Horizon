@@ -18,6 +18,7 @@
     <ProjectReference Include="../../src/Utilities/Utilities.csproj" />
     <ProjectReference Include="../../src/HSFSystem/HSFSystem.csproj" />
     <ProjectReference Include="../../src/HSFScheduler/HSFScheduler.csproj" />
+    <ProjectReference Include="../../src/Horizon/Horizon.csproj" />
   </ItemGroup>
 
   <ItemGroup>

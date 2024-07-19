@@ -400,7 +400,10 @@ namespace Horizon
                         foreach (JObject assetJson in assetsListJson)
                         {
                             Asset asset = new Asset(assetJson);
-                            asset.AssetDynamicState.Eoms.SetEnvironment(SystemUniverse);
+                            if (asset.AssetDynamicState.Eoms != null)
+                            {
+                                asset.AssetDynamicState.Eoms.SetEnvironment(SystemUniverse); 
+                            }
                             AssetList.Add(asset);
 
                             // Load Subsystems
