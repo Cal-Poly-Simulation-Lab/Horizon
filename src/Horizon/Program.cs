@@ -148,7 +148,7 @@ namespace Horizon
             {
                 argsList.Add("-scen");
                 // Set this to the default scenario you would like to run
-                string scenarioName = "Aeolus";
+                string scenarioName = "myFirstHSFProjectConstraint";
                 argsList.Add(scenarioName);
                 // This is the path or "subpath" to the Horizon/samples/ directory where the simulation input files are stored.
                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
@@ -198,7 +198,7 @@ namespace Horizon
                                 //subpath = @"..\..\..\..\samples\myFirstHSFProjectConstraint\";
                                 subPath = Path.Combine(subPath, "myFirstHSFProjectConstraint");
                                 SimulationFilePath = Path.Combine(subPath, "myFirstHSFScenario.json");
-                                TaskDeckFilePath = Path.Combine(subPath, "myFirstHSFTargetDeck.json");
+                                TaskDeckFilePath = Path.Combine(subPath, "myFirstHSFTaskList.json");
                                 ModelFilePath = Path.Combine(subPath, "myFirstHSFSystemLook.json");
                                 simulationSet = true;
                                 targetSet = true;

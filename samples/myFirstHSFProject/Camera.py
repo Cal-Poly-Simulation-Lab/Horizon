@@ -2,16 +2,15 @@ import sys
 import clr
 import System.Collections.Generic
 import System
+
 clr.AddReference('System.Core')
 clr.AddReference('IronPython')
-clr.AddReference('System.Xml')
 clr.AddReferenceByName('Utilities')
 clr.AddReferenceByName('HSFUniverse')
 clr.AddReferenceByName('UserModel')
 clr.AddReferenceByName('MissionElements')
 clr.AddReferenceByName('HSFSystem')
 
-import System.Xml
 import HSFSystem
 import MissionElements
 import Utilities
@@ -19,7 +18,6 @@ import HSFUniverse
 import UserModel
 
 from HSFSystem import *
-from System.Xml import XmlNode
 from Utilities import *
 from HSFUniverse import *
 from UserModel import *
@@ -40,7 +38,7 @@ class Camera(HSFSystem.Subsystem):
         targetPositionECI = event.GetAssetTask(self.Asset).Target.DynamicState.PositionECI(ts)
         pointingVectorECI = targetPositionECI - scPositionECI
         
-        event.State.AddValue(self.pointvec_key, ts, pointingVectorECI)
+        event.State.AddValue(self.pointingvector, ts, pointingVectorECI)
         event.SetTaskStart(self.Asset, ts)
         event.SetTaskEnd(self.Asset, ts + self.imageCaptureTime)
       

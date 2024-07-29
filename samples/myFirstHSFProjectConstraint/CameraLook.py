@@ -4,14 +4,12 @@ import System.Collections.Generic
 import System
 clr.AddReference('System.Core')
 clr.AddReference('IronPython')
-clr.AddReference('System.Xml')
 clr.AddReferenceByName('Utilities')
 clr.AddReferenceByName('HSFUniverse')
 clr.AddReferenceByName('UserModel')
 clr.AddReferenceByName('MissionElements')
 clr.AddReferenceByName('HSFSystem')
 
-import System.Xml
 import HSFSystem
 import MissionElements
 import Utilities
@@ -19,7 +17,6 @@ import HSFUniverse
 import UserModel
 
 from HSFSystem import *
-from System.Xml import XmlNode
 from Utilities import *
 from HSFUniverse import *
 from UserModel import *
@@ -43,8 +40,8 @@ class CameraLook(HSFSystem.Subsystem):
         pv_norm = pointingVectorECI / Matrix[System.Double].Norm(pointingVectorECI)
         lookAngle = Math.Acos(Matrix[System.Double].Dot(scPos_norm, pv_norm))
         
-        event.State.AddValue(self.LookAngle, ts, lookAngle)
-        event.State.AddValue(self.POINTVEC_KEY, ts, pointingVectorECI)
+        event.State.AddValue(self.lookangle, ts, lookAngle)
+        event.State.AddValue(self.pointingvector, ts, pointingVectorECI)
         
         event.SetTaskStart(self.Asset, ts)
         event.SetTaskEnd(self.Asset, ts + self.imageCaptureTime)
