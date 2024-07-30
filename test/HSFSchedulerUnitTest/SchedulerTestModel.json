@@ -14,11 +14,11 @@
         },
         "subsystems": [
           {
-            "type": "scripted",
+            "type": "subtest",
             "name": "SchedulerSubTest",
-            "src": "test\\HSFSchedulerUnitTest\\SubTest.cs",
+            "src": "test\\HSFSchedulerUnitTest\\SchedulerSubTest.cs",
             "className": "SubTest",
-            "states": []
+            "states": [{}]
           }
         ],
         "constraints": []

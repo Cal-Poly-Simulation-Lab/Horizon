@@ -121,6 +121,8 @@ namespace Horizon
         {
             // This would be in a config file - not used right now (4/26/24) -EM
             string basePath = @"C:\Users\emehiel\Source\Repos\Horizon8\";
+            // DirectoryInfo testdir = DevEnvironment.testDirectory; 
+            // string basePath = DevEnvironment.RepoDirectory; //Establsih the repo directory as the basePath
             string subPath = "";
 
             if (argsList.Contains("-scen"))
