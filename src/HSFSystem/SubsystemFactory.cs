@@ -69,6 +69,14 @@ namespace HSFSystem
                     Name = name
                 };
             }
+
+            else if (type.Equals("scriptedcs"))
+            {
+                ScriptedSubsystemCS temp = new ScriptedSubsystemCS(SubsystemJson, asset);
+                subsystem = temp.LoadedSubsystem;
+            
+            }
+
             else // not scripted subsystem
             {
                 if (type.Equals("access"))
@@ -106,6 +114,10 @@ namespace HSFSystem
                     //sub = new SubTest(SubsystemXmlNode, asset);
                     //throw new NotImplementedException("Removed after the great SubsystemFactory update.");
                 }
+                // else if (type.Equals("schedtestsub"))
+                // {
+                //     subsystem = new SchedTestSub(SubsystemJson); 
+                // }
                 else if (type.Equals("networked"))
                 {
                     throw new NotImplementedException("Networked Subsystem is a depreciated feature!");

@@ -82,6 +82,9 @@ namespace HSFSystem
                 this.src = srcJason.ToString();
                 this.src = Path.Combine(Utilities.DevEnvironment.RepoDirectory, src.Replace('\\', '/')); //Replace backslashes with forward slashes, if applicable
             }
+            // else if (scriptedSubsystemJson.TryGetValue("fullpath", stringCompare, out JToken fullpathJason))
+            // {
+            // }
             else
             {
                 Console.WriteLine($"Error loading subsytem of type {this.Type}, missing Src attribute");
