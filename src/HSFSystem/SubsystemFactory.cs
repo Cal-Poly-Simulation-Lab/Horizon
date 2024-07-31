@@ -72,9 +72,11 @@ namespace HSFSystem
 
             else if (type.Equals("scriptedcs"))
             {
-                ScriptedSubsystemCS temp = new ScriptedSubsystemCS(SubsystemJson, asset);
-                subsystem = temp.LoadedSubsystem;
+                ScriptedSubsystemCS scriptedSubLoader = new ScriptedSubsystemCS(SubsystemJson, asset);
             
+                // All properties already set within ScriptedSubsystemCSLoader constructor... Just take loaded Subsystem object.
+                subsystem = scriptedSubLoader.LoadedSubsystem;
+
             }
 
             else // not scripted subsystem

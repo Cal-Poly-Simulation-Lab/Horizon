@@ -9,48 +9,32 @@ using HSFUniverse;
 using Utilities;
 using System.Security.Cryptography.X509Certificates;
 using Newtonsoft.Json.Linq;
-//using System.CodeDom.Compiler;
 using Microsoft.CSharp;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
-
-// namespace HSFSystem
-// {
-//     public class ScriptedSubsytemCS : Subsystem
-//     {
-//         public Subsystem LoadedSubsystem { get; private set; }
-//         public ScriptedSubsystemCS(JObject scriptedSubsystemJson, Asset asset)
-//         {
-            
-//         }
-
-//     }
-// }
+using Mono.Unix.Native;
 
 namespace HSFSystem
 { 
-    public class ScriptedSubsystemCS : Subsystem
+    public class ScriptedSubsystemCS
     {
         public Subsystem LoadedSubsystem { get; private set; }
         private readonly string src = "";
+        private readonly string Type = "scriptedcs"; // Make sure to change this default value ~IF~ name is changed in JSON input files
         private readonly string dll = ""; 
         private readonly string className = ""; 
         private readonly string dlldir = ""; 
+        private readonly Type[] constructorArgTypes = [typeof(JObject)]; 
+        private readonly object[] constructorArgs = [];
 
         public ScriptedSubsystemCS(JObject scriptedSubsystemJson, Asset asset)//string dllPath, string typeName, string subsystemJson)
         {
            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
 
-            this.Asset = asset;
-            //if(scriptedSubsystemJson.TryGetValue("name", stringCompare, out JToken nameJason))
-            //    this.Name = this.Asset.Name.ToLower() + "." + nameJason.ToString().ToLower();
-            //else
-            //{
-            //    Console.WriteLine($"Error loading subsytem of type {this.Type}, missing Name attribute");
-            //    throw new ArgumentException($"Error loading subsytem of type {this.Type}, missing Name attribute\"");
-            //}
+            // Before we can set any subsytem parameters, we must first load in the file...
 
+            // Load in the dll / src file:
             if (scriptedSubsystemJson.TryGetValue("dll",stringCompare, out JToken dllJason))
             {
                 this.dll = dllJason.ToString();
@@ -67,25 +51,68 @@ namespace HSFSystem
                 this.dll = CompileDll(this.src,Path.Combine(Directory.GetParent(src).FullName,"bin"));
 
             }
-
-            // else if (scriptedSubsystemJson.TryGetValue("fullpath", stringCompare, out JToken fullpathJason))
-            // {
-            // }
             else
             {
                 Console.WriteLine($"Error loading subsytem of type {this.Type}, missing Src/dll attribute");
                 throw new ArgumentException($"Error loading subsytem of type {this.Type}, missing Src attribute");
             }
 
+            // Load in the className:
             if (scriptedSubsystemJson.TryGetValue("className", stringCompare, out JToken classNameJason))
+            {
                 this.className = classNameJason.ToString();
+            }
             else
             {
                 Console.WriteLine($"Error loading subsytem of type {this.Type}, missing ClassName attribute");
                 throw new ArgumentException($"Error loading subsytem of type {this.Type}, missing ClassName attribute");
             }
+
+
+            // Load in the (optional) constructor args: 
+            if (scriptedSubsystemJson.TryGetValue("constructorArgTypes", stringCompare, out JToken constructorArgTypesJason))
+            {
+                // Add fucntionality to parse all argtypes from input json file... -JB 7/31/24
+                Console.WriteLine("Loading subsytem of type {this.Type}, constructorArgTypes not yet functional...");
+                
+                // For now: 
+                this.constructorArgs = [scriptedSubsystemJson]; // Use the JObject json by default.  Using default JObject tpye..."); 
+            }
+            else
+            {
+                this.constructorArgs = [scriptedSubsystemJson]; // Use the JObject json by default. 
+                Console.WriteLine($"Loading subsytem of type {this.Type}, using deafault {this.constructorArgTypes}...");
+                
+                //Optional so do not throw an error (assume that there is a JObject constructor); Error caught later...
+            }
+
+            // Now load the subsytem from the file and other (optional) arguments
+            this.LoadedSubsystem = LoadSubsystemFromDll();
             
-            LoadedSubsystem = LoadSubsystemFromDll(dll, className, scriptedSubsystemJson);
+            // Set all necessary subsystem attributes...
+            LoadedSubsystem.Asset = asset; 
+            LoadedSubsystem.Type = Type;
+
+            // Load in the (optional) subsystem name:
+            if (scriptedSubsystemJson.TryGetValue("name", stringCompare, out JToken nameJason))
+            {
+                LoadedSubsystem.Name = nameJason.ToString();
+            }
+            else
+            {
+                // Fish fore the name of the subsystem using the filename (by default) 
+                string fp = ""; 
+                if (!dll.Equals("")) { fp = dll; }
+                else { fp = src; }
+
+                // Assign the subsystem the name of the file by default. 
+                LoadedSubsystem.Name = Path.GetFileName(fp);
+            }
+            
+            LoadedSubsystem.Loader = this; // Could create an infinite loop? idk..
+            
+            // Finally, SubsystemFactory.cs will take the 'LoadedSubsystem' object out of this loader class as the 
+            // subsystem is loaded into HSF.
 
         }
         
@@ -216,27 +243,35 @@ namespace HSFSystem
         //     }
         // }
 
-        private Subsystem LoadSubsystemFromDll(string dllPath, params object[] constructorArgs)
+        private Subsystem LoadSubsystemFromDll()
         {
             // Ensure the DLL exists
-            if (!File.Exists(dllPath))
+            if (!File.Exists(dll))
             {
-                throw new FileNotFoundException($"DLL file not found: {dllPath}");
+                throw new FileNotFoundException($"DLL file not found: {dll}");
             }
             // Load the assembly
-            Assembly assembly = Assembly.LoadFrom(dllPath);
+            Assembly assembly = Assembly.LoadFrom(dll);
 
             Type[] types = assembly.GetTypes();
             // Filter the types that inherit from Subsystem
-            List<string> subsystemTypes = types
+            List<string?> subsystemTypes = types
                 .Where(t => typeof(Subsystem).IsAssignableFrom(t) && !t.IsAbstract)
                 .Select(t => t.FullName) // String name
                 //Make sure that the className is that same as it is in the input JOSN:
                 .Where(t => t.Contains(className, StringComparison.OrdinalIgnoreCase)) 
                 .ToList();
-            // Get the the tpye name from the assembly qualified list contianing the "class"
-            Type type = assembly.GetType(types[0].FullName);
+            
+            // Error handling
+            if (types.Length == 0 || types == null)
+            {
+                throw new ArgumentException("Type(s) not found in the assembly.", nameof(className));
+            }
 
+            // Get the the tpye name from the assembly qualified list contianing the "class"
+            Type? type = assembly.GetType(types[0].FullName); // Will there only ever be one?
+            
+            // Error handling
             if (type == null)
             {
                 throw new ArgumentException("Type not found in the assembly.", nameof(className));
@@ -248,13 +283,15 @@ namespace HSFSystem
                 throw new InvalidOperationException("Type does not inherit from Subsystem.");
             }
 
-        ConstructorInfo constructor = type.GetConstructors()
-                                          .FirstOrDefault(ctor =>
-                                          {
-                                              var parameters = ctor.GetParameters();
-                                              return parameters.Length == (constructorArgs?.Length ?? 0) &&
-                                                     parameters.Zip(constructorArgs, (p, a) => p.ParameterType.IsAssignableFrom(a.GetType())).All(b => b);
-                                          });
+        //Type[] constructorArgs = [typeof(JObject)];
+        ConstructorInfo constructor = type.GetConstructor(constructorArgTypes);
+        // ConstructorInfo constructor = type.GetConstructors()
+        //                                   .FirstOrDefault(ctor =>
+        //                                   {
+        //                                       var parameters = ctor.GetParameters();
+        //                                       return parameters.Length == (constructorArgs?.Length ?? 0) &&
+        //                                              parameters.Zip(constructorArgs, (p, a) => p.ParameterType.IsAssignableFrom(a.GetType())).All(b => b);
+        //                                   });
             // Find the appropriate constructor
             // ConstructorInfo constructor = type.GetConstructors()
             //                                   .FirstOrDefault(ctor =>
@@ -269,27 +306,31 @@ namespace HSFSystem
                 throw new InvalidOperationException("Matching constructor not found.");
             }
 
+
+
             // Create an instance of the type
             return (Subsystem)constructor.Invoke(constructorArgs);
+
+
+            // this.LoadedSubsystem = (Subsystem)constructor.Invoke(constructorArgs);
+            // return this.LoadedSubsystem; // This may cause infinite referencing issues...
+
+
+            // Subsystem subsystem = (Subsystem)constructor.Invoke(constructorArgs);
+            
+            // //Set all properties
+            // subsystem.ParentScriptedSubsystem = this;
+            // subsystem.Name  = this.Name;
+            // subsystem.Asset = this.Asset;
+            // subsystem.Type  = this.Type; 
+
+            // // This may cause infinite referencing issues...
+            // this.LoadedSubsystem = subsystem; 
+            
+            // // Return the loaded subsystem:
+            // return subsystem; 
+            
         }
-
-
-        private bool ContainsSubsystemType(Assembly assembly)
-        {
-            return assembly.GetTypes().Any(type => typeof(Subsystem).IsAssignableFrom(type));
-        }
-
-
-        // REGULAR SUBSYTEM METHODS :
-
-
-        // Override any methods or properties as necessary to delegate to LoadedSubsystem
-        public override bool CanPerform(Event proposedEvent, Domain environment)
-        {
-            return LoadedSubsystem.CanPerform(proposedEvent, environment);
-        }
-
-        // Add more overrides as needed...
     }
 }
 

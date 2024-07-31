@@ -31,6 +31,8 @@ namespace HSFSystem
         public List<StateVariableKey<Vector>> Vkeys { get; protected set; } = new List<StateVariableKey<Vector>>();
         public virtual SystemState NewState { get; set; }
         public virtual MissionElements.Task Task { get; set; }
+        public ScriptedSubsystemCS? Loader {get; set; }
+
         #endregion Attributes
 
         #region Constructors
