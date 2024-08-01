@@ -37,16 +37,16 @@ namespace HSFSystem
             // Load in the dll / src file:
             if (scriptedSubsystemJson.TryGetValue("dll",stringCompare, out JToken dllJason))
             {
-                this.dll = dllJason.ToString();
+                this.dll = dllJason.ToString().Replace('\\','/');
                 if (!File.Exists(dll)) // Make it a relative (repo) path if the file doesn't exist given by src
-                { this.dll = Path.Combine(Utilities.DevEnvironment.RepoDirectory, dll.Replace('\\','/')); }
+                { this.dll = Path.Combine(Utilities.DevEnvironment.RepoDirectory, dll); }
 
             }
             else if (scriptedSubsystemJson.TryGetValue("src", stringCompare, out JToken srcJason))
             {
-                this.src = srcJason.ToString();
+                this.src = srcJason.ToString().Replace('\\','/');
                 if (!File.Exists(src)) // Make it a relative (repo) path if the file doesn't exist given by src
-                { this.src = Path.Combine(Utilities.DevEnvironment.RepoDirectory, src.Replace('\\', '/')); } //Replace backslashes with forward slashes, if applicable 
+                { this.src = Path.Combine(Utilities.DevEnvironment.RepoDirectory, src); } //Replace backslashes with forward slashes, if applicable 
   
                 this.dll = CompileDll(this.src,Path.Combine(Directory.GetParent(src).FullName,"bin"));
 

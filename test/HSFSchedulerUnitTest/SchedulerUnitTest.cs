@@ -75,6 +75,7 @@ public class Tests
             program.LoadScenario();
             program.LoadTasks();
             program.LoadSubsystems();
+            program.LoadEvaluator();
 
             // Now it is time to test the scheduler: 
             program.CreateSchedules();
