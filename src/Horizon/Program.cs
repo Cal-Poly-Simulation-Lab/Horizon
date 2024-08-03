@@ -148,7 +148,7 @@ namespace Horizon
             {
                 argsList.Add("-scen");
                 // Set this to the default scenario you would like to run
-                string scenarioName = "myFirstHSFProjectConstraint";
+                string scenarioName = "Aeolus_CS";
                 argsList.Add(scenarioName);
                 // This is the path or "subpath" to the Horizon/samples/ directory where the simulation input files are stored.
                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
@@ -166,14 +166,26 @@ namespace Horizon
                     case "-scen":
                         switch (argsList[i])
                         {
-                            case "Aeolus":
+                            case "Aeolus_scripted":
                                 // Set Defaults
                                 //subpath = @"..\..\..\..\samples\Aeolus\";
                                 subPath = Path.Combine(subPath, "Aeolus");
                                 SimulationFilePath = Path.Combine(subPath, "AeolusSimulationInput.json");
                                 TaskDeckFilePath = Path.Combine(subPath, "AeolusTasks.json");
-                                // Asset 1 Scripted, Asset 2 C#
+                                // Asset 1 Scripted, Asset 2 Scripted
                                 ModelFilePath = Path.Combine(subPath, "DSAC_Static_Scripted.json");
+                                simulationSet = true;
+                                targetSet = true;
+                                modelSet = true;
+                                break;
+                            case "Aeolus_CS":
+                                // Set Defaults
+                                //subpath = @"..\..\..\..\samples\Aeolus\";
+                                subPath = Path.Combine(subPath, "Aeolus");
+                                SimulationFilePath = Path.Combine(subPath, "AeolusSimulationInput.json");
+                                TaskDeckFilePath = Path.Combine(subPath, "AeolusTasks.json");
+                                // Asset 1 C#, Asset 2 C#
+                                ModelFilePath = Path.Combine(subPath, "DSAC_Static_Mod.json");
                                 // Asset 1 mix Scripted/C#, Asset 2 C#
                                 //ModelInputFilePath = subpath + @"DSAC_Static_Mod_PartialScripted.xml"; 
                                 // Asset 1 C#, Asset 2 C#
