@@ -112,6 +112,7 @@ namespace HSFScheduler
             {
                 if (!AllStates.isEmpty(access.Asset))
                 {
+                    // This is where the event timing is enforced. 
                     if (AllStates.GetLastEvent().GetEventEnd(access.Asset) > newTaskStartTime)
                         return false;
                 }

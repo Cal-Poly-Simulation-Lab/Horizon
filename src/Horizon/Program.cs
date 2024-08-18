@@ -435,7 +435,7 @@ namespace Horizon
                                     }
 
                                     // Load Subsystem Parameters
-                                    if (subsys.Type == "scripted")
+                                    if (subsys.Type == "scripted") // Need to include scriptedcs thing here too? 
                                     {
                                         // Load Subsystem Parameters                        
                                         if (JsonLoader<JToken>.TryGetValue("parameters", subsystemJson, out JToken parameterListJson))

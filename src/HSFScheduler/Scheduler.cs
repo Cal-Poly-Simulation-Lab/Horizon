@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Utilities;
 using HSFSystem;
 using UserModel;
@@ -98,6 +99,11 @@ namespace HSFScheduler
                 Stack<Stack<Access>> exhaustive = new Stack<Stack<Access>>();
                 //Stack<Access> allAccesses = new Stack<Access>(tasks.Count);
 
+
+                // JB 8/16:
+                // Need to assess 
+
+
                 foreach (var asset in system.Assets)
                 {
                     Stack<Access> allAccesses = new Stack<Access>(tasks.Count);
@@ -105,14 +111,19 @@ namespace HSFScheduler
                         allAccesses.Push(new Access(asset, task));
                     //allAccesses.Push(new Access(asset, null));
                     exhaustive.Push(allAccesses);
+
                     //allAccesses.Clear();
                 }
 
+                // Note to Jason:
+                // Create a list of tasks (more than just one) and figure out what this allScheduleCombos is ~~ solved
+
+                // Question: Can two assets do the same task in the same event? Where/how is this enforced/modeled?
                 IEnumerable<IEnumerable<Access>> allScheduleCombos = exhaustive.CartesianProduct();
 
                 foreach (var accessStack in allScheduleCombos)
                 {
-                    Stack<Access> someOfThem = new Stack<Access>(accessStack);
+                    Stack<Access> someOfThem = new Stack<Access>(accessStack); // Is this link of code necessary? 
                     scheduleCombos.Push(someOfThem);
                 }
 
@@ -240,6 +251,27 @@ namespace HSFScheduler
 
             return allOfThem;
         }
+
+
+        // // Generic method to get the value of a private field by name
+        // protected static T GetPrivateAttribute<T>(string attributeName)
+        // {
+        //     // Get the type of the current instance (this will be the derived class type)
+        //     Type type = this.GetType();
+            
+        //     // Find the field by name, considering non-public instance fields
+        //     FieldInfo fieldInfo = type.GetField(attributeName, BindingFlags.NonPublic | BindingFlags.Instance);
+
+        //     if (fieldInfo != null)
+        //     {
+        //         // Return the value of the private field
+        //         return (T)fieldInfo.GetValue(this);
+        //     }
+
+        //     throw new ArgumentException("No private attribute with the specified name found.");
+        // }
+
     }
 }
+
 
