@@ -10,7 +10,7 @@ using log4net;
 
 namespace HSFSchedulerUnitTest
 {
-    public class SchedulerUnitTest // This is the base class that all other SchedulerUnitTests will derive from. 
+    public abstract class SchedulerUnitTest // This is the base class that all other SchedulerUnitTests will derive from. 
     // Place common "HSFSchedulerUnitTest" functionality here to be used in other classes and/or overriden. 
     {
         // Attributes that can be inherited to other Test Classes (fixtures) 
@@ -18,41 +18,37 @@ namespace HSFSchedulerUnitTest
         protected string? TaskInputFile {get; set; }
         protected string? ModelInputFile {get; set; }
         protected Horizon.Program? program {get; set; }
+        protected int? _emptySchedIdx {get; set; }
 
         [SetUp]
-        public void Setup()
+        public virtual void GenericSetup()
         {
 
         }
 
         [Test]
-        public void TestCreateOneSchedule()
+        public virtual void EmptyScheduleExists() // This test should be ran on every schedule test
         {
-            // Declare all files used for this test
-            string SimInputFile = "SchedulerTestSimulationInput.json";
-            string TaskInputFile = "SchedulerTestTasks.json";
-            string ModelInputFile = "SchedulerTestModel.json";
+            for (int i = 0; i < program.Schedules.Count(); i++)
+            {
+                var schedule = program.Schedules[i];
+                if (!(schedule.AllStates.Events.Count() > 0))
+                {
+                    _emptySchedIdx = i; //Save the idx for the future...
+                    Assert.IsTrue(schedule.AllStates.Events.Count() == 0,$"The empty schedule exists (one without events). It is the {i} schedule in Program.Schedules list.");
+                }
+            }
+            
 
-            //Set up the StringWrite so we can see what the Horizon Program is doing from a Console.WriteLine() POV:
-            StringWriter stringWriter = new StringWriter();
-            Console.SetOut(stringWriter);
-
-            // Load all files and create a new Horizon Program
-
-            Horizon.Program program = HoirzonLoadHelper(SimInputFile, TaskInputFile, ModelInputFile);
-
-            // Now it is time to test the scheduler: 
-            program.CreateSchedules();
-            //double maxSched = program.EvaluateSchedules();
-
-            //Assert.AreEqual(program.Schedules[0], program.Schedules[1]);
-
-            Console.WriteLine("Break");
-            //Assert.AreEqual(program.System)
-            //
         }
 
-        public Horizon.Program HoirzonLoadHelper(string SimInputFile, string TaskInputFile, string ModelInputFile)
+        // [TearDown]
+        // public void GenericTearDown()
+        // {
+
+        // }
+
+        public virtual Horizon.Program HoirzonLoadHelper(string SimInputFile, string TaskInputFile, string ModelInputFile)
         {
             #region Input File (argsList) Pathing Setup & Validation
 
