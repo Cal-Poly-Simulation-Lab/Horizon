@@ -148,7 +148,7 @@ namespace Horizon
             {
                 argsList.Add("-scen");
                 // Set this to the default scenario you would like to run
-                string scenarioName = "Aeolus_CS";
+                string scenarioName = "Aeolus_scripted";
                 argsList.Add(scenarioName);
                 // This is the path or "subpath" to the Horizon/samples/ directory where the simulation input files are stored.
                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");

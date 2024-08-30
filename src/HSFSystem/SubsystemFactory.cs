@@ -213,10 +213,10 @@ namespace HSFSystem
             }
 
             // These two lines are each adding a stateKey, one to the list, one to the attribute POINTVEC_KEY
-            // Get rid of the lists in the subsystme base class and just add keys to each derived class?
+            // Get rid of the lists in the subsystem base class and just add keys to each derived class?
             subsys.addKey(stateKey);
-            if (subsys.Type == "adcs")
-                ((ADCS)subsys).POINTVEC_KEY = new StateVariableKey<Matrix<double>>(key);
+            //if (subsys.Type == "adcs")
+            //    ((ADCS)subsys).POINTVEC_KEY = new StateVariableKey<Matrix<double>>(key);
 
             if (subsys.Type == "scripted")
             {
