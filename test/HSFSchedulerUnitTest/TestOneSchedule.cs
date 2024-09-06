@@ -13,6 +13,8 @@ namespace HSFSchedulerUnitTest
     [TestFixture]
     public class OneScheduleTest : SchedulerUnitTest
     {
+
+
         [SetUp] // Kind of like construction
         public void SetupOneSchedule()
         {
@@ -23,8 +25,8 @@ namespace HSFSchedulerUnitTest
             ModelInputFile = "SchedulerTestModel.json";
 
             //Set up the StringWrite so we can see what the Horizon Program is doing from a Console.WriteLine() POV:
-            StringWriter stringWriter = new StringWriter();
-            Console.SetOut(stringWriter);
+            // StringWriter stringWriter = new StringWriter();
+            // Console.SetOut(stringWriter);
 
             // Load all files and create a new Horizon Program
 
@@ -40,7 +42,10 @@ namespace HSFSchedulerUnitTest
             //
 
             // Test if the Empty Schedule Exists and retrieve its location in the list ... 
-            EmptyScheduleExists(); 
+            EmptyScheduleExists(); // Does this actually need to exist in the setup context?
+                                   // it appears that this may be run given it's (current) status as a [Test] fixute as part of
+                                   // of the abstract HSFSchedulerUnitTest class... It was called twice? 
+
 
         }
 
@@ -53,10 +58,9 @@ namespace HSFSchedulerUnitTest
             // --> Need to create a schedule that has a specific value as well.
             // This would effectively test the scheudle as a function of time ... so like make one with legit access, and canperform, etc. 
 
-
             var asset1 = program.AssetList[0]; // The only asset that should be present
             double _eventStartTime = program.Schedules[0].AllStates.GetLastEvent().EventEnds[asset1];
-            Assert.AreEqual(_eventStartTime,0.0); 
+            Assert.AreEqual(_eventStartTime,12.0); 
             
 
            

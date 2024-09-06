@@ -7,6 +7,10 @@ using HSFSystem;
 using MissionElements;
 using System.Runtime.InteropServices.Marshalling;
 using log4net;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using log4net.Appender;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace HSFSchedulerUnitTest
 {
@@ -20,15 +24,20 @@ namespace HSFSchedulerUnitTest
         protected Horizon.Program? program {get; set; }
         protected int? _emptySchedIdx {get; set; }
 
-        [SetUp]
-        public virtual void GenericSetup()
-        {
+        // //String Writer & Thread attributes
+        // //protected static StringWriter? stringWriter {get; set; }
+        // //private static string _previousStringWriterOutput = string.Empty;
+        // //private static Thread? _outputThread;
+        // private static bool _keepRunning = true; 
+        // private static MemoryStream _memoryStream = new MemoryStream();
+        // private static StreamWriter _streamWriter;
+        // private static long _previousPosition; 
 
-        }
 
         [Test]
         public virtual void EmptyScheduleExists() // This test should be ran on every schedule test
         {
+            Console.WriteLine("This is the EmptyScheduleTest...");
             for (int i = 0; i < program.Schedules.Count(); i++)
             {
                 var schedule = program.Schedules[i];
@@ -38,15 +47,8 @@ namespace HSFSchedulerUnitTest
                     Assert.IsTrue(schedule.AllStates.Events.Count() == 0,$"The empty schedule exists (one without events). It is the {i} schedule in Program.Schedules list.");
                 }
             }
-            
 
         }
-
-        // [TearDown]
-        // public void GenericTearDown()
-        // {
-
-        // }
 
         public virtual Horizon.Program HoirzonLoadHelper(string SimInputFile, string TaskInputFile, string ModelInputFile)
         {
@@ -101,6 +103,176 @@ namespace HSFSchedulerUnitTest
 
     }
 }
+
+        // [OneTimeSetUp]
+        // public static void BaseClassSetUp()
+        // {
+        //     // Initialize MemoryStream and StreamWriter, set console output to it
+        //     _streamWriter = new StreamWriter(_memoryStream) { AutoFlush = true };
+        //     Console.SetOut(_streamWriter);
+
+        //     // Start a background thread to monitor the MemoryStream for new output
+        //     _outputThread = new Thread(() =>
+        //     {
+        //         using (var reader = new StreamReader(_memoryStream, Encoding.UTF8))
+        //         {
+        //             while (_keepRunning)
+        //             {
+        //                 lock (_memoryStream)
+        //                 {
+        //                     if (_memoryStream.Length > _previousPosition)
+        //                     {
+        //                         // Move the stream position to where we last read
+        //                         _memoryStream.Position = _previousPosition;
+                                
+        //                         // Read new content from the stream
+        //                         var newContent = reader.ReadToEnd();
+
+        //                         // Output the captured content
+        //                         TestContext.Progress.WriteLine(newContent);
+
+        //                         // Update the previous position to the current end
+        //                         _previousPosition = _memoryStream.Length;
+        //                     }
+        //                 }
+        //                 Thread.Sleep(100); // Check every 100ms
+        //             }
+        //         }
+        //     });
+
+        //     _outputThread.Start();
+        // }
+
+
+        // [OneTimeTearDown]
+        // public void BaseClassTearDown()
+        // {
+            // // Stop the monitoring thread
+            // _keepRunning = false;
+            // _outputThread.Join();  // Ensure the thread has stopped
+
+            // //if (_memoryStream != null)
+            // lock (_memoryStream)
+            // {
+            //     // Output any remaining content before disposing
+            //     _memoryStream.Position = _previousPosition;
+            //     using (var reader = new StreamReader(_memoryStream, Encoding.UTF8))
+            //     {
+            //         var remainingContent = reader.ReadToEnd();
+            //         if (!string.IsNullOrEmpty(remainingContent))
+            //         {
+            //             TestContext.Progress.WriteLine(remainingContent);
+            //         }
+            //     }
+            //     // Dispose of resources --> TearDownStreamWriter() (wants to be flagged with "[OneTimeTearDownAttriute]")
+            //     _memoryStream.Dispose();
+            // }
+        // }
+
+        // [OneTimeTearDownAttribute]
+        // public static void TearDownStreams()
+        // {
+        //     // Stop the monitoring thread
+        //     _keepRunning = false;
+        //     _outputThread.Join();  // Ensure the thread has stopped
+
+        //     //if (_memoryStream != null)
+        //     // lock (_memoryStream)
+        //     // {
+        //     //     // Output any remaining content before disposing
+        //     //     _memoryStream.Position = _previousPosition;
+        //     //     using (var reader = new StreamReader(_memoryStream, Encoding.UTF8))
+        //     //     {
+        //     //         var remainingContent = reader.ReadToEnd();
+        //     //         if (!string.IsNullOrEmpty(remainingContent))
+        //     //         {
+        //     //             TestContext.Progress.WriteLine(remainingContent);
+        //     //         }
+        //     //     }
+        //     //     // Dispose of resources --> TearDownStreamWriter() (wants to be flagged with "[OneTimeTearDownAttriute]")
+        //     //     _memoryStream.Dispose();
+                
+        //     // }
+            
+        //     _memoryStream.Dispose();
+        //     _streamWriter.Dispose();
+            
+        // }
+
+    
+
+    //     public static void InitializeStreamWriter() // This is invoked before every [Test], even in derived classes. 
+    //     {
+    //         // Set up a String Writer to capture all program console outputs...
+    //         using(var memoryStream = new MemoryStream()) {
+    //             var streamWriter = new StreamWriter(memoryStream);
+    //             Console.SetOut(streamWriter); 
+    //             Console.WriteLine("Initializing StreamWriter...");
+            
+    //         }
+    //         //Start a background thread to continuously monitor output of the streamwriter (to capture & output in near real-time)...
+    //         // Lambda function to monitor the StringWriter for new output
+    //         _outputThread = new Thread(() =>
+    //         {
+    //             while (_keepRunningMonitorThread)
+    //             {
+    //                 string currentOutput = stringWriter.ToString();
+    //                 if (currentOutput != _previousStringWriterOutput)
+    //                 {
+    //                     string newContent = currentOutput.Substring(_previousStringWriterOutput.Length);
+    //                     TestContext.WriteLine(newContent);
+    //                     _previousStringWriterOutput = currentOutput;
+    //                 }
+    //                 Thread.Sleep(100); // Check every 100ms
+    //             }
+    //         });
+
+    //         // Start up the thread 
+    //         _outputThread.Start();
+
+    //         //End Generic Base [Setup] 
+    //     }
+    //     public static void WriteStreamWriter()
+    //     {
+    //         string output = stringWriter.ToString();
+    //         TestContext.WriteLine(output);
+    //     }
+
+    //     [TearDown]
+    //     public virtual void BaseTearDown()
+    //     {
+    //         // Stop the monitoring thread
+    //         _keepRunningMonitorThread = false;
+    //         _outputThread.Join();  // Ensure the thread has stopped
+
+    //         if (stringWriter != null)
+    //         {
+    //             // Output any remaining content
+    //             lock (stringWriter)  // Ensure thread safety
+    //             {
+    //                 string currentOutput = stringWriter.ToString();
+    //                 if (currentOutput != _previousStringWriterOutput)
+    //                 {
+    //                     string newContent = currentOutput.Substring(_previousStringWriterOutput.Length);
+    //                     TestContext.WriteLine(newContent);
+    //                 }
+
+    //                 TearDownStringWriter();
+    //             }
+    //         }
+    //     }
+
+    //     [TearDownAttribute]
+    //     public void TearDownStringWriter()
+    //     {
+    //         stringWriter.Dispose();
+    //     }
+
+    // }
+
+
+
+
 //     public class HorizonTestScheduler : Scheduler
 //     {
 //         // Retrieve all private values and construct inside of (derived) test case for use in methods (below) ... 
