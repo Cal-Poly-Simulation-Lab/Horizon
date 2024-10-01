@@ -31,6 +31,15 @@ namespace HSFScheduler
         public double PregenTime { get; }
         public double SchedTime { get; }
         public double AccumSchedTime { get; }
+                
+        // Needed for schedule evaluation and computation:
+        private SystemSchedule emptySchedule {get; set; }
+        private List<SystemSchedule> systemSchedules = new List<SystemSchedule>();
+        private bool canPregenAccess {get; set; }
+        private Stack<Stack<Access>> scheduleCombos = new Stack<Stack<Access>>(); 
+        private Stack<Access>? preGeneratedAccesses {get; set;}
+        
+
         
         public Evaluator ScheduleEvaluator { get; private set; }
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -63,20 +72,12 @@ namespace HSFScheduler
             log.Info("SIMULATING... ");
 
             // Create empty systemSchedule with initial state set
-            SystemSchedule emptySchedule = new SystemSchedule(initialStateList);
-            List<SystemSchedule> systemSchedules = new List<SystemSchedule>();
-            systemSchedules.Add(emptySchedule);
-
-            // Add Unit Test #0 (test empty schedule) --- Or do it later after cropping? Can do both. 
-
+            initializeEmptySchedule(SystemState initialStateList); //Add Unit Test #0 
+            emptySchedule = new SystemSchedule(initialStateList);
+            systemSchedules.Add(emptySchedule); // Add Unit Test #0 (test empty schedule) --- Or do it later after cropping? Can do both. 
 
             // if all asset position types are not dynamic types, can pregenerate accesses for the simulation
-            bool canPregenAccess = canPregenAccessLogic(system); // Unit Test Method #1
-
-            // Make sure the schedule Combos exist ... 
-            Stack<Access> preGeneratedAccesses = new Stack<Access>(); // Not always needed but C# wants it declared above conditions for secondary if loop below... 
-            Stack<Stack<Access>> scheduleCombos = new Stack<Stack<Access>>();
-
+            bool canPregenAccess = canPregenAccessLogic(system); // Unit Test Method #
 
             // Unit Test Method #2: Pregen access logic
             if (canPregenAccess) // If accesses can be pregenereated; do it now. 
@@ -85,7 +86,7 @@ namespace HSFScheduler
 
                 // This method completes the Access pregeneration for pre-determined orbital dynamics. Returns Stack<Access> that is not yet
                 // a full combination of Assets and Tasks (it is just the pre-determined )
-                preGeneratedAccesses = Access.pregenerateAccessesByAsset(system, tasks, _startTime, _endTime, _stepLength);
+                preGeneratedAccesses = Access.pregenerateAccessesByAsset(system, tasks, _startTime, _endTime, _stepLength); //Technically doesnt need to take _endTime and_stepLengthbut its okay for now
                 Access.writeAccessReport(preGeneratedAccesses); //- TODO:  Finish this code - EAM
                 log.Info("Done pregenerating accesses. There are " + preGeneratedAccesses.Count + " accesses.");
             }
@@ -97,7 +98,7 @@ namespace HSFScheduler
                 /* This method creates a shell for all (empty/not-yet-assessed) Accesses by Asset & Task combination.  Thus many of these potential schedules will be cropped out via non-accesses.
                 Furthermore, can add a pre-cropping tool that shed the possible access combinations via restrictions levied by task type and asset class,
                 or asset-asset interaction, or time-based restrictions (like assets/tasks required to act in serial versus parallel), etc.). */
-                scheduleCombos = GenerateExhaustiveSystemSchedules(system,tasks,scheduleCombos);
+                scheduleCombos = GenerateExhaustiveSystemSchedules(system,tasks,scheduleCombos); //Technically doesn't need to take scheduleCombos but its okay for now
 
                 // Access.writeAccessReport(preGeneratedAccesses); //- TODO:  Finish this code - EAM
                 log.Info("Done generating exhaustive task combinations");
