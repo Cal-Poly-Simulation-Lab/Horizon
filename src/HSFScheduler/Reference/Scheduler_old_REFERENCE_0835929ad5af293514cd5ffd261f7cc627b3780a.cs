@@ -17,7 +17,7 @@ namespace HSFScheduler
     /// Creates valid schedules for a system
     /// </summary>
     [Serializable]
-    public class Scheduler
+    public class Scheduler_old
     {
         //TODO:  Support monitoring of scheduler progress - Eric Mehiel
         #region Attributes
@@ -31,19 +31,7 @@ namespace HSFScheduler
         public double PregenTime { get; }
         public double SchedTime { get; }
         public double AccumSchedTime { get; }
-                
-        // Needed for schedule evaluation and computation:
-        private SystemSchedule emptySchedule {get; set; }
-        private List<SystemSchedule> systemSchedules = new List<SystemSchedule>();
-        private bool canPregenAccess {get; set; }
-        private Stack<Stack<Access>> scheduleCombos = new Stack<Stack<Access>>(); 
-        private Stack<Access>? preGeneratedAccesses {get; set;}
-        private List<SystemSchedule> potentialSystemSchedules = new List<SystemSchedule>();
-        private List<SystemSchedule> systemCanPerformList = new List<SystemSchedule>();
 
-        
-
-        
         public Evaluator ScheduleEvaluator { get; private set; }
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         #endregion
@@ -52,7 +40,7 @@ namespace HSFScheduler
         /// Creates a scheduler for the given system and simulation scenario
         /// </summary>
         /// <param name="scheduleEvaluator"></param>
-        public Scheduler(Evaluator scheduleEvaluator)
+        public Scheduler_old(Evaluator scheduleEvaluator)
         {
             ScheduleEvaluator = scheduleEvaluator;
             _startTime = SimParameters.SimStartSeconds;
@@ -73,66 +61,102 @@ namespace HSFScheduler
         public virtual List<SystemSchedule> GenerateSchedules(SystemClass system, Stack<MissionElements.Task> tasks, SystemState initialStateList)
         {
             log.Info("SIMULATING... ");
-
             // Create empty systemSchedule with initial state set
-            InitializeEmptySchedule(initialStateList); // Add Unit Test #0 (test empty schedule) --- Or do it later after cropping? Can do both.
+            SystemSchedule emptySchedule = new SystemSchedule(initialStateList);
+            List<SystemSchedule> systemSchedules = new List<SystemSchedule>();
+            systemSchedules.Add(emptySchedule);
 
             // if all asset position types are not dynamic types, can pregenerate accesses for the simulation
-            canPregenAccessLogic(system); // Unit Test Method #
+            bool canPregenAccess = true;
 
-            // Unit Test Method #2: Pregen access logic
-            if (canPregenAccess) // If accesses can be pregenereated; do it now. 
+            foreach (var asset in system.Assets)
+            {
+                if(asset.AssetDynamicState != null)
+                    canPregenAccess &= asset.AssetDynamicState.Type != HSFUniverse.DynamicStateType.DYNAMIC_ECI && asset.AssetDynamicState.Type != HSFUniverse.DynamicStateType.DYNAMIC_LLA && asset.AssetDynamicState.Type != HSFUniverse.DynamicStateType.NULL_STATE;
+                else
+                    canPregenAccess = false;
+            }
+
+            // if accesses can be pregenerated, do it now
+            Stack<Access> preGeneratedAccesses = new Stack<Access>();
+            Stack<Stack<Access>> scheduleCombos = new Stack<Stack<Access>>();
+
+            if (canPregenAccess)
             {
                 log.Info("Pregenerating Accesses...");
+                //DWORD startPregenTickCount = GetTickCount();
 
-                // This method completes the Access pregeneration for pre-determined orbital dynamics. Returns Stack<Access> that is not yet
-                // a full combination of Assets and Tasks (it is just the pre-determined )
-                preGeneratedAccesses = Access.pregenerateAccessesByAsset(system, tasks, _startTime, _endTime, _stepLength); //Technically doesnt need to take _endTime and_stepLengthbut its okay for now
+                preGeneratedAccesses = Access.pregenerateAccessesByAsset(system, tasks, _startTime, _endTime, _stepLength);
+                //DWORD endPregenTickCount = GetTickCount();
+                //pregenTimeMs = endPregenTickCount - startPregenTickCount;
                 Access.writeAccessReport(preGeneratedAccesses); //- TODO:  Finish this code - EAM
                 log.Info("Done pregenerating accesses. There are " + preGeneratedAccesses.Count + " accesses.");
             }
-            // Otherwise, generate an exhaustive list of possibilities for assetTaskList:
+            // otherwise generate an exhaustive list of possibilities for assetTaskList,
             else
             {
                 log.Info("Generating Exhaustive Task Combinations... ");
+                Stack<Stack<Access>> exhaustive = new Stack<Stack<Access>>();
+                //Stack<Access> allAccesses = new Stack<Access>(tasks.Count);
 
-                /* This method creates a shell for all (empty/not-yet-assessed) Accesses by Asset & Task combination.  Thus many of these potential schedules will be cropped out via non-accesses.
-                Furthermore, can add a pre-cropping tool that shed the possible access combinations via restrictions levied by task type and asset class,
-                or asset-asset interaction, or time-based restrictions (like assets/tasks required to act in serial versus parallel), etc.). */
-                scheduleCombos = GenerateExhaustiveSystemSchedules(system,tasks,scheduleCombos); //Technically doesn't need to take scheduleCombos but its okay for now
 
-                // Access.writeAccessReport(preGeneratedAccesses); //- TODO:  Finish this code - EAM
+                // JB 8/16:
+                // Need to assess 
+
+
+                foreach (var asset in system.Assets)
+                {
+                    Stack<Access> allAccesses = new Stack<Access>(tasks.Count);
+                    foreach (var task in tasks)
+                        allAccesses.Push(new Access(asset, task));
+                    //allAccesses.Push(new Access(asset, null));
+                    exhaustive.Push(allAccesses);
+
+                    //allAccesses.Clear();
+                }
+
+                // Note to Jason:
+                // Create a list of tasks (more than just one) and figure out what this allScheduleCombos is ~~ solved
+
+                // Question: Can two assets do the same task in the same event? Where/how is this enforced/modeled?
+                IEnumerable<IEnumerable<Access>> allScheduleCombos = exhaustive.CartesianProduct();
+
+                foreach (var accessStack in allScheduleCombos)
+                {
+                    Stack<Access> someOfThem = new Stack<Access>(accessStack); // Is this link of code necessary? 
+                    scheduleCombos.Push(someOfThem);
+                }
+
                 log.Info("Done generating exhaustive task combinations");
             }
 
             /// TODO: Delete (or never create in the first place) schedules with inconsistent asset tasks (because of asset dependencies)
 
-            // Initializations for the loop below
-            //List<SystemSchedule> potentialSystemSchedules = new List<SystemSchedule>();
-            
-            //mainSchedulingLoop(double currentTime, double endTime, double timeStep)
+            // Find the next timestep for the simulation
+            //DWORD startSchedTickCount = GetTickCount();
+            // int i = 1;
+            List<SystemSchedule> potentialSystemSchedules = new List<SystemSchedule>();
+            List<SystemSchedule> systemCanPerformList = new List<SystemSchedule>();
             for (double currentTime = _startTime; currentTime < _endTime; currentTime += _stepLength)
             {
                 log.Info("Simulation Time " + currentTime);
                 // if accesses are pregenerated, look up the access information and update assetTaskList
                 if (canPregenAccess)
-                {
-                    // This code: Generates the exhaustive system schedules (combinations of Asset & Task) for all Assets that have predetermined Accesses
-                    // (at the current time). This is stepped through and passed currentTime as scheduleCombos is a Stack that you can continue adding to,
-                    // and it is most convenient to just pull the current accesses and push. 
                     scheduleCombos = GenerateExhaustiveSystemSchedules(preGeneratedAccesses, system, currentTime);
+
+                // Check if it's necessary to crop the systemSchedule list to a more managable number
+                if (systemSchedules.Count > _maxNumSchedules)
+                {
+                    log.Info("Cropping " + systemSchedules.Count + " Schedules.");
+                    CropSchedules(systemSchedules, ScheduleEvaluator, emptySchedule);
+                    systemSchedules.Add(emptySchedule);
                 }
-                
-                // First, crop schedules to maxNumchedules: 
-                CropToMaxSchedules(systemSchedules, emptySchedule);
 
                 // Generate an exhaustive list of new tasks possible from the combinations of Assets and Tasks
                 //TODO: Parallelize this.
                 int k = 0;
 
                 //Parallel.ForEach(systemSchedules, (oldSystemSchedule) =>
-
-                //"Time Deconfliction" step --> we dont create possible schedules when a schedule is bust ()
                 foreach(var oldSystemSchedule in systemSchedules)
                 {
                     //potentialSystemSchedules.Add(new SystemSchedule( new StateHistory(oldSystemSchedule.AllStates)));
@@ -149,7 +173,6 @@ namespace HSFScheduler
                     }
                 }
 
-                // "State Deconfliction" step --> 
                 int numSched = 0;
                 foreach (var potentialSchedule in potentialSystemSchedules)
                 {
@@ -184,36 +207,6 @@ namespace HSFScheduler
         /// <param name="schedulesToCrop"></param>
         /// <param name="scheduleEvaluator"></param>
         /// <param name="emptySched"></param>
-        /// 
-        public void InitializeEmptySchedule(SystemState initialStateList)
-        {
-            emptySchedule = new SystemSchedule(initialStateList); // Create the first empty schedule. This should schange as things move forward. 
-            systemSchedules.Add(emptySchedule);  
-
-        }
-        public virtual void canPregenAccessLogic(SystemClass system)
-        {
-            canPregenAccess = true;
-            foreach (var asset in system.Assets)
-            {
-                if(asset.AssetDynamicState != null)
-                    canPregenAccess &= asset.AssetDynamicState.Type != HSFUniverse.DynamicStateType.DYNAMIC_ECI && asset.AssetDynamicState.Type != HSFUniverse.DynamicStateType.DYNAMIC_LLA && asset.AssetDynamicState.Type != HSFUniverse.DynamicStateType.NULL_STATE;
-                else
-                    canPregenAccess = false;
-            }
-            //return canPregenAccess; 
-        }
-
-        public void CropToMaxSchedules(List<SystemSchedule> systemSchedules, SystemSchedule emptySchedule)
-        {
-            if (systemSchedules.Count > _maxNumSchedules)
-            {
-                log.Info("Cropping " + systemSchedules.Count + " Schedules.");
-                CropSchedules(systemSchedules, ScheduleEvaluator, emptySchedule);
-                systemSchedules.Add(emptySchedule);
-            }
-        }
-
         public void CropSchedules(List<SystemSchedule> schedulesToCrop, Evaluator scheduleEvaluator, SystemSchedule emptySched)
         {
             // Evaluate the schedules and set their values
@@ -259,44 +252,6 @@ namespace HSFScheduler
             return allOfThem;
         }
 
-        public static Stack<Stack<Access>> GenerateExhaustiveSystemSchedules(SystemClass system, Stack<MissionElements.Task> tasks, Stack<Stack<Access>> scheduleCombos)
-        {
-            //GenerateExhaustiveSystemSchedules(SystemClass system, Stack<Task>)
-            Stack<Stack<Access>> exhaustive = new Stack<Stack<Access>>();
-            //Stack<Access> allAccesses = new Stack<Access>(tasks.Count);
-
-            foreach (var asset in system.Assets)
-            {
-                Stack<Access> allAccesses = new Stack<Access>(tasks.Count);
-                foreach (var task in tasks)
-                    allAccesses.Push(new Access(asset, task));
-                //allAccesses.Push(new Access(asset, null));
-                exhaustive.Push(allAccesses);
-
-                //allAccesses.Clear();
-            }
-
-            // Question: Can two assets do the same task in the same event? Where/how is this enforced/modeled?
-            IEnumerable<IEnumerable<Access>> allScheduleCombos = exhaustive.CartesianProduct();
-
-            foreach (var accessStack in allScheduleCombos)
-            {
-                Stack<Access> someOfThem = new Stack<Access>(accessStack); // Is this link of code necessary? 
-                scheduleCombos.Push(someOfThem);
-            }       
-
-            return scheduleCombos; 
-        }
-
-
-
-        #region GenerateSchedules() sub methods 
-
-
-        public void MainSchedulingLoop(double currentTime, double endTime, double timeStep)
-        {
-
-        }
 
         // // Generic method to get the value of a private field by name
         // protected static T GetPrivateAttribute<T>(string attributeName)
@@ -316,11 +271,7 @@ namespace HSFScheduler
         //     throw new ArgumentException("No private attribute with the specified name found.");
         // }
 
-
-        #endregion 
-
     }
-    
 }
 
 

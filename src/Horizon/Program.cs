@@ -177,7 +177,7 @@ namespace Horizon
                                 // Asset 1 Scripted, Asset 2 C#
                                 ModelFilePath = Path.Combine(subPath, "DSAC_Static_Scripted.json");
                                 // Asset 1 mix Scripted/C#, Asset 2 C#
-                                //ModelInputFilePath = subpath + @"DSAC_Static_Mod_PartialScripted.xml"; 
+                                //ModelInputFilePath = subpath + @"DSAC_Static_Mod_PartialScripted.xml"; a
                                 // Asset 1 C#, Asset 2 C#
                                 //ModelInputFilePath = subpath + @"DSAC_Static_Mod.xml";
                                 simulationSet = true;
