@@ -21,7 +21,7 @@ namespace HSFSystem
         #region Constructors
         public SubTest(JObject subtestJson)
         {
-            lookup = getList();
+            //lookup = getList();
         }
 
         #endregion Constructors
@@ -52,31 +52,34 @@ namespace HSFSystem
             }
         }
 
-        static Dictionary<string, double> getList()
-        {
-            Dictionary<string, double> lookup = new Dictionary<string, double>();
-            lookup.Add("target0", 0);
-            lookup.Add("target1", 1);
-            lookup.Add("target1.1", 1);
-            lookup.Add("target2", 2);
-            lookup.Add("target3", 3);
-            return lookup;
-        }
-        static Dictionary<string, double> getList(double time)
-        {
-            Dictionary<string, double> lookup = new Dictionary<string, double>();
-            lookup.Add("target0", 0);
-            lookup.Add("target1", 0);
-            lookup.Add("target1.1", time);
-            lookup.Add("target2", time);
-            lookup.Add("target3", time);
-            return lookup;
-        }
-        public double depFunc(Event currentEvent)
-        {
-            return currentEvent.EventEnds[Asset]; //no reason for this, just need to return something
-        }
 
-        #endregion Methods
+
     }
+    #endregion
 }
+        // public double depFunc(Event currentEvent)
+        // {
+        //     return currentEvent.EventEnds[Asset]; //no reason for this, just need to return something
+        // }
+
+        // #endregion Methods
+        // static Dictionary<string, double> getList()
+        // {
+        //     Dictionary<string, double> lookup = new Dictionary<string, double>();
+        //     lookup.Add("target0", 0);
+        //     lookup.Add("target1", 1);
+        //     lookup.Add("target1.1", 1);
+        //     lookup.Add("target2", 2);
+        //     lookup.Add("target3", 3);
+        //     return lookup;
+        // }
+        // static Dictionary<string, double> getList(double time)
+        // {
+        //     Dictionary<string, double> lookup = new Dictionary<string, double>();
+        //     lookup.Add("target0", 0);
+        //     lookup.Add("target1", 0);
+        //     lookup.Add("target1.1", time);
+        //     lookup.Add("target2", time);
+        //     lookup.Add("target3", time);
+        //     return lookup;
+        // }

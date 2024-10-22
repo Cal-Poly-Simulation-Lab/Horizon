@@ -9,7 +9,7 @@
   },
   "schedulerParameters": {
     "maxSchedules": 64,
-    "cropTo": 7
+    "cropTo": 5
   },
   "dependencies": {
     "baseSrc": "test/HSFSchdulerUnitTest/"

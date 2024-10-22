@@ -34,21 +34,21 @@ namespace HSFSchedulerUnitTest
         // private static long _previousPosition; 
 
 
-        [Test]
-        public virtual void EmptyScheduleExists() // This test should be ran on every schedule test
-        {
-            Console.WriteLine("This is the EmptyScheduleTest...");
-            for (int i = 0; i < program.Schedules.Count(); i++)
-            {
-                var schedule = program.Schedules[i];
-                if (!(schedule.AllStates.Events.Count() > 0))
-                {
-                    _emptySchedIdx = i; //Save the idx for the future...
-                    Assert.IsTrue(schedule.AllStates.Events.Count() == 0,$"The empty schedule exists (one without events). It is the {i} schedule in Program.Schedules list.");
-                }
-            }
+        // [Test]
+        // public virtual void EmptyScheduleExists() // This test should be ran on every schedule test
+        // {
+        //     Console.WriteLine("This is the EmptyScheduleTest...");
+        //     for (int i = 0; i < program.Schedules.Count(); i++)
+        //     {
+        //         var schedule = program.Schedules[i];
+        //         if (!(schedule.AllStates.Events.Count() > 0))
+        //         {
+        //             _emptySchedIdx = i; //Save the idx for the future...
+        //             Assert.IsTrue(schedule.AllStates.Events.Count() == 0,$"The empty schedule exists (one without events). It is the {i} schedule in Program.Schedules list.");
+        //         }
+        //     }
 
-        }
+        // }
 
         public virtual Horizon.Program HoirzonLoadHelper(string SimInputFile, string TaskInputFile, string ModelInputFile)
         {

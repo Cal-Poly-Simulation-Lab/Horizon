@@ -124,32 +124,32 @@ namespace HSFScheduler
                 }
                 
                 // First, crop schedules to maxNumchedules: 
-                CropToMaxSchedules(systemSchedules, emptySchedule);
+                systemSchedules = CropToMaxSchedules(systemSchedules, emptySchedule);
 
                 // Generate an exhaustive list of new tasks possible from the combinations of Assets and Tasks
                 //TODO: Parallelize this.
-                int k = 0;
 
                 //Parallel.ForEach(systemSchedules, (oldSystemSchedule) =>
-
                 //"Time Deconfliction" step --> we dont create possible schedules when a schedule is bust ()
-                foreach(var oldSystemSchedule in systemSchedules)
-                {
-                    //potentialSystemSchedules.Add(new SystemSchedule( new StateHistory(oldSystemSchedule.AllStates)));
-                    foreach (var newAccessStack in scheduleCombos)
-                    {
-                        k++;
-                        if (oldSystemSchedule.CanAddTasks(newAccessStack, currentTime))
-                        {
-                            var CopySchedule = new StateHistory(oldSystemSchedule.AllStates);
-                            potentialSystemSchedules.Add(new SystemSchedule(CopySchedule, newAccessStack, currentTime));
-                            // oldSched = new SystemSchedule(CopySchedule);
-                        }
+                potentialSystemSchedules = TimeDeconfliction(systemSchedules, currentTime,scheduleCombos);
+                //int k = 0; 
+                // foreach(var oldSystemSchedule in systemSchedules)
+                // {
+                //     //potentialSystemSchedules.Add(new SystemSchedule( new StateHistory(oldSystemSchedule.AllStates)));
+                //     foreach (var newAccessStack in scheduleCombos)
+                //     {
+                //         k++;
+                //         if (oldSystemSchedule.CanAddTasks(newAccessStack, currentTime))
+                //         {
+                //             var CopySchedule = new StateHistory(oldSystemSchedule.AllStates);
+                //             potentialSystemSchedules.Add(new SystemSchedule(CopySchedule, newAccessStack, currentTime));
+                //             // oldSched = new SystemSchedule(CopySchedule);
+                //         }
 
-                    }
-                }
+                //     }
+                //}
 
-                // "State Deconfliction" step --> 
+                // "State Deconfliction" Step --> 
                 int numSched = 0;
                 foreach (var potentialSchedule in potentialSystemSchedules)
                 {
@@ -161,11 +161,14 @@ namespace HSFScheduler
                         numSched++;
                     }
                 }
+
+                // Evaluate Schedule Step --> 
                 foreach (SystemSchedule systemSchedule in systemCanPerformList)
                     systemSchedule.ScheduleValue = ScheduleEvaluator.Evaluate(systemSchedule);
 
                 systemCanPerformList.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
                 systemCanPerformList.Reverse();
+                
                 // Merge old and new systemSchedules
                 var oldSystemCanPerfrom = new List<SystemSchedule>(systemCanPerformList);
                 systemSchedules.InsertRange(0, oldSystemCanPerfrom);//<--This was potentialSystemSchedule doubling stuff up
@@ -204,7 +207,7 @@ namespace HSFScheduler
             //return canPregenAccess; 
         }
 
-        public void CropToMaxSchedules(List<SystemSchedule> systemSchedules, SystemSchedule emptySchedule)
+        public List<SystemSchedule> CropToMaxSchedules(List<SystemSchedule> systemSchedules, SystemSchedule emptySchedule)
         {
             if (systemSchedules.Count > _maxNumSchedules)
             {
@@ -212,6 +215,7 @@ namespace HSFScheduler
                 CropSchedules(systemSchedules, ScheduleEvaluator, emptySchedule);
                 systemSchedules.Add(emptySchedule);
             }
+            return systemSchedules; 
         }
 
         public void CropSchedules(List<SystemSchedule> schedulesToCrop, Evaluator scheduleEvaluator, SystemSchedule emptySched)
@@ -288,6 +292,26 @@ namespace HSFScheduler
             return scheduleCombos; 
         }
 
+        public virtual List<SystemSchedule> TimeDeconfliction(List<SystemSchedule> systemSchedules,double currentTime,Stack<Stack<Access>> scheduleCombos)
+        {
+            int k = 0; 
+            foreach(var oldSystemSchedule in systemSchedules)
+            {
+                //potentialSystemSchedules.Add(new SystemSchedule( new StateHistory(oldSystemSchedule.AllStates)));
+                foreach (var newAccessStack in scheduleCombos)
+                {
+                    k++;
+                    if (oldSystemSchedule.CanAddTasks(newAccessStack, currentTime))
+                    {
+                        var CopySchedule = new StateHistory(oldSystemSchedule.AllStates);
+                        potentialSystemSchedules.Add(new SystemSchedule(CopySchedule, newAccessStack, currentTime));
+                        // oldSched = new SystemSchedule(CopySchedule);
+                    }
+
+                }
+            }
+            return potentialSystemSchedules; 
+        }
 
 
         #region GenerateSchedules() sub methods 
