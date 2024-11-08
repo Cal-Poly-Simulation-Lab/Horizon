@@ -1,17 +1,12 @@
 // Copyright (c) 2016 California Polytechnic State University
 // Authors: Morgan Yost (morgan.yost125@gmail.com) Eric A. Mehiel (emehiel@calpoly.edu)
 
-using System;
-using System.Collections.Generic;
 using Utilities;
 using HSFUniverse;
 using MissionElements;
-using System.Xml;
-using System.Runtime.CompilerServices;
 
 namespace HSFSystem
 {
-    [Serializable]
     public abstract class Subsystem
     {
         #region Attributes
@@ -21,7 +16,6 @@ namespace HSFSystem
         public Asset Asset { get; set; }
         public virtual List<Subsystem> DependentSubsystems { get; set; } = new List<Subsystem>();
         public string Name { get; set; }
-        //public static string DefaultSubName { get; protected set; }
         public virtual Dictionary<string, Delegate> SubsystemDependencyFunctions { get; set; }
         public List<StateVariableKey<int>> Ikeys { get; private set; } = new List<StateVariableKey<int>>();
         public List<StateVariableKey<double>> Dkeys { get; protected set; } = new List<StateVariableKey<double>>();
@@ -31,6 +25,7 @@ namespace HSFSystem
         public List<StateVariableKey<Vector>> Vkeys { get; protected set; } = new List<StateVariableKey<Vector>>();
         public virtual SystemState NewState { get; set; }
         public virtual MissionElements.Task Task { get; set; }
+
         #endregion Attributes
 
         #region Constructors
@@ -42,14 +37,7 @@ namespace HSFSystem
         {
             Name = name;
         }
-        public Subsystem(XmlNode xmlNode, Asset asset)
-        {
 
-        }
-        public Subsystem(XmlNode xmlNode, Dependency deps, Asset asset)
-        {
-
-        }
         #endregion
 
         #region Methods
@@ -190,54 +178,6 @@ namespace HSFSystem
 
             return outProf;
         }
-
-        /// <summary>
-        /// Find the subsystem name field from the XMLnode and create the name of format "Asset#.SubName
-        /// </summary>
-        /// <param name="subXmlNode"></param>
-        public void GetSubNameFromXmlNode(XmlNode subXmlNode)
-        {
-            string assetName = Asset.Name;
-            if (subXmlNode.Attributes["subsystemName"] != null)
-                Name = assetName + "." + subXmlNode.Attributes["subsystemName"].Value.ToString().ToLower();
-            //else if (DefaultSubName != null)
-            //    Name = assetName + "." + DefaultSubName.ToLower() ;
-            //else if (subXmlNode.Attributes["type"] != null)
-            //    Name = assetName + "." + subXmlNode.Attributes["type"].Value.ToString().ToLower();
-            else
-                throw new ArgumentException($"Missing a subsystem name attribute for subsystem in {assetName}!");
-        }
-
-        /// <summary>
-        /// Method to get subsystem name from xml node.
-        /// </summary>
-        /// <param name="subXmlNode"></param>
-        /// <param name="assetName"></param>
-        /// <returns></returns>
-        public static string parseNameFromXmlNode(XmlNode subXmlNode, string assetName)
-        {
-
-            string Name;
-            if (subXmlNode.Attributes["subsystemName"] != null)
-                Name = assetName + "." + subXmlNode.Attributes["subsystemName"].Value.ToString().ToLower();
-            //else if (DefaultSubName != null)
-            //    Name = assetName + "." + DefaultSubName.ToLower() ;
-            //else if (subXmlNode.Attributes["type"] != null)
-            //    Name = assetName + "." + subXmlNode.Attributes["type"].Value.ToString().ToLower();
-            else
-                throw new ArgumentException($"Missing a subsystem name attribute for subsystem in {assetName}!");
-            return Name;
-        }
-
-        //public void getInitialStateFromXmlNode(XmlNode ICXmlNode)
-        //{
-        //    Type keyType = Type.GetType(ICXmlNode.Attributes["type"].Value.ToString());
-        //    string key = ICXmlNode.Attributes["key"].Value.ToString();
-        //    string value = ICXmlNode.Attributes["value"].ToString();
-        //    if(keyType)
-        //    StateVarKey <keyType.GetType()> = new StateVarKey<keyType.GetType() > (key);
-        //    .ChangeType(value, keyType);
-        //}
 
         /// <summary>
         /// Method to get subsystem state at a given time. Should be used for writing out state data

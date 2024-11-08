@@ -79,7 +79,7 @@ namespace Horizon
             program.InitInput(argsList);
             program.InitOutput(argsList);
             program.LoadScenario();
-            //program.LoadTasks();
+            program.LoadTasks();
             program.LoadSubsystems();
             program.LoadEvaluator();
             program.CreateSchedules();
