@@ -131,19 +131,11 @@ namespace HSFSystem
         public static void SetDependencies(JObject dependencyJson, List<Subsystem> SubsystemList)
         {
             StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
-            // Find names of asset, sub, dep asset, and dep sub
-
-            var name = dependencyJson.Select(text => dependencyJson.TryGetValue("assetName", stringCompare, out JToken asset) ?
-                new { ok = true, value = asset } : null)
-                .Where(t => t.ok)
-                .Select(t => t.value.ToString());
-
 
             string assetName = dependencyJson.GetValue("assetName", stringCompare).ToString().ToLower();
             string subName = dependencyJson.GetValue("subsystemName", stringCompare).ToString().ToLower();
             string depSubName = dependencyJson.GetValue("depSubsystemName", stringCompare).ToString(); // NOT lowercase
             string depAssetName = dependencyJson.GetValue("depAssetName", stringCompare).ToString().ToLower();
-            //string depSubName = DepNode.Attributes["depSubsystemName"].Value.ToString().ToLower();
 
             // Add dependent subsystem to subsystem's list of dep subs
             var sub = SubsystemList.Find(s => s.Name == assetName + "." + subName);
@@ -220,7 +212,12 @@ namespace HSFSystem
                 //subsys.addKey(stateKey);
             }
 
+            // These two lines are each adding a stateKey, one to the list, one to the attribute POINTVEC_KEY
+            // Get rid of the lists in the subsystem base class and just add keys to each derived class?
             subsys.addKey(stateKey);
+            //if (subsys.Type == "adcs")
+            //    ((ADCS)subsys).POINTVEC_KEY = new StateVariableKey<Matrix<double>>(key);
+
             if (subsys.Type == "scripted")
             {
                 string stateName = "";
@@ -243,15 +240,6 @@ namespace HSFSystem
 
             SubsystemFactory.InitParameter(name, value, type, subsystem);
 
-        }
-
-        public static void SetParameters(XmlNode ParameterNode, Subsystem subsystem)
-        {
-            string name = ParameterNode.Attributes["name"].Value;
-            // TODO:  Check to make sure name is a valid python variable name
-            string value = ParameterNode.Attributes["value"].Value.ToLower();
-            string type = ParameterNode.Attributes["type"].Value.ToLower();
-            SubsystemFactory.InitParameter(name, value, type, subsystem);
         }
 
         private static void InitParameter(string name, string value, string type, Subsystem subsystem)

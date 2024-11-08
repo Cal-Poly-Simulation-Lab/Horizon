@@ -2,6 +2,7 @@ import sys
 import clr
 import System.Collections.Generic
 import System
+
 clr.AddReference('System.Core')
 clr.AddReference('IronPython')
 clr.AddReferenceByName('Utilities')
@@ -38,7 +39,7 @@ class Camera(HSFSystem.Subsystem):
         targetPositionECI = event.GetAssetTask(self.Asset).Target.DynamicState.PositionECI(ts)
         pointingVectorECI = targetPositionECI - scPositionECI
         
-        event.State.AddValue(self.pointvec_key, ts, pointingVectorECI)
+        event.State.AddValue(self.pointingvector, ts, pointingVectorECI)
         event.SetTaskStart(self.Asset, ts)
         event.SetTaskEnd(self.Asset, ts + self.imageCaptureTime)
       

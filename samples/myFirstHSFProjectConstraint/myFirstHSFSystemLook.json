@@ -13,15 +13,21 @@
         "subsystems": [
           {
             "type": "scripted",
-            "name": "Camera",
-            "src": "samples\\myFirstHSFProject\\Camera.py",
-            "className": "Camera",
+            "name": "CameraLook",
+            "src": "samples\\myFirstHSFProjectConstraint\\CameraLook.py",
+            "className": "CameraLook",
             "states": [
               {
                 "type": "Matrix",
                 "name": "pointingVector",
                 "key": "ECI_Pointing_Vector(XYZ)",
                 "value": [ 0, 0, 0 ]
+              },
+              {
+                "type": "Double",
+                "name": "LookAngle",
+                "key": "Look_Angle(rad)",
+                "value": 0
               }
             ],
             "parameters": [
@@ -31,6 +37,18 @@
                 "value": 3
               }
             ]
+          }
+        ],
+        "constraints": [
+          {
+            "value": 0.5,
+            "subsystemName": "CameraLook",
+            "type": "FAIL_IF_HIGHER",
+            "name": "look_angle_constraint",
+            "state": {
+              "type": "Double",
+              "key":  "Look_Angle(rad)"
+            }
           }
         ]
       }
