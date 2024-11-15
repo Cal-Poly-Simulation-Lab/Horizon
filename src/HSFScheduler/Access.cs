@@ -33,6 +33,16 @@ namespace HSFScheduler
             Asset = asset;
             Task = task;
         }
+
+        public Access(Asset asset, Task task, double startTime, double endTime)
+        {
+            Asset = asset;
+            Task = task;
+            AccessStart = startTime;
+            AccessEnd = endTime;
+        }
+
+
         #endregion
 
         #region methods

@@ -10,6 +10,8 @@ using UserModel;
 using MissionElements;
 using log4net;
 using System.Threading.Tasks;
+using System.Transactions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HSFScheduler
 {
@@ -40,8 +42,6 @@ namespace HSFScheduler
         private Stack<Access>? preGeneratedAccesses {get; set;}
         private List<SystemSchedule> potentialSystemSchedules = new List<SystemSchedule>();
         private List<SystemSchedule> systemCanPerformList = new List<SystemSchedule>();
-
-        
 
         
         public Evaluator ScheduleEvaluator { get; private set; }
@@ -99,7 +99,7 @@ namespace HSFScheduler
                 /* This method creates a shell for all (empty/not-yet-assessed) Accesses by Asset & Task combination.  Thus many of these potential schedules will be cropped out via non-accesses.
                 Furthermore, can add a pre-cropping tool that shed the possible access combinations via restrictions levied by task type and asset class,
                 or asset-asset interaction, or time-based restrictions (like assets/tasks required to act in serial versus parallel), etc.). */
-                scheduleCombos = GenerateExhaustiveSystemSchedules(system,tasks,scheduleCombos); //Technically doesn't need to take scheduleCombos but its okay for now
+                scheduleCombos = GenerateExhaustiveSystemSchedules(system,tasks,scheduleCombos,_startTime,_endTime); //Technically doesn't need to take scheduleCombos but its okay for now
 
                 // Access.writeAccessReport(preGeneratedAccesses); //- TODO:  Finish this code - EAM
                 log.Info("Done generating exhaustive task combinations");
@@ -190,7 +190,8 @@ namespace HSFScheduler
         /// 
         public void InitializeEmptySchedule(SystemState initialStateList)
         {
-            emptySchedule = new SystemSchedule(initialStateList); // Create the first empty schedule. This should schange as things move forward. 
+            string Name = "Empty Schedule"; 
+            emptySchedule = new SystemSchedule(initialStateList, Name); // Create the first empty schedule. This should schange as things move forward. 
             systemSchedules.Add(emptySchedule);  
 
         }
@@ -263,7 +264,7 @@ namespace HSFScheduler
             return allOfThem;
         }
 
-        public static Stack<Stack<Access>> GenerateExhaustiveSystemSchedules(SystemClass system, Stack<MissionElements.Task> tasks, Stack<Stack<Access>> scheduleCombos)
+        public static Stack<Stack<Access>> GenerateExhaustiveSystemSchedules(SystemClass system, Stack<MissionElements.Task> tasks, Stack<Stack<Access>> scheduleCombos, double currentTime, double endTime)
         {
             //GenerateExhaustiveSystemSchedules(SystemClass system, Stack<Task>)
             Stack<Stack<Access>> exhaustive = new Stack<Stack<Access>>();
@@ -273,8 +274,10 @@ namespace HSFScheduler
             {
                 Stack<Access> allAccesses = new Stack<Access>(tasks.Count);
                 foreach (var task in tasks)
-                    allAccesses.Push(new Access(asset, task));
-                //allAccesses.Push(new Access(asset, null));
+                {
+                    allAccesses.Push(new Access(asset, task, currentTime, endTime)); //This generates acess for the current time to end of Sim, by default
+                    //allAccesses.Push(new Access(asset, null));
+                }
                 exhaustive.Push(allAccesses);
 
                 //allAccesses.Clear();

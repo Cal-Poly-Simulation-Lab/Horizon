@@ -8,13 +8,15 @@ using System.Linq;
 using Utilities;
 using MissionElements;
 using UserModel;
-using Task = MissionElements.Task; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
+using Task = MissionElements.Task;
+using Microsoft.CodeAnalysis.CSharp.Syntax; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
 
 namespace HSFScheduler
 {
     public class SystemSchedule
     {
         #region Attributes
+        public string Name = ""; 
         public StateHistory AllStates; //pop never gets used so just use list
         public double ScheduleValue;
         #endregion
@@ -25,16 +27,31 @@ namespace HSFScheduler
             ScheduleValue = 0;
             AllStates = new StateHistory(initialstates);
         }
-
+        public SystemSchedule(SystemState initialstates, string name) 
+        {
+            ScheduleValue = 0;
+            Name = name;
+            AllStates = new StateHistory(initialstates);
+        }
         public SystemSchedule(StateHistory allStates)
         {
             AllStates = new StateHistory(allStates);
         }
-
+        public SystemSchedule(StateHistory allStates, string name)
+        {
+            AllStates = new StateHistory(allStates);
+            Name = name; 
+        }
         public SystemSchedule(SystemSchedule oldSchedule, Event emptyEvent)
         {
             AllStates = new StateHistory(oldSchedule.AllStates);
             AllStates.Events.Push(emptyEvent);
+        }
+        public SystemSchedule(SystemSchedule oldSchedule, Event emptyEvent,string name)
+        {
+            AllStates = new StateHistory(oldSchedule.AllStates);
+            AllStates.Events.Push(emptyEvent);
+            Name = name;
         }
 
         public SystemSchedule(StateHistory oldStates, Stack<Access> newAccessList, double newEventStartTime)
@@ -44,6 +61,7 @@ namespace HSFScheduler
             Dictionary<Asset, double> taskEnds = new Dictionary<Asset, double>();
             Dictionary<Asset, double> eventStarts = new Dictionary<Asset, double>();
             Dictionary<Asset, double> eventEnds = new Dictionary<Asset, double>();
+            //Name = name; 
 
             foreach (var access in newAccessList)
             {
