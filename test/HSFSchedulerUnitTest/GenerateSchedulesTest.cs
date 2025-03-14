@@ -43,7 +43,7 @@ namespace HSFSchedulerUnitTest
             //
 
             // Test if the Empty Schedule Exists and retrieve its location in the list ... 
-            EmptyScheduleExists(); // Does this actually need to exist in the setup context?
+            //EmptyScheduleExists(); // Does this actually need to exist in the setup context?
                                    // it appears that this may be run given it's (current) status as a [Test] fixute as part of
                                    // of the abstract HSFSchedulerUnitTest class... It was called twice? 
 

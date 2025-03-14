@@ -53,6 +53,7 @@ namespace HSFScheduler
             _pythonInstance = ops.CreateInstance(pythonType, keychain);
             //_pythonInstance = ops.CreateInstance(pythonType, deps);
             //Dependencies = deps;
+
         }
         #endregion
 

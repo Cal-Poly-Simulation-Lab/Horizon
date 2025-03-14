@@ -26,6 +26,7 @@ namespace HSFScheduler
             // Iterate through constraints
             foreach (var constraint in system.Constraints)
             {
+                // Iterate thbrough subsytems
                 foreach (Subsystem sub in constraint.Subsystems)
                 {
                     if (!checkSub(sub, proposedSchedule, system.Environment))
