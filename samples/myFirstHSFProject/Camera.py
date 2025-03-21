@@ -8,14 +8,15 @@ clr.AddReference('IronPython')
 clr.AddReferenceByName('Utilities')
 clr.AddReferenceByName('HSFUniverse')
 clr.AddReferenceByName('UserModel')
+# Don't Add MissionElements and then we can restrict how the user access SystemState data
 clr.AddReferenceByName('MissionElements')
 clr.AddReferenceByName('HSFSystem')
 
-import HSFSystem
-import MissionElements
 import Utilities
 import HSFUniverse
 import UserModel
+import MissionElements
+import HSFSystem
 
 from HSFSystem import *
 from Utilities import *

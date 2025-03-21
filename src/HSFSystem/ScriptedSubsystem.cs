@@ -1,17 +1,10 @@
 ﻿// Copyright (c) 2016 California Polytechnic State University
 // Authors: Morgan Yost (morgan.yost125@gmail.com) Eric A. Mehiel (emehiel@calpoly.edu)
 
-using System;
-using System.Collections.Generic;
 using IronPython.Hosting;
 using MissionElements;
-using UserModel;
 using HSFUniverse;
-using System.Xml;
-using System.IO;
-using System.Reflection;
 using Utilities;
-using System.Security.Cryptography.X509Certificates;
 using Newtonsoft.Json.Linq;
 
 namespace HSFSystem
@@ -20,7 +13,7 @@ namespace HSFSystem
     {
         #region Attributes
         // A reference to the python scripted class
-        protected dynamic _pythonInstance;
+        private dynamic _pythonInstance;
 
         // Overide the accessors in order to modify the python instance
         public override List<Subsystem> DependentSubsystems

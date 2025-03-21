@@ -46,7 +46,7 @@ namespace HSFSystem
         {
 
             Asset = asset;
-            GetSubNameFromXmlNode(SubNode);
+            //GetSubNameFromXmlNode(SubNode);
             int gyr = 0;
             int acc = 1;
             XmlNode IMUNode = SubNode;
