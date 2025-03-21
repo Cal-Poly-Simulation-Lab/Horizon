@@ -148,7 +148,7 @@ namespace Horizon
             {
                 argsList.Add("-scen");
                 // Set this to the default scenario you would like to run
-                string scenarioName = "Aeolus_scripted";
+                string scenarioName = "Aeolus_CS";
                 argsList.Add(scenarioName);
                 // This is the path or "subpath" to the Horizon/samples/ directory where the simulation input files are stored.
                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
@@ -169,6 +169,7 @@ namespace Horizon
                             case "Aeolus_scripted":
                                 // Set Defaults
                                 //subpath = @"..\..\..\..\samples\Aeolus\";
+                                subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
                                 subPath = Path.Combine(subPath, "Aeolus");
                                 SimulationFilePath = Path.Combine(subPath, "AeolusSimulationInput.json");
                                 TaskDeckFilePath = Path.Combine(subPath, "AeolusTasks.json");
@@ -181,6 +182,7 @@ namespace Horizon
                             case "Aeolus_CS":
                                 // Set Defaults
                                 //subpath = @"..\..\..\..\samples\Aeolus\";
+                                subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
                                 subPath = Path.Combine(subPath, "Aeolus");
                                 SimulationFilePath = Path.Combine(subPath, "AeolusSimulationInput.json");
                                 TaskDeckFilePath = Path.Combine(subPath, "AeolusTasks.json");
@@ -197,6 +199,7 @@ namespace Horizon
                             case "myFirstHSFProject":
                                 // Set myFirstHSFProject file paths
                                 //subpath = @"..\..\..\..\samples\myFirstHSFProject\";
+                                subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
                                 subPath = Path.Combine(subPath, "myFirstHSFProject");
                                 SimulationFilePath = Path.Combine(subPath, "myFirstHSFScenario.json");
                                 TaskDeckFilePath = Path.Combine(subPath, "myFirstHSFTaskList.json");
@@ -208,6 +211,7 @@ namespace Horizon
                             case "myFirstHSFProjectConstraint":
                                 // Set myFirstHSFProjectConstraint file paths
                                 //subpath = @"..\..\..\..\samples\myFirstHSFProjectConstraint\";
+                                subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
                                 subPath = Path.Combine(subPath, "myFirstHSFProjectConstraint");
                                 SimulationFilePath = Path.Combine(subPath, "myFirstHSFScenario.json");
                                 TaskDeckFilePath = Path.Combine(subPath, "myFirstHSFTaskList.json");
@@ -219,6 +223,7 @@ namespace Horizon
                             case "myFirstHSFProjectDependency":
                                 // Set myFirstHSFProjectDependency file paths
                                 //subpath = @"..\..\..\..\samples\myFirstHSFProjectDependency\";
+                                subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
                                 subPath = Path.Combine(subPath, "myFirstHSFProjectDependency");
                                 SimulationFilePath = Path.Combine(subPath, "myFirstHSFScenario.json");
                                 TaskDeckFilePath = Path.Combine(subPath, "myFirstHSFTargetDeck.json");
