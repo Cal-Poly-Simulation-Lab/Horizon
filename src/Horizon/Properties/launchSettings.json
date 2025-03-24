@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Horizon": {
-      "commandName": "Project",
-      "commandLineArgs": "-scen myFirstHSFProject"
+      "commandName": "Project"
     }
   }
 }
