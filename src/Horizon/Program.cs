@@ -120,7 +120,7 @@ namespace Horizon
         public void InitInput(List<string> argsList)
         {
             // This would be in a config file - not used right now (4/26/24) -EM
-            string basePath = @"C:\Users\emehiel\Source\Repos\Horizon8\";
+            string basePath = Utilities.DevEnvironment.RepoDirectory;
             // DirectoryInfo testdir = DevEnvironment.testDirectory; 
             // string basePath = DevEnvironment.RepoDirectory; //Establsih the repo directory as the basePath
             string subPath = "";
@@ -171,7 +171,7 @@ namespace Horizon
                             case "Aeolus":
                                 // Set Defaults
                                 //subpath = @"..\..\..\..\samples\Aeolus\";
-                                subPath = Path.Combine(subPath, "Aeolus");
+                                subPath = Path.Combine(basePath, "samples/Aeolus");
                                 SimulationFilePath = Path.Combine(subPath, "AeolusSimulationInput.json");
                                 TaskDeckFilePath = Path.Combine(subPath, "AeolusTasks.json");
                                 // Asset 1 Scripted, Asset 2 C#

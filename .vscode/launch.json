@@ -1,0 +1,35 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Horizon - Aeolus (Native Style)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
+      "args": [
+        "-scen", "Aeolus"
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+
+    {
+      "name": "Debug Horizon - Test Case (Native Style)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
+      "args": [
+        "-s", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestSimulationInput.json",
+        "-m", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestModel.json",
+        "-t", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestTasks.json",
+        "-o", "${workspaceFolder}/test/HSFSchedulerUnitTest/Output"
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    }
+  ]
+}

@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using log4net.Appender;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.IO;
+using System.Collections.Generic;
 
 namespace HSFSchedulerUnitTest
 {
@@ -50,7 +52,7 @@ namespace HSFSchedulerUnitTest
 
         // }
 
-        public virtual Horizon.Program HoirzonLoadHelper(string SimInputFile, string TaskInputFile, string ModelInputFile)
+        public virtual Horizon.Program HorizonLoadHelper(string SimInputFile, string TaskInputFile, string ModelInputFile)
         {
             #region Input File (argsList) Pathing Setup & Validation
 

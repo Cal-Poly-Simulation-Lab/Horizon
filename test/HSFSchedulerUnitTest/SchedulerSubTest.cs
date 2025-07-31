@@ -21,7 +21,10 @@ namespace HSFSystem
         #region Constructors
         public SubTest(JObject subtestJson)
         {
-            //lookup = getList();
+            // Initialize lookup to prevent null reference exceptions
+            lookup = new Dictionary<string, double>();
+            lookup.Add("Task1", 0.0);  // Default mapping for the test task
+            lookup.Add("Target1", 0.0); // Also add target name mapping
         }
 
         #endregion Constructors

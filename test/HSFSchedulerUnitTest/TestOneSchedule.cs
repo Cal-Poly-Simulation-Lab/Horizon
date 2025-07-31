@@ -30,7 +30,7 @@ namespace HSFSchedulerUnitTest
 
             // Load all files and create a new Horizon Program
 
-            program = HoirzonLoadHelper(SimInputFile, TaskInputFile, ModelInputFile);
+            var program = HorizonLoadHelper(SimInputFile, TaskInputFile, ModelInputFile);
 
             // Now it is time to test the scheduler: 
             program.CreateSchedules();
@@ -58,7 +58,12 @@ namespace HSFSchedulerUnitTest
             // --> Need to create a schedule that has a specific value as well.
             // This would effectively test the scheudle as a function of time ... so like make one with legit access, and canperform, etc. 
 
-            var asset1 = program.AssetList[0]; // The only asset that should be present
+            var asset1 = program?.AssetList?[0]; // The only asset that should be present
+            if (asset1 == null || program?.Schedules == null || program.Schedules.Count == 0)
+            {
+                Assert.Fail("Required objects are null - cannot test event timing");
+                return;
+            }
             double _eventStartTime = program.Schedules[0].AllStates.GetLastEvent().EventEnds[asset1];
             Assert.AreEqual(_eventStartTime,12.0); 
             

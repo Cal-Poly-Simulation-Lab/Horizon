@@ -12,6 +12,6 @@
     "cropTo": 5
   },
   "dependencies": {
-    "baseSrc": "test/HSFSchdulerUnitTest/"
+    "baseSrc": "../../test/HSFSchdulerUnitTest/"
   }
 }
