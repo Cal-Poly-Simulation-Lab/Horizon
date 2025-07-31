@@ -18,6 +18,7 @@
             "name": "SchedulerSubTest",
             "src": "test\\HSFSchedulerUnitTest\\SchedulerSubTest.cs",
             "className": "SubTest",
+            "parameters": [{}],
             "states": [{}]
           }
         ],
