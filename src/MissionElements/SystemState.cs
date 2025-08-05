@@ -109,8 +109,8 @@ namespace MissionElements
         }
         #endregion
 
-        #region GetLastValue
-        /// <summary>
+        #region GetLastValue (StateVarKey)
+        /// <summary> 
         ///  Gets the last integer value set for the given state variable key in the SystemState. If no value is found
         ///  it checks the previous SystemState, continuing all the way to the initial SystemState.
         /// </summary>
@@ -209,7 +209,7 @@ namespace MissionElements
         }
         #endregion
 
-        #region GetValueAtTime
+        #region GetValueAtTime (StateVarKey, time)
 
         /// <summary>
         ///  Gets the integer value of the SystemState at a certain time.
@@ -315,7 +315,7 @@ namespace MissionElements
         }
         #endregion
 
-        #region GetProfile
+        #region GetProfile (StateVarKey)
         /// <summary>
         /// Returns the integer Profile matching the key given. If no Profile is found, it goes back one Event
         /// and checks again until it gets to the initial state.
@@ -700,6 +700,8 @@ namespace MissionElements
         /// <param name="stateValue"></param>
         public void AddValue(StateVariableKey<Matrix<double>> stateVariableKey, double time, Matrix<double> stateValue)
         {
+            //  This is an issue that should be resolved by the Subsystem Base Class.  What do we do when the modeler wants to set
+            //  a state value at a time inclusive of the prior event?  i.e. what if time < last Event end time?
             if (Mdata.TryGetValue(stateVariableKey, out HSFProfile<Matrix<double>> valueOut)) // If there's a Profile matching that key,add this data point to the existing Profile.
             {
                 if (valueOut.LastTime() < time)  // Only let the user add data points that are after the last data point
@@ -716,7 +718,14 @@ namespace MissionElements
                 }
             }
             else // Otherwise, insert a new one.
+            {
+                if (PreviousState != null)
+                {
+                    (double t, Matrix<double> v) = this.PreviousState.Mdata[stateVariableKey].Last();
+                }
+
                 Mdata[stateVariableKey] = new HSFProfile<Matrix<double>>(time, stateValue);
+            }
         }
 
         /// <summary>

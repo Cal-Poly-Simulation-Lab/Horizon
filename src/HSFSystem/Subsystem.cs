@@ -1,11 +1,10 @@
 // Copyright (c) 2016 California Polytechnic State University
 // Authors: Morgan Yost (morgan.yost125@gmail.com) Eric A. Mehiel (emehiel@calpoly.edu)
 
-using System;
-using System.Collections.Generic;
 using Utilities;
 using HSFUniverse;
 using MissionElements;
+
 using System.Xml;
 using System.Runtime.CompilerServices;
 using log4net;
@@ -13,9 +12,9 @@ using Newtonsoft.Json.Linq;
 using UserModel;
 using System.Reflection.PortableExecutable;
 
+
 namespace HSFSystem
 {
-    [Serializable]
     public abstract class Subsystem
     {
         #region Attributes
@@ -29,6 +28,7 @@ namespace HSFSystem
         public virtual Dictionary<string, Delegate> SubsystemDependencyFunctions { get; set; }
         public virtual SystemState NewState { get; set; }
         public virtual MissionElements.Task Task { get; set; }
+
         #endregion Attributes
 
         #region Constructors
@@ -36,6 +36,7 @@ namespace HSFSystem
         {
 
         }
+
         public Subsystem(JObject subsystemJson, Asset asset)
         {
             string msg;
@@ -64,6 +65,7 @@ namespace HSFSystem
             this.SubsystemDependencyFunctions = new Dictionary<string, Delegate>();
             this.AddDependencyCollector();
         }
+
         #endregion
 
         #region Methods
@@ -201,12 +203,12 @@ namespace HSFSystem
             return outProf;
         }
 
-
         public void GetParameterByName<T>(JObject subsysJson, string name, out T variable)
         {
             variable = default;
 
             if (JsonLoader<JArray>.TryGetValue("parameters", subsysJson, out JArray parameters))
+
             {
                 foreach (JObject parameter in parameters)
                 {

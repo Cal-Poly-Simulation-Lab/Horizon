@@ -44,7 +44,6 @@ namespace HSFSystem
         #region Constructors
         public IMU(XmlNode SubNode, Asset asset)
         {
-
             //Asset = asset;
             //GetSubNameFromXmlNode(SubNode);
             //int gyr = 0;
