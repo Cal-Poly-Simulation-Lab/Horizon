@@ -12,7 +12,6 @@ using Utilities;
 
 namespace HSFSystem
 {
-    //[ExcludeFromCodeCoverage]
     public class Comm : Subsystem
     {
         #region Attributes
@@ -21,13 +20,22 @@ namespace HSFSystem
 
         #region Constructors
 
-        public Comm(JObject commJson)
+        public Comm(JObject commJson, Asset asset):base(commJson, asset)
         {
 
         }
         #endregion
 
         #region Methods
+
+        public override void SetStateVariableKey(dynamic stateKey)
+        {
+            if (stateKey.VariableName.Equals(Asset.Name + ".datarate(mb/s)"))
+                this.DATARATE_KEY = stateKey;
+            else
+                throw new ArgumentException("Attempting to set unknown Comm state variable key.", stateKey);
+        }
+
         /// <summary>
         /// An override of the Subsystem CanPerform method
         /// </summary>
@@ -36,14 +44,11 @@ namespace HSFSystem
         /// <returns></returns>
         public override bool CanPerform(Event proposedEvent, Domain environment)
         {
-            var DATARATE_KEY = Dkeys[0];
-
             if (Task.Type == "comm")
             {
                 HSFProfile<double> newProf = DependencyCollector(proposedEvent);
                 if (!newProf.Empty())
                     proposedEvent.State.AddValues(DATARATE_KEY, newProf);
-                //proposedEvent.State.SetProfile(DATARATE_KEY, newProf);
             }
             return true;
         }
@@ -55,7 +60,6 @@ namespace HSFSystem
         /// <returns></returns>
         public HSFProfile<double> Power_asset1_from_Comm_asset1(Event currentEvent)
         {
-            var DATARATE_KEY = Dkeys[0];
             return currentEvent.State.GetProfile(DATARATE_KEY) * 20;
         }
         #endregion

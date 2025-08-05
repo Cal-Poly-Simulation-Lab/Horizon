@@ -13,6 +13,7 @@ using System.Reflection;
 using Utilities;
 using System.Security.Cryptography.X509Certificates;
 using Newtonsoft.Json.Linq;
+using System.Security.Permissions;
 
 namespace HSFSystem
 {
@@ -23,6 +24,18 @@ namespace HSFSystem
         protected dynamic _pythonInstance;
 
         // Overide the accessors in order to modify the python instance
+
+        public override String Type
+        {
+            get { return _pythonInstance.Type; }
+            set { _pythonInstance.Type = value; }
+        }
+
+        public override Asset Asset
+        {
+            get { return _pythonInstance.Asset; }
+            set { _pythonInstance.Asset = value; }
+        }
         public override List<Subsystem> DependentSubsystems
         {
             get { return (List<Subsystem>)_pythonInstance.DependentSubsystems; }
@@ -35,11 +48,11 @@ namespace HSFSystem
             set { _pythonInstance.SubsystemDependencyFunctions = (Dictionary<string, Delegate>)value; }
         }
 
-        //public override bool IsEvaluated
-        //{
-        //    get { return (bool)_pythonInstance.IsEvaluated; }
-        //    set { _pythonInstance.IsEvaluated = (bool)value; }
-        //}
+        public override string Name
+        {
+            get { return (string)_pythonInstance.Name; }
+            set { _pythonInstance.Name = (string)value; }
+        }
 
         public override SystemState NewState
         {
@@ -68,15 +81,6 @@ namespace HSFSystem
         {
             StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
 
-            this.Asset = asset;
-            //if(scriptedSubsystemJson.TryGetValue("name", stringCompare, out JToken nameJason))
-            //    this.Name = this.Asset.Name.ToLower() + "." + nameJason.ToString().ToLower();
-            //else
-            //{
-            //    Console.WriteLine($"Error loading subsytem of type {this.Type}, missing Name attribute");
-            //    throw new ArgumentException($"Error loading subsytem of type {this.Type}, missing Name attribute\"");
-            //}
-
             if (scriptedSubsystemJson.TryGetValue("src", stringCompare, out JToken srcJason))
             {
                 this.src = srcJason.ToString();
@@ -96,7 +100,38 @@ namespace HSFSystem
                 throw new ArgumentException($"Error loading subsytem of type {this.Type}, missing ClassName attribute");
             }
 
+            // What needs to be part of the python instance and what is part of the C# get/set?
             InitSubsystem(scriptedSubsystemJson);
+
+            Delegate depCollector = _pythonInstance.GetDependencyCollector();
+            this.SubsystemDependencyFunctions = new Dictionary<string, Delegate>
+            {
+                { "DepCollector", depCollector }
+            };
+
+            this.Asset = asset;
+            string msg;
+            if (JsonLoader<string>.TryGetValue("name", scriptedSubsystemJson, out string name))
+                this.Name = asset.Name + "." + name.ToLower();
+            else
+            {
+                msg = $"Missing a subsystem 'name' attribute for subsystem in {asset.Name}, {this.Name}";
+                Console.WriteLine(msg);
+                log.Error(msg);
+                throw new ArgumentOutOfRangeException(msg);
+            }
+
+            if (JsonLoader<string>.TryGetValue("type", scriptedSubsystemJson, out string type))
+                this.Type = type.ToLower();
+            else
+            {
+                msg = $"Missing a subsystem 'type' attribute for subsystem in {asset.Name}, {this.Name}";
+                Console.WriteLine(msg);
+                log.Error(msg);
+                throw new ArgumentOutOfRangeException(msg);
+            }
+
+            this.DependentSubsystems = new List<Subsystem>();
         }
 
         private void InitSubsystem(params object[] parameters)
@@ -115,24 +150,20 @@ namespace HSFSystem
             p.Add(@"C:\Python310\Lib");
 
             engine.SetSearchPaths(p);
-            engine.ExecuteFile(src, scope);
+            engine.ExecuteFile(this.src, scope);
             var pythonType = scope.GetVariable(className);
             // Look into this, string matters - related to file name, I think
             _pythonInstance = ops.CreateInstance(pythonType);//, parameters);
-            Delegate depCollector = _pythonInstance.GetDependencyCollector();
-            SubsystemDependencyFunctions = new Dictionary<string, Delegate>
-            {
-                { "DepCollector", depCollector }
-            };
 
-            _pythonInstance.Asset = this.Asset;
-            _pythonInstance.Name = this.Name;
-            DependentSubsystems = new List<Subsystem>();
         }
         #endregion
 
         #region Methods
-
+        //NEED TO FIX THIS...
+        public override void SetStateVariableKey( dynamic stateKey)
+        {
+            throw new NotImplementedException();
+        }
         public void SetStateVariable<T>(ScriptedSubsystemHelper HSFHelper, string StateName, StateVariableKey<T> key)
         {
             HSFHelper.PythonInstance.SetStateVariable(_pythonInstance, StateName, key);
@@ -146,20 +177,6 @@ namespace HSFSystem
 
         public override bool CanPerform(Event proposedEvent, Domain environment)
         {
-            //if (IsEvaluated)
-            //    return true;
-
-            //// Check all dependent subsystems
-            //foreach (var sub in DependentSubsystems)
-            //{
-            //    if (!sub.IsEvaluated)
-            //        if (sub.CanPerform(proposedEvent, environment) == false)
-            //            return false;
-            //}
-
-            //_task = proposedEvent.GetAssetTask(Asset); //Find the correct task for the subsystem
-            //_newState = proposedEvent.State;
-            //IsEvaluated = true;
 
             // Call the can perform method that is in the python class
             bool perform = false;

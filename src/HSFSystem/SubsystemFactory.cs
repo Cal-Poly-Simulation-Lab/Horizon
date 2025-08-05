@@ -14,6 +14,8 @@ using Microsoft.Scripting.Utils;
 using System.Runtime.InteropServices;
 using System.Linq;
 using UserModel;
+using static IronPython.Modules._ast;
+using System.Runtime.CompilerServices;
 
 namespace HSFSystem
 {
@@ -21,33 +23,19 @@ namespace HSFSystem
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static readonly ScriptedSubsystemHelper HSFHelper;
-        static SubsystemFactory()
+        SubsystemFactory()
         {
-            HSFHelper = new ScriptedSubsystemHelper();
+
         }
         /// <summary>
-        /// A method to interpret the Xml file and create subsystems
+        /// A method to interpret the JSON and create subsystems
         /// </summary>
         /// <param name="SubsystemJson"></param>
         /// <param name="asset"></param>
         /// <returns></returns>
         public static Subsystem GetSubsystem(JObject SubsystemJson, Asset asset)
         {
-            //StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
-
-            //string type = "";
-
             string msg;
-            if (JsonLoader<string>.TryGetValue("name", SubsystemJson, out string name))
-                name = asset.Name + "." + name.ToLower();
-            else
-            {
-                msg = $"Missing a subsystem 'name' attribute for subsystem in {asset.Name}";
-                Console.WriteLine(msg);
-                log.Error(msg);
-                throw new ArgumentOutOfRangeException(msg);
-            }
 
             if (JsonLoader<string>.TryGetValue("type", SubsystemJson, out string type))
                 type = type.ToLower();
@@ -63,37 +51,33 @@ namespace HSFSystem
 
             if (type.Equals("scripted"))
             {
-                subsystem = new ScriptedSubsystem(SubsystemJson, asset)
-                {
-                    Type = type,
-                    Name = name
-                };
+                subsystem = new ScriptedSubsystem(SubsystemJson, asset);
             }
             else // not scripted subsystem
             {
                 if (type.Equals("access"))
                 {
-                    subsystem = new AccessSub(SubsystemJson);
+                    subsystem = new AccessSub(SubsystemJson, asset);
                 }
                 else if (type.Equals("adcs"))
                 {
-                    subsystem = new ADCS(SubsystemJson);
+                    subsystem = new ADCS(SubsystemJson, asset);
                 }
                 else if (type.Equals("power"))
                 {
-                    subsystem = new Power(SubsystemJson);
+                    subsystem = new Power(SubsystemJson, asset);
                 }
                 else if (type.Equals("eosensor"))
                 {
-                    subsystem = new EOSensor(SubsystemJson);
+                    subsystem = new EOSensor(SubsystemJson, asset);
                 }
                 else if (type.Equals("ssdr"))
                 {
-                    subsystem = new SSDR(SubsystemJson);
+                    subsystem = new SSDR(SubsystemJson, asset);
                 }
                 else if (type.Equals("comm"))
                 {
-                    subsystem = new Comm(SubsystemJson);
+                    subsystem = new Comm(SubsystemJson, asset);
                 }
                 else if (type.Equals("imu"))
                 {
@@ -102,7 +86,7 @@ namespace HSFSystem
                 }
                 else if (type.Equals("subtest"))
                 {
-                    subsystem = new SubTest(SubsystemJson);
+                    subsystem = new SubTest(SubsystemJson, asset);
                     //sub = new SubTest(SubsystemXmlNode, asset);
                     //throw new NotImplementedException("Removed after the great SubsystemFactory update.");
                 }
@@ -117,13 +101,6 @@ namespace HSFSystem
                     log.Fatal(msg);
                     throw new ArgumentOutOfRangeException(msg);
                 }
-                // Below assignment should NOT happen when sub is scripted, that is handled in ScriptedSubsystem
-                subsystem.DependentSubsystems = new List<Subsystem>();
-                subsystem.SubsystemDependencyFunctions = new Dictionary<string, Delegate>();
-                subsystem.AddDependencyCollector();
-                subsystem.Asset = asset;
-                subsystem.Name = name;
-                subsystem.Type = type;
             }
             return subsystem;
         }
@@ -167,35 +144,41 @@ namespace HSFSystem
                 }
             }
         }
-        public static string SetStateKeys(JObject StateNodeJson, Subsystem subsys)
+        public static void SetInitialState(JObject stateJson, Subsystem subsys, SystemState InitialState)
         {
-            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
 
-            string type = "";
-            if (StateNodeJson.TryGetValue("Type", stringCompare, out JToken typeJson))
-                type = typeJson.Value<string>().ToLower();
+            if(!JsonLoader<string>.TryGetValue("Type", stateJson, out string type))
+            {
+                string msg = $"Missing the subsystem State Type for subsystem {subsys.Name}";
+                Console.WriteLine(msg);
+                log.Error(msg);
+                throw new ArgumentOutOfRangeException(msg);
+            }
+            type = type.ToLower();
 
-            string keyName = "";
-            if (StateNodeJson.TryGetValue("Key", stringCompare, out JToken keyJson))
-                keyName = keyJson.Value<string>().ToLower();
+            if (!JsonLoader<string>.TryGetValue("Key", stateJson, out string keyName))
+            {
+                string msg = $"Missing the subsystem State Key for subsystem {subsys.Name}";
+                Console.WriteLine(msg);
+                log.Error(msg);
+                throw new ArgumentOutOfRangeException(msg);
+            }
+            keyName = keyName.ToLower();
 
-            string assetName = subsys.Asset.Name;
+            string assetName = subsys.Asset.Name.ToLower();
             string key = assetName + "." + keyName;
             dynamic stateKey = null;
             if (type.Equals("int"))
             {
                 stateKey = new StateVariableKey<int>(key);
-                //subsys.addKey(stateKey);
             }
             else if (type.Equals("double"))
             {
                 stateKey = new StateVariableKey<double>(key);
-                //subsys.addKey(stateKey);
             }
             else if (type.Equals("bool"))
             {
                 stateKey = new StateVariableKey<bool>(key);
-                //subsys.addKey(stateKey);
             }
             else if (type.Equals("matrix"))
             {
@@ -204,30 +187,39 @@ namespace HSFSystem
             else if (type.Equals("quaternion"))
             {
                 stateKey = new StateVariableKey<Quaternion>(key);
-                //subsys.addKey(stateKey);
             }
             else if (type.Equals("vector"))
             {
                 stateKey = new StateVariableKey<Vector>(key);
-                //subsys.addKey(stateKey);
             }
 
-            // These two lines are each adding a stateKey, one to the list, one to the attribute POINTVEC_KEY
-            // Get rid of the lists in the subsystem base class and just add keys to each derived class?
-            subsys.addKey(stateKey);
-            //if (subsys.Type == "adcs")
-            //    ((ADCS)subsys).POINTVEC_KEY = new StateVariableKey<Matrix<double>>(key);
+            var HSFHelper = new ScriptedSubsystemHelper();
 
             if (subsys.Type == "scripted")
             {
-                string stateName = "";
-                if (StateNodeJson.TryGetValue("Name", stringCompare, out JToken nameJson))
-                    stateName = nameJson.Value<string>().ToLower();
+                if (!JsonLoader<string>.TryGetValue("Name", stateJson, out string stateName))
+                {
+                    string msg = $"Missing the subsystem State Name for key {key} for subsystem {subsys.Name}";
+                    Console.WriteLine(msg);
+                    log.Error(msg);
+                    throw new ArgumentOutOfRangeException(msg);
+                }
+                
+                ((ScriptedSubsystem)subsys).SetStateVariable(HSFHelper, stateName.ToLower(), stateKey);
+            }
+            else
+                subsys.SetStateVariableKey(stateKey);
 
-                ((ScriptedSubsystem)subsys).SetStateVariable(HSFHelper, stateName, stateKey);
+            if (!JsonLoader<JToken>.TryGetValue("Value", stateJson, out JToken intValueJson))
+            {
+                string msg = $"Missing the subsystem State Value for '{key}' for subsystem {subsys.Name}";
+                Console.WriteLine(msg);
+                log.Error(msg);
+                throw new ArgumentOutOfRangeException(msg);
             }
 
-            return key;
+            InitialState.SetInitialSystemState(intValueJson, stateKey);
+
         }
 
         public static void SetParameters(JObject parameterJson, Subsystem subsystem)
@@ -270,7 +262,7 @@ namespace HSFSystem
                     paramValue = new Vector(value);
                     break;
             }
-
+            var HSFHelper = new ScriptedSubsystemHelper();
             ((ScriptedSubsystem)subsystem).SetSubsystemParameter(HSFHelper, name, paramValue);
 
         }

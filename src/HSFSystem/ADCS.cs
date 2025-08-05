@@ -9,60 +9,38 @@ using MissionElements;
 using HSFUniverse;
 using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json.Linq;
+using UserModel;
+using log4net;
 //using Logging;
 
 namespace HSFSystem
 {
-    //[ExcludeFromCodeCoverage]
     public class ADCS : Subsystem
     {
         #region Attributes
         protected StateVariableKey<Matrix<double>> POINTVEC_KEY;
-        double _slewRate = 5;//deg/sec
-        //double _slewRate = 5;
+        double slewRate;//deg/sec
+
         #endregion Attributes
 
         #region Constructors
-        public ADCS() { }
-        public ADCS(JObject adcsJson)
+
+        public ADCS(JObject adcsJson, Asset asset): base(adcsJson, asset)
         {
-            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
-            if (adcsJson.TryGetValue("slewRate", stringCompare, out JToken slewRateJson))
-                this._slewRate = slewRateJson.Value<double>();
+            this.GetParameterByName<double>(adcsJson, nameof(slewRate), out this.slewRate);
         }
-        /// <summary>
-        /// Constructor for built in subsystems
-        /// Defaults: Slew time: 10s
-        /// </summary>
-        /// <param name="ADCSNode"></param>
-        /// <param name="asset"></param>
-        public ADCS(XmlNode ADCSNode)
-        {
-            //DefaultSubName = "Adcs";
-
-            double slewRate;
-            if (ADCSNode.Attributes["slewRate"].Value != null)
-            {
-                Double.TryParse(ADCSNode.Attributes["slewRate"].Value, out slewRate);
-                _slewRate = slewRate;
-            }
-        }
-
-        /// <summary>
-        /// Constructor for scripted subsystems
-        /// </summary>
-        /// <param name="ADCSNode"></param>
-        /// <param name="asset"></param>
-
-        /* public ADCS(XmlNode ADCSNode, Asset asset) : base(ADCSNode, asset)
-         {
-
-         }
-        */
 
         #endregion Constructors
 
         #region Methods
+        public override void SetStateVariableKey(dynamic stateKey)
+        {
+            if (stateKey.VariableName.Equals(Asset.Name+".eci_pointing_vector(xyz)"))
+                this.POINTVEC_KEY = stateKey;
+            else
+                throw new ArgumentException("Attempting to set unknown ADCS state variable key.", stateKey.VariableName);
+        }
+
         /// <summary>
         /// An override of the Subsystem CanPerform method
         /// </summary>
@@ -72,7 +50,7 @@ namespace HSFSystem
         public override bool CanPerform(Event proposedEvent, Domain environment)
         {
             //  Not a fan of this, but will do for now.  Switching to Python....
-            var POINTVEC_KEY = Mkeys.Find(k => k.VariableName == Asset.Name + ".eci_pointing_vector(xyz)");
+            //var POINTVEC_KEY = Mkeys.Find(k => k.VariableName == Asset.Name + ".eci_pointing_vector(xyz)");
 
             double es = proposedEvent.GetEventStart(Asset);
             double ts = proposedEvent.GetTaskStart(Asset);
@@ -91,7 +69,7 @@ namespace HSFSystem
             double slewAngle = Math.Acos(Matrix<double>.Dot(pv_n, -sc_n)) * 180 / Math.PI;
 
             //double timetoslew = (rand()%5)+8;
-            double timetoslew = slewAngle / _slewRate;
+            double timetoslew = slewAngle / slewRate;
 
             if (es + timetoslew > ts)
             {
@@ -106,8 +84,6 @@ namespace HSFSystem
             }
 
             // set state data
-            //var POINTVEC_KEY = this.Mkeys[0];
-            //_newState.SetProfile(POINTVEC_KEY, new HSFProfile<Matrix<double>>(ts, m_pv));
             NewState.AddValue(POINTVEC_KEY, ts, m_pv);
             proposedEvent.SetTaskStart(Asset, ts);
             return true;

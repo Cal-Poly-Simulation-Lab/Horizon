@@ -19,7 +19,7 @@ namespace HSFSystem
         #endregion
 
         #region Constructors
-        public SubTest(JObject subtestJson)
+        public SubTest(JObject subtestJson, Asset asset) : base(subtestJson, asset)
         {
             lookup = getList();
         }
@@ -27,6 +27,10 @@ namespace HSFSystem
         #endregion Constructors
 
         #region Methods
+        public override void SetStateVariableKey(dynamic stateKey)
+        {
+            throw new NotImplementedException();
+        }
         public override bool CanPerform(Event proposedEvent, Domain environment)
         {
             double es = proposedEvent.GetEventStart(Asset);

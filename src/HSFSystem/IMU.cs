@@ -45,65 +45,66 @@ namespace HSFSystem
         public IMU(XmlNode SubNode, Asset asset)
         {
 
-            Asset = asset;
-            GetSubNameFromXmlNode(SubNode);
-            int gyr = 0;
-            int acc = 1;
-            XmlNode IMUNode = SubNode;
-            if (SubNode.ChildNodes[1].Name.Equals("Gyro"))
-            {
-                gyr = 1;
-                acc = 0;
-            }
+            //Asset = asset;
+            //GetSubNameFromXmlNode(SubNode);
+            //int gyr = 0;
+            //int acc = 1;
+            //XmlNode IMUNode = SubNode;
+            //if (SubNode.ChildNodes[1].Name.Equals("Gyro"))
+            //{
+            //    gyr = 1;
+            //    acc = 0;
+            //}
 
-            if (IMUNode.ChildNodes[gyr].Attributes["gyroNaturalFrequency"] != null)
-                _gyrNaturalFrequency = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroNaturalFrequency"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[gyr].Attributes["gyroDampingRatio"] != null)
-                _gyrDampingRatio = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroDampingRatio"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[gyr].Attributes["gyroMax"] != null)
-                _gyrMax = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroMax"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[gyr].Attributes["gyroMin"] != null)
-                _gyrMin = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroMin"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[gyr].Attributes["gyroRateNoiseDensity"] != null)
-                _gyrRateNoiseDensity = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroRateNoiseDensity"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[gyr].Attributes["gyroBias"] != null)
-                _gyrBias = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroBias"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[gyr].Attributes["gyroOutputRate"] != null)
-                _gyrOutputRate = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroOutputRate"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[gyr].Attributes["gyroOutputRate"] != null)
-                _gyrScaleFactor = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroScaleFactor"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[gyr].Attributes["gyroOutputRate"] != null)
-                _gyrNonLinearity = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroNonLinearity"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[gyr].Attributes["gyroOutputRate"] != null)
-                _gyrAccelSensitivity = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroAccelSensitivity"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[gyr].Attributes["gyroOutputRate"] != null)
-                _gyrCrossAxis = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroCrossAxis"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[acc].Attributes["accNoiseDensity"] != null)
-                _accNoiseDensity = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accNoiseDensity"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[acc].Attributes["accNaturalFrequency"] != null)
-                _accNaturalFrequency = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accNaturalFrequency"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[acc].Attributes["accDampingRatio"] != null)
-                _accDampingratio = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accDampingRatio"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[acc].Attributes["accMax"] != null)
-                _accMax = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accMax"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[acc].Attributes["accMin"] != null)
-                _accMin = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accMin"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[acc].Attributes["accOutputRate"] != null)
-                _accOutputRate = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accOutputRate"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[acc].Attributes["accNonLinearity"] != null)
-                _accNonLinearity = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accNonLinearity"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[acc].Attributes["accCrossAxis"] != null)
-                _accCrossAxis = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accCrossAxis"].Value.ToString(), typeof(double));
-            if (IMUNode.ChildNodes[acc].Attributes["accScaleFactor"] != null)
-                _accScaleFactor = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accScaleFactor"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[gyr].Attributes["gyroNaturalFrequency"] != null)
+            //    _gyrNaturalFrequency = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroNaturalFrequency"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[gyr].Attributes["gyroDampingRatio"] != null)
+            //    _gyrDampingRatio = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroDampingRatio"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[gyr].Attributes["gyroMax"] != null)
+            //    _gyrMax = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroMax"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[gyr].Attributes["gyroMin"] != null)
+            //    _gyrMin = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroMin"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[gyr].Attributes["gyroRateNoiseDensity"] != null)
+            //    _gyrRateNoiseDensity = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroRateNoiseDensity"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[gyr].Attributes["gyroBias"] != null)
+            //    _gyrBias = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroBias"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[gyr].Attributes["gyroOutputRate"] != null)
+            //    _gyrOutputRate = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroOutputRate"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[gyr].Attributes["gyroOutputRate"] != null)
+            //    _gyrScaleFactor = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroScaleFactor"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[gyr].Attributes["gyroOutputRate"] != null)
+            //    _gyrNonLinearity = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroNonLinearity"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[gyr].Attributes["gyroOutputRate"] != null)
+            //    _gyrAccelSensitivity = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroAccelSensitivity"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[gyr].Attributes["gyroOutputRate"] != null)
+            //    _gyrCrossAxis = (double)Convert.ChangeType(IMUNode.ChildNodes[gyr].Attributes["gyroCrossAxis"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[acc].Attributes["accNoiseDensity"] != null)
+            //    _accNoiseDensity = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accNoiseDensity"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[acc].Attributes["accNaturalFrequency"] != null)
+            //    _accNaturalFrequency = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accNaturalFrequency"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[acc].Attributes["accDampingRatio"] != null)
+            //    _accDampingratio = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accDampingRatio"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[acc].Attributes["accMax"] != null)
+            //    _accMax = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accMax"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[acc].Attributes["accMin"] != null)
+            //    _accMin = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accMin"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[acc].Attributes["accOutputRate"] != null)
+            //    _accOutputRate = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accOutputRate"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[acc].Attributes["accNonLinearity"] != null)
+            //    _accNonLinearity = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accNonLinearity"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[acc].Attributes["accCrossAxis"] != null)
+            //    _accCrossAxis = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accCrossAxis"].Value.ToString(), typeof(double));
+            //if (IMUNode.ChildNodes[acc].Attributes["accScaleFactor"] != null)
+            //    _accScaleFactor = (double)Convert.ChangeType(IMUNode.ChildNodes[acc].Attributes["accScaleFactor"].Value.ToString(), typeof(double));
 
         }
-        //public IMU(XmlNode SubNode ,Asset asset) : this(SubNode, asset)
-        //{
 
-        //}
         #endregion
         #region Overrides
+        public override void SetStateVariableKey(dynamic stateKey)
+        {
+            throw new NotImplementedException();
+        }
         /// <summary>
         /// An override of the Subsystem CanPerform method
         /// </summary>

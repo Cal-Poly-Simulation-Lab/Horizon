@@ -9,6 +9,7 @@ using Utilities;
 using System.Xml;
 using UserModel;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace MissionElements
 {
@@ -20,22 +21,22 @@ namespace MissionElements
         public SystemState PreviousState { get; set; } = null;
 
         /** The Dictionary of integer Profiles. */
-        public Dictionary<StateVariableKey<int>, HSFProfile<int>> Idata { get; private set; } = new Dictionary<StateVariableKey<int>, HSFProfile<int>>();
+        public Dictionary<StateVariableKey<int>, HSFProfile<int>> Idata { get; private set; } = [];
 
         /** The Dictionary of double precision Profiles. */
-        public Dictionary<StateVariableKey<double>, HSFProfile<double>> Ddata { get; private set; } = new Dictionary<StateVariableKey<double>, HSFProfile<double>>();
+        public Dictionary<StateVariableKey<double>, HSFProfile<double>> Ddata { get; private set; } = [];
 
         /** The Dictionary of boolean Profiles. */
-        public Dictionary<StateVariableKey<bool>, HSFProfile<bool>> Bdata { get; private set; } = new Dictionary<StateVariableKey<bool>, HSFProfile<bool>>();
+        public Dictionary<StateVariableKey<bool>, HSFProfile<bool>> Bdata { get; private set; } = [];
 
         /** The Dictionary of Matrix<double> Profiles. */
-        public Dictionary<StateVariableKey<Matrix<double>>, HSFProfile<Matrix<double>>> Mdata { get; private set; } = new Dictionary<StateVariableKey<Matrix<double>>, HSFProfile<Matrix<double>>>();
+        public Dictionary<StateVariableKey<Matrix<double>>, HSFProfile<Matrix<double>>> Mdata { get; private set; } = [];
 
         /** The Dictionary of Quaternion Profiles. */
-        public Dictionary<StateVariableKey<Quaternion>, HSFProfile<Quaternion>> Qdata { get; private set; } = new Dictionary<StateVariableKey<Quaternion>, HSFProfile<Quaternion>>();
+        public Dictionary<StateVariableKey<Quaternion>, HSFProfile<Quaternion>> Qdata { get; private set; } = [];
 
         /** The Dictionary of Vector Profiles. */
-        public Dictionary<StateVariableKey<Vector>, HSFProfile<Vector>> Vdata { get; private set; } = new Dictionary<StateVariableKey<Vector>, HSFProfile<Vector>>();
+        public Dictionary<StateVariableKey<Vector>, HSFProfile<Vector>> Vdata { get; private set; } = [];
 
         #endregion
 
@@ -75,7 +76,7 @@ namespace MissionElements
 
         #endregion
 
-        //TODO:  ONly used in unit testing
+        //TODO:  Only used in unit testing
         /// <summary>
         /// combine two system states by adding the states from one into the other
         /// </summary>
@@ -928,30 +929,25 @@ namespace MissionElements
         #endregion
 
 
-        public void SetInitialSystemState(JObject stateJson, string keyName)
+        public void SetInitialSystemState<T>(JToken intValueJson, StateVariableKey<T> stateVarKey)
         {
-            string type = "";
-
-            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
-            if (stateJson.TryGetValue("Type", stringCompare, out JToken typeJson))
-                type = typeJson.Value<string>().ToLower();
+            Type keyType = typeof(T);
 
             double time = SimParameters.SimStartSeconds;
-
+        
             // Need to set state value based on state type
-            if (stateJson.TryGetValue("Value", stringCompare, out JToken valueJson))
-                if (type.Equals("int") || type.Equals("integer"))
-                    AddValue(new StateVariableKey<int>(keyName), time, valueJson.Value<int>());
-                else if (type.Equals("matrix"))
-                    AddValue(new StateVariableKey<Matrix<double>>(keyName), time, new Matrix<double>(valueJson.ToString()));
-                else if (type.Equals("double"))
-                    AddValue(new StateVariableKey<double>(keyName), time, valueJson.Value<double>());
-                else if (type.Equals("bool"))
-                    AddValue(new StateVariableKey<bool>(keyName), time, valueJson.Value<bool>());
-                else if (type.Equals("quaternion"))
-                    AddValue(new StateVariableKey<Quaternion>(keyName), time, new Quaternion(valueJson.ToString()));
-                else if (type.Equals("vector"))
-                    AddValue(new StateVariableKey<Vector>(keyName), time, new Vector(valueJson.ToString()));
+            if (keyType == typeof(int))
+                AddValue(stateVarKey, time, intValueJson.Value<int>());
+            else if (keyType == typeof(Matrix<double>))
+                AddValue(stateVarKey, time, new Matrix<double>(intValueJson.ToString()));
+            else if (keyType == typeof(double))
+                AddValue(stateVarKey, time, intValueJson.Value<double>());
+            else if (keyType == typeof(bool))
+                AddValue(stateVarKey, time, intValueJson.Value<bool>());
+            else if (keyType == typeof(Quaternion))
+                AddValue(stateVarKey, time, new Quaternion(intValueJson.ToString()));
+            else if (keyType == typeof(Vector))
+                AddValue(stateVarKey, time, new Vector(intValueJson.ToString()));
 
         }
     }

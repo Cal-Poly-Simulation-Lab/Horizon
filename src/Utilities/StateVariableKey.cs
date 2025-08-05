@@ -42,7 +42,7 @@ namespace Utilities
             }
 
             StateVariableKey<T> p = obj as StateVariableKey<T>;
-            return VariableName.Equals(p.VariableName);
+            return this.GetKeyType() == p.GetKeyType() && VariableName.Equals(p.VariableName);
 
         }
 
@@ -92,6 +92,11 @@ namespace Utilities
         public StateVariableKey<T> DeepClone()
         {
             return new StateVariableKey<T>(VariableName);
+        }
+
+        public Type GetKeyType()
+        {
+            return typeof(T);
         }
         #endregion
     }

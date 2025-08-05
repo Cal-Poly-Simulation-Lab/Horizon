@@ -184,7 +184,7 @@ namespace HSFScheduler
             var csv = new StringBuilder();
             Dictionary<StateVariableKey<double>, SortedList<double, double>> stateTimeDData = new Dictionary<StateVariableKey<double>, SortedList<double, double>>();
             Dictionary<StateVariableKey<int>, SortedList<double, int>> stateTimeIData = new Dictionary<StateVariableKey<int>, SortedList<double, int>>();
-            Dictionary<StateVariableKey<int>, SortedList<double, int>> stateTimeBData = new Dictionary<StateVariableKey<int>, SortedList<double, int>>(); // need 0s and 1 for matlab to read in csv
+            Dictionary<StateVariableKey<bool>, SortedList<double, bool>> stateTimeBData = new Dictionary<StateVariableKey<bool>, SortedList<double, bool>>(); // need 0s and 1 for matlab to read in csv
             Dictionary<StateVariableKey<Matrix<double>>, SortedList<double, Matrix<double>>> stateTimeMData = new Dictionary<StateVariableKey<Matrix<double>>, SortedList<double, Matrix<double>>>();
             Dictionary<StateVariableKey<Quaternion>, SortedList<double, Quaternion>> stateTimeQData = new Dictionary<StateVariableKey<Quaternion>, SortedList<double, Quaternion>>();
             string stateTimeData = "Time,";
@@ -227,12 +227,12 @@ namespace HSFScheduler
                     foreach (var data in kvpBoolProfile.Value.Data)
                         if (!stateTimeBData.ContainsKey(kvpBoolProfile.Key))
                         {
-                            var lt = new SortedList<double, int>();
-                            lt.Add(data.Key, (data.Value ? 1 : 0)); //convert to int for matlab to read in for csv
-                            stateTimeBData.Add((StateVariableKey<int>)kvpBoolProfile.Key, lt);
+                            var lt = new SortedList<double, bool>();
+                            lt.Add(data.Key, (data.Value)); //convert to int for matlab to read in for csv
+                            stateTimeBData.Add(kvpBoolProfile.Key, lt);
                         }
                         else if (!stateTimeBData[kvpBoolProfile.Key].ContainsKey(data.Key))
-                            stateTimeBData[(StateVariableKey<int>)kvpBoolProfile.Key].Add(data.Key, data.Value ? 1 : 0);
+                            stateTimeBData[kvpBoolProfile.Key].Add(data.Key, data.Value);
 
                 foreach (var kvpMatrixProfile in sysState.Mdata)
                     foreach (var data in kvpMatrixProfile.Value.Data)

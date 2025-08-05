@@ -18,29 +18,21 @@ namespace HSFSystem
     public class SSDR : Subsystem
     {
         // Default Values
-        protected double _bufferSize = 4098;
+        protected double _bufferSize;
         protected StateVariableKey<double> DATABUFFERRATIO_KEY;
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public SSDR(JObject ssdrJson)
+        public SSDR(JObject ssdrJson, Asset asset) : base(ssdrJson, asset)
         {
-            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
-            JToken paramJson;
-            if (ssdrJson.TryGetValue("bufferSize", stringCompare, out paramJson))
-                this._bufferSize = paramJson.Value<double>();
+            this.GetParameterByName<double>(ssdrJson, nameof(_bufferSize), out _bufferSize);
         }
-        /// <summary>
-        /// Constructor for built in subsystem
-        /// Default: BufferSize = 4098
-        /// </summary>
-        /// <param name="SSDRXmlNode"></param>
-        /// <param name="asset"></param>
-        public SSDR(XmlNode SSDRXmlNode)
-        {
-            //DefaultSubName = "SSDR";
 
-            if (SSDRXmlNode.Attributes["bufferSize"] != null)
-                _bufferSize = (double)Convert.ChangeType(SSDRXmlNode.Attributes["bufferSize"].Value.ToString(), typeof(double));
+        public override void SetStateVariableKey(dynamic stateKey)
+        {
+            if (stateKey.VariableName.Equals(Asset.Name + ".databufferfillratio"))
+                this.DATABUFFERRATIO_KEY = stateKey;
+            else
+                throw new ArgumentException("Attempting to set unknown Power state variable key.", stateKey.VariableName);
+
         }
 
         /// <summary>
@@ -51,8 +43,6 @@ namespace HSFSystem
         /// <returns></returns>
         public override bool CanPerform(Event proposedEvent, Domain environment)
         {
-            var DATABUFFERRATIO_KEY = Dkeys[0];
-
 
             //var DATABUFFERRATIO_KEY2 = this.Dkeys.Find(s => s.VariableName == "asset1.databufferfillratio");
             if (Task.Type == "imaging")
@@ -120,8 +110,6 @@ namespace HSFSystem
         /// <returns></returns>
         public HSFProfile<double> Comm_asset1_from_SSDR_asset1(Event currentEvent)
         {
-            var DATABUFFERRATIO_KEY = Dkeys[0];
-            //var Asset = Asset;
             double datarate = 5000 * (currentEvent.State.GetValueAtTime(DATABUFFERRATIO_KEY, currentEvent.GetTaskStart(Asset)).Value - currentEvent.State.GetValueAtTime(DATABUFFERRATIO_KEY, currentEvent.GetTaskEnd(Asset)).Value) / (currentEvent.GetTaskEnd(Asset) - currentEvent.GetTaskStart(Asset));
             HSFProfile<double> prof1 = new HSFProfile<double>();
             if (datarate != 0)

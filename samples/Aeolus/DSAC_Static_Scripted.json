@@ -475,29 +475,26 @@
         "fcnName": "Power_asset1_from_SSDR_asset1"
       }
     ],
+    // evaluator node should be very similar to subsystem node
+    // should have stateVarKeys and parameters as inputs
+    //
+    // stateVarKey is an asset, key, and type
+    // Can verify with a Python helper that python implmented evaluator sets
+    // state and paramters as well as trying to set a state or paramters that does
+    // exisit in the python implementation
     "evaluator": {
       "type": "TargetValueEvaluator",
       "src": "..\\..\\..\\samples\\Aeolus\\pythonScripts\\eval.py",
       "className": "EVAL",
-      "keyRequests": [
+      "states": [
         {
           "asset": "Asset1",
-          "subsystem": "SSDR",
+          "key": "DataBufferFillRatio",
           "type": "double"
         },
         {
           "asset": "Asset2",
-          "subsystem": "SSDR",
-          "type": "double"
-        },
-        {
-          "asset": "Asset2",
-          "subsystem": "EOSensor",
-          "type": "double"
-        },
-        {
-          "asset": "Asset1",
-          "subsystem": "ADCS",
+          "key": "DataBufferFillRatio",
           "type": "double"
         }
       ]
