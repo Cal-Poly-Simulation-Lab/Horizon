@@ -17,72 +17,39 @@ namespace HSFSystem
     {
         #region Attributes
         //Default Values
-        public static string SUBNAME_EOSENSOR = "EOSensor";
-        protected StateVariableKey<double> PIXELS_KEY;
-        protected StateVariableKey<double> INCIDENCE_KEY;
-        protected StateVariableKey<bool> EOON_KEY;
-        protected double _lowQualityPixels = 5000;
-        protected double _lowQualityTime = 3;
-        protected double _midQualityPixels = 10000;
-        protected double _midQualityTime = 5;
-        protected double _highQualityPixels = 15000;
-        protected double _highQualityTime = 7;
+        public StateVariableKey<double> PIXELS_KEY;
+        public StateVariableKey<double> INCIDENCE_KEY;
+        public StateVariableKey<bool> EOON_KEY;
+        protected double _lowQualityPixels;
+        protected double _lowQualityTime;
+        protected double _midQualityPixels;
+        protected double _midQualityTime;
+        protected double _highQualityPixels;
+        protected double _highQualityTime;
         #endregion
 
         #region Constructors
-        public EOSensor(JObject eoSensorJson)
+        public EOSensor(JObject eoSensorJson, Asset asset):base(eoSensorJson, asset)
         {
-            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
-            JToken paramJson;
-            if (eoSensorJson.TryGetValue("lowQualityPixels", stringCompare, out paramJson))
-                this._lowQualityPixels = paramJson.Value<double>();
-            if (eoSensorJson.TryGetValue("lowQualityTime", stringCompare, out paramJson))
-                this._lowQualityTime = paramJson.Value<double>();
-            if (eoSensorJson.TryGetValue("midQualityPixels", stringCompare, out paramJson))
-                this._midQualityPixels = paramJson.Value<double>();
-            if (eoSensorJson.TryGetValue("midQualityTime", stringCompare, out paramJson))
-                this._midQualityTime = paramJson.Value<double>();
-            if (eoSensorJson.TryGetValue("highQualityPixels", stringCompare, out paramJson))
-                this._highQualityPixels = paramJson.Value<double>();
-            if (eoSensorJson.TryGetValue("highQualityTime", stringCompare, out paramJson))
-                this._highQualityTime = paramJson.Value<double>();
+            this.GetParameterByName<double>(eoSensorJson, nameof(_lowQualityPixels), out _lowQualityPixels);
+            this.GetParameterByName<double>(eoSensorJson, nameof(_lowQualityTime), out _lowQualityTime);
+            this.GetParameterByName<double>(eoSensorJson, nameof(_midQualityPixels), out _midQualityPixels);
+            this.GetParameterByName<double>(eoSensorJson, nameof(_midQualityTime), out _midQualityTime);
+            this.GetParameterByName<double>(eoSensorJson, nameof(_highQualityPixels), out _highQualityPixels);
+            this.GetParameterByName<double>(eoSensorJson, nameof(_highQualityTime), out _highQualityTime);
         }
-        /// <summary>
-        /// Constructor for built in subsystem
-        /// Defaults: lowQualityPixels = 5000, midQualityPixels = 10000, highQualityPixels = 15000
-        /// lowQualityTime = 3s, midQyalityTime = 5s, highQualityTime = 7s
-        /// </summary>
-        /// <param name="EOSensorXmlNode"></param>
-        /// <param name="asset"></param>
-        public EOSensor(XmlNode EOSensorXmlNode)
+        
+        public override void SetStateVariableKey(dynamic stateKey)
         {
-
-            if (EOSensorXmlNode.Attributes["lowQualityPixels"] != null)
-                //Console.WriteLine("inside loop");
-                _lowQualityPixels = (double)Convert.ChangeType(EOSensorXmlNode.Attributes["lowQualityPixels"].Value.ToString(), typeof(double));
-            if (EOSensorXmlNode.Attributes["lowQualityTime"] != null)
-                _lowQualityTime = (double)Convert.ChangeType(EOSensorXmlNode.Attributes["lowQualityTime"].Value.ToString(), typeof(double));
-            if (EOSensorXmlNode.Attributes["midQualityPixels"] != null)
-                _midQualityPixels = (double)Convert.ChangeType(EOSensorXmlNode.Attributes["midQualityPixels"].Value.ToString(), typeof(double));
-            if (EOSensorXmlNode.Attributes["midQualityTime"] != null)
-                _midQualityTime = (double)Convert.ChangeType(EOSensorXmlNode.Attributes["midQualityTime"].Value.ToString(), typeof(double));
-            if (EOSensorXmlNode.Attributes["highQualityPixels"] != null)
-                _highQualityPixels = (double)Convert.ChangeType(EOSensorXmlNode.Attributes["highQualityPixels"].Value.ToString(), typeof(double));
-            if (EOSensorXmlNode.Attributes["highQualityTime"] != null)
-                _highQualityTime = (double)Convert.ChangeType(EOSensorXmlNode.Attributes["highQualityTime"].Value.ToString(), typeof(double));
+            if (stateKey.VariableName.Equals(Asset.Name + ".incidenceangle"))
+                this.INCIDENCE_KEY = stateKey;
+            else if (stateKey.VariableName.Equals(Asset.Name + ".numpixels"))
+                this.PIXELS_KEY = stateKey;
+            else if (stateKey.VariableName.Equals(Asset.Name + ".eosensoron"))
+                this.EOON_KEY = stateKey;
+            else
+                throw new ArgumentException("Attempting to set unknown EOSensor state variable key.", stateKey.VariableName);
         }
-
-        /// <summary>
-        /// Constructor for scripted subsystem
-        /// </summary>
-        /// <param name="EOSensorXmlNode"></param>
-        /// <param name="asset"></param>
-        /*
-        public EOSensor(XmlNode EOSensorXmlNode, Asset asset) : base(EOSensorXmlNode, asset)
-        {
-            
-        }
-        */
         #endregion
 
         #region Methods
@@ -94,10 +61,6 @@ namespace HSFSystem
         /// <returns></returns>
         public override bool CanPerform(Event proposedEvent, Domain environment)
         {
-            var PIXELS_KEY = Dkeys[0];
-            var INCIDENCE_KEY = Dkeys[1];
-            var EOON_KEY = Bkeys[0];
-
             if (Task.Type == "imaging")
             {
                 //set pixels and time to caputre based on target value
@@ -163,7 +126,6 @@ namespace HSFSystem
         /// <returns></returns>
         public HSFProfile<double> Power_asset1_from_EOSensor_asset1(Event currentEvent)
         {
-            var EOON_KEY = Bkeys[0];
             HSFProfile<double> prof1 = new HSFProfile<double>();
             prof1[currentEvent.GetEventStart(Asset)] = 10;
             if (currentEvent.State.GetValueAtTime(EOON_KEY, currentEvent.GetTaskStart(Asset)).Value)
@@ -181,7 +143,6 @@ namespace HSFSystem
         /// <returns></returns>
         public HSFProfile<double> SSDR_asset1_from_EOSensor_asset1(Event currentEvent)
         {
-            var PIXELS_KEY = Dkeys[0];
             return currentEvent.State.GetProfile(PIXELS_KEY) / 500;
         }
         #endregion

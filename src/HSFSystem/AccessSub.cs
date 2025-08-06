@@ -8,20 +8,19 @@ using HSFUniverse;
 using MissionElements;
 using Newtonsoft.Json.Linq;
 using Utilities;
+using static IronPython.Modules._ast;
 
 namespace HSFSystem
 {
     public class AccessSub : Subsystem
     {
-        public AccessSub(JObject accessJson) { }
-        /// <summary>
-        /// Constructor for the built in subsystem (cannot be scripted)
-        /// </summary>
-        /// <param name="subNode"></param>
-        /// <param name="asset"></param>
-        public AccessSub(XmlNode subNode)
+        public AccessSub(JObject accessJson, Asset asset):base(accessJson, asset) { }
+
+        public override void SetStateVariableKey(dynamic stateKey)
         {
-            //DefaultSubName = "AccessToTarget";
+            string msg = $"Warning: No StateVariableKeys set for subsystem {this.Name}";
+            Console.WriteLine(msg);
+            log.Warn(msg);
         }
 
         public override bool CanPerform(Event proposedEvent, Domain environment)

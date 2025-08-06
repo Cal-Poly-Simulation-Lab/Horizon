@@ -5,24 +5,27 @@ using Utilities;
 using HSFUniverse;
 using MissionElements;
 
+using System.Xml;
+using System.Runtime.CompilerServices;
+using log4net;
+using Newtonsoft.Json.Linq;
+using UserModel;
+using System.Reflection.PortableExecutable;
+
+
 namespace HSFSystem
 {
     public abstract class Subsystem
     {
         #region Attributes
-        //public virtual bool IsEvaluated { get; set; }
-        public String Type { get; set; }
+
+        protected static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        public virtual String Type { get; set; }
         public bool IsEvaluated { get; set; }
-        public Asset Asset { get; set; }
+        public virtual Asset Asset { get; set; }
         public virtual List<Subsystem> DependentSubsystems { get; set; } = new List<Subsystem>();
-        public string Name { get; set; }
+        public virtual string Name { get; set; }
         public virtual Dictionary<string, Delegate> SubsystemDependencyFunctions { get; set; }
-        public List<StateVariableKey<int>> Ikeys { get; private set; } = new List<StateVariableKey<int>>();
-        public List<StateVariableKey<double>> Dkeys { get; protected set; } = new List<StateVariableKey<double>>();
-        public List<StateVariableKey<bool>> Bkeys { get; protected set; } = new List<StateVariableKey<bool>>();
-        public List<StateVariableKey<Matrix<double>>> Mkeys { get; protected set; } = new List<StateVariableKey<Matrix<double>>>();
-        public List<StateVariableKey<Quaternion>> Qkeys { get; protected set; } = new List<StateVariableKey<Quaternion>>();
-        public List<StateVariableKey<Vector>> Vkeys { get; protected set; } = new List<StateVariableKey<Vector>>();
         public virtual SystemState NewState { get; set; }
         public virtual MissionElements.Task Task { get; set; }
 
@@ -33,9 +36,34 @@ namespace HSFSystem
         {
 
         }
-        public Subsystem(string name)
+
+        public Subsystem(JObject subsystemJson, Asset asset)
         {
-            Name = name;
+            string msg;
+            if (JsonLoader<string>.TryGetValue("name", subsystemJson, out string name))
+                this.Name = asset.Name + "." + name.ToLower();
+            else
+            {
+                msg = $"Missing a subsystem 'name' attribute for subsystem in {asset.Name}, {this.Name}";
+                Console.WriteLine(msg);
+                log.Error(msg);
+                throw new ArgumentOutOfRangeException(msg);
+            }
+
+            if (JsonLoader<string>.TryGetValue("type", subsystemJson, out string type))
+                this.Type = type.ToLower();
+            else
+            {
+                msg = $"Missing a subsystem 'type' attribute for subsystem in {asset.Name}, {this.Name}";
+                Console.WriteLine(msg);
+                log.Error(msg);
+                throw new ArgumentOutOfRangeException(msg);
+            }
+
+            this.Asset = asset;
+            this.DependentSubsystems = new List<Subsystem>();
+            this.SubsystemDependencyFunctions = new Dictionary<string, Delegate>();
+            this.AddDependencyCollector();
         }
 
         #endregion
@@ -46,17 +74,17 @@ namespace HSFSystem
             return DeepCopy.Copy<Subsystem>(this);
         }
 
+        public abstract void SetStateVariableKey(dynamic stateKey);
+
         /// <summary>
         /// The default canPerform method. 
         /// Should be used to check if all dependent subsystems can perform and extended by subsystem implementations.
         /// </summary>
-        /// <param name="oldState"></param>
-        /// <param name="newState"></param>
-        /// <param name="tasks"></param>
+        /// <param name="proposedEvent"></param>
         /// <param name="environment"></param>
         /// <returns></returns>
-        public virtual bool CanPerform(Event proposedEvent, Domain environment)
-        {
+        public abstract bool CanPerform(Event proposedEvent, Domain environment);
+        //{
             //foreach (var sub in DependentSubsystems)
             //{
             //    if (!sub.IsEvaluated)// && !sub.GetType().Equals(typeof(ScriptedSubsystem)))
@@ -66,8 +94,8 @@ namespace HSFSystem
             //_task = proposedEvent.GetAssetTask(Asset); //Find the correct task for the subsystem
             //_newState = proposedEvent.State;
             //IsEvaluated = true;
-            return true;
-        }
+            //return true;
+        //}
         /// <summary>
         /// This method tracks four things:
         /// 1.  Ensure all dependents Subsystems are evaluated before the current Subsystem is evaluates and set the
@@ -160,10 +188,6 @@ namespace HSFSystem
         /// <returns></returns>
         public virtual HSFProfile<double> DependencyCollector(Event currentEvent)
         {
-            if (this.Name != "asset1.power" & this.Name != "asset2.power" & this.Name != "asset1.ssdr" & this.Name != "asset2.ssdr" & this.Name != "asset1.comm" & this.Name != "asset2.comm")
-            { // Manually ensuring all subs that call DependencyCollector only have dep fns that return doubles
-
-            }
             if (SubsystemDependencyFunctions.Count == 0)
                 throw new MissingMemberException("You may not call the dependency collector in your can perform because you have not specified any dependency functions for " + Name);
             HSFProfile<double> outProf = new HSFProfile<double>();
@@ -179,100 +203,31 @@ namespace HSFSystem
             return outProf;
         }
 
-        /// <summary>
-        /// Method to get subsystem state at a given time. Should be used for writing out state data
-        /// </summary>
-        /// <param name="currentSystemState"></param>
-        /// <param name="time"></param>
-        /// <returns></returns>
-        public SystemState GetSubStateAtTime(SystemState currentSystemState, double time)
+        public void GetParameterByName<T>(JObject subsysJson, string name, out T variable)
         {
-            SystemState state = new SystemState();
-            foreach (var key in Ikeys)
-            {
-                //state.AddValues(key, new HSFProfile<int>(time, currentSystemState.GetValueAtTime(key, time).Value));
-                state.Idata.Add(key, new HSFProfile<int>(time, currentSystemState.GetValueAtTime(key, time).Value));
-            }
-            foreach (var key in Bkeys)
-            {
-                //state.AddValues(key, new HSFProfile<bool>(time, currentSystemState.GetValueAtTime(key, time).Value));
-                state.Bdata.Add(key, new HSFProfile<bool>(time, currentSystemState.GetValueAtTime(key, time).Value));
-            }
-            foreach (var key in Dkeys)
-            {
-                //state.AddValues(key, new HSFProfile<double>(time, currentSystemState.GetValueAtTime(key, time).Value));
-                state.Ddata.Add(key, new HSFProfile<double>(time, currentSystemState.GetValueAtTime(key, time).Value));
-            }
-            foreach (var key in Mkeys)
-            {
-                //state.AddValues(key, new HSFProfile<Matrix<double>>(time, currentSystemState.GetValueAtTime(key, time).Value));
-                state.Mdata.Add(key, new HSFProfile<Matrix<double>>(time, currentSystemState.GetValueAtTime(key, time).Value));
-            }
-            foreach (var key in Qkeys)
-            {
-                //state.AddValues(key, new HSFProfile<Quaternion>(time, currentSystemState.GetValueAtTime(key, time).Value));
-                state.Qdata.Add(key, new HSFProfile<Quaternion>(time, currentSystemState.GetValueAtTime(key, time).Value));
-            }
-            foreach (var key in Vkeys)
-            {
-                state.Vdata.Add(key, new HSFProfile<Vector>(time, currentSystemState.GetValueAtTime(key, time).Value));
-            }
-            return state;
-        }
+            variable = default;
 
-        // Add keys depending on the type of the key
-        public void addKey(StateVariableKey<int> keyIn)
-        {
-            if (Ikeys == null) //Only construct what you need
-            {
-                Ikeys = new List<StateVariableKey<int>>();
-            }
-            Ikeys.Add(keyIn);
-        }
+            if (JsonLoader<JArray>.TryGetValue("parameters", subsysJson, out JArray parameters))
 
-        public void addKey(StateVariableKey<double> keyIn)
-        {
-            if (Dkeys == null) //Only construct what you need
             {
-                Dkeys = new List<StateVariableKey<double>>();
+                foreach (JObject parameter in parameters)
+                {
+                    if (JsonLoader<string>.TryGetValue("name", parameter, out string varName))
+                    {
+                        if (varName == name)
+                        {
+                            JsonLoader<double>.TryGetValue("value", parameter, out  variable);;
+                        }
+                    }
+                    else
+                    {
+                        string msg = $"Missing the subsystem 'parameter' attribute, '{name}' for subsystem {this.Name}";
+                        Console.WriteLine(msg);
+                        log.Error(msg);
+                        throw new ArgumentOutOfRangeException(msg);
+                    }
+                }
             }
-            Dkeys.Add(keyIn);
-        }
-
-        public void addKey(StateVariableKey<bool> keyIn)
-        {
-            if (Bkeys == null) //Only construct what you need
-            {
-                Bkeys = new List<StateVariableKey<bool>>();
-            }
-            Bkeys.Add(keyIn);
-        }
-
-        public void addKey(StateVariableKey<Matrix<double>> keyIn)
-        {
-            if (Mkeys == null) //Only construct what you need
-            {
-                Mkeys = new List<StateVariableKey<Matrix<double>>>();
-            }
-            Mkeys.Add(keyIn);
-        }
-
-        public void addKey(StateVariableKey<Quaternion> keyIn)
-        {
-            if (Qkeys == null) //Only construct what you need
-            {
-                Qkeys = new List<StateVariableKey<Quaternion>>();
-            }
-            Qkeys.Add(keyIn);
-        }
-
-        public void addKey(StateVariableKey<Vector> keyIn)
-        {
-            if (Vkeys == null) //Only construct what you need
-            {
-                Vkeys = new List<StateVariableKey<Vector>>();
-            }
-            Vkeys.Add(keyIn);
         }
         #endregion
     }

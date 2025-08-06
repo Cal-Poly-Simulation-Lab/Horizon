@@ -435,9 +435,9 @@ namespace Horizon
                                         foreach (JObject stateJson in stateListJson)
                                         {
                                             // Parse state node for key name and state type, add the key to the subsys's list of keys, return the key name
-                                            string keyName = SubsystemFactory.SetStateKeys(stateJson, subsys);
+                                            SubsystemFactory.SetInitialState(stateJson, subsys, InitialSysState);
                                             // Use key name and state type to set initial conditions 
-                                            InitialSysState.SetInitialSystemState(stateJson, keyName);
+                                            //InitialSysState.SetInitialSystemState(stateJson, stateVarKey);
                                         }
                                     }
                                     else
@@ -472,8 +472,10 @@ namespace Horizon
                             }
                             // Load Constraints
                             if (JsonLoader<JToken>.TryGetValue("constraints", assetJson, out JToken constraintListJson))
+                            {
                                 foreach (JObject constraintJson in constraintListJson)
                                     ConstraintsList.Add(ConstraintFactory.GetConstraint(constraintJson, SubList, asset.Name));
+                            }
                             else
                             {
                                 msg = $"Warning: Asset {asset.Name} loaded with no constraints";
@@ -537,10 +539,10 @@ namespace Horizon
             {
                 if (JsonLoader<JObject>.TryGetValue("Model", scenarioJson, out JObject modelJson))
                 {
-                    // Load Environment
+                    // Load Evaluator
                     if(JsonLoader<JObject>.TryGetValue("Evaluator", modelJson, out JObject evaluatorJson))
                     {
-                        SchedEvaluator = EvaluatorFactory.GetEvaluator(evaluatorJson, SubList);
+                        SchedEvaluator = EvaluatorFactory.GetEvaluator(evaluatorJson, InitialSysState);
                         Console.WriteLine("Evaluator Loaded");
                         log.Info("Evaluator Loaded");
                     }

@@ -33,6 +33,13 @@
           {
             "type": "adcs",
             "name": "ADCS",
+            "parameters": [
+              {
+                "name": "slewRate",
+                "type": "double",
+                "value":  5
+              }
+            ],
             "states": [
               {
                 "type": "Matrix",
@@ -201,6 +208,13 @@
           {
             "type": "ADCS",
             "name": "ADCS",
+            "parameters": [
+              {
+                "name": "slewRate",
+                "type": "double",
+                "value": 5
+              }
+            ],
             "states": [
               {
                 "type": "Matrix",
@@ -457,27 +471,16 @@
     ],
     "evaluator": {
       "type": "TargetValueEvaluator",
-      "src": "..\\..\\..\\samples\\Aeolus\\pythonScripts\\eval.py",
       "className": "EVAL",
-      "keyRequests": [
+      "states": [
         {
           "asset": "Asset1",
-          "subsystem": "SSDR",
+          "key": "DataBufferFillRatio",
           "type": "double"
         },
         {
           "asset": "Asset2",
-          "subsystem": "SSDR",
-          "type": "double"
-        },
-        {
-          "asset": "Asset2",
-          "subsystem": "EOSensor",
-          "type": "double"
-        },
-        {
-          "asset": "Asset1",
-          "subsystem": "ADCS",
+          "key": "DataBufferFillRatio",
           "type": "double"
         }
       ]

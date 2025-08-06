@@ -20,58 +20,35 @@ namespace HSFSystem
     {
         #region Attributes
         // Some Default Values
-        protected double _batterySize = 1000000;
-        protected double _fullSolarPanelPower = 150;
-        protected double _penumbraSolarPanelPower = 75;
+        protected double _batterySize;
+        protected double _fullSolarPanelPower;
+        protected double _penumbraSolarPanelPower;
 
         protected StateVariableKey<double> DOD_KEY;
         protected StateVariableKey<double> POWIN_KEY;
         #endregion Attributes
 
         #region Constructors
-        public Power(JObject PowerJson)
+        public Power(JObject PowerJson, Asset asset) : base(PowerJson, asset)
         {
-            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
-            JToken paramJson;
-            if (PowerJson.TryGetValue("batterySize", stringCompare, out paramJson))
-                this._batterySize = paramJson.Value<double>();
-            if (PowerJson.TryGetValue("fullSolarPower", stringCompare, out paramJson))
-                this._fullSolarPanelPower = paramJson.Value<double>();
-            if (PowerJson.TryGetValue("penumbraSolarPower", stringCompare, out paramJson))
-                this._penumbraSolarPanelPower = paramJson.Value<double>();
-
+            this.GetParameterByName<double>(PowerJson, nameof(_batterySize), out _batterySize);
+            this.GetParameterByName<double>(PowerJson, nameof(_fullSolarPanelPower), out _fullSolarPanelPower);
+            this.GetParameterByName<double>(PowerJson, nameof(_penumbraSolarPanelPower), out _penumbraSolarPanelPower);
         }
-        /// <summary>
-        /// Constructor for built in subsystem
-        /// Defaults: batterySize = 1000000, fullSolarPanelPower =150, penumbraSolarPanelPower = 75
-        /// </summary>
-        /// <param name="PowerNode"></param>
-        /// <param name="asset"></param>
-        public Power(XmlNode PowerNode)
-        {
-
-            if (PowerNode.Attributes["batterySize"] != null)
-                _batterySize = (double)Convert.ChangeType(PowerNode.Attributes["batterySize"].Value, typeof(double));
-            if (PowerNode.Attributes["fullSolarPower"] != null)
-                _fullSolarPanelPower = (double)Convert.ChangeType(PowerNode.Attributes["fullSolarPower"].Value, typeof(double));
-            if (PowerNode.Attributes["penumbraSolarPower"] != null)
-                _penumbraSolarPanelPower = (double)Convert.ChangeType(PowerNode.Attributes["penumbraSolarPower"].Value, typeof(double));
-        }
-
-        /// <summary>
-        /// Constructor for built in subsystem
-        /// </summary>
-        /// <param name="PowerNode"></param>
-        /// <param name="asset"></param>
-        /*
-        public Power(XmlNode PowerNode, Asset asset) : base(PowerNode, asset)
-        {
-            
-        }
-        */
         #endregion Constructors
 
         #region Methods
+
+        public override void SetStateVariableKey(dynamic stateKey)
+        {
+            if (stateKey.VariableName.Equals(Asset.Name + ".depthofdischarge"))
+                this.DOD_KEY = stateKey;
+            else if (stateKey.VariableName.Equals(Asset.Name + ".solarpanelpowerin"))
+                this.POWIN_KEY = stateKey;
+            else
+                throw new ArgumentException("Attempting to set unknown Power state variable key.", stateKey.VariableName);
+
+        }
         /// <summary>
         /// Calculate the solar panel power in depending on position
         /// </summary>
@@ -101,7 +78,6 @@ namespace HSFSystem
         /// <returns></returns>
         protected HSFProfile<double> CalcSolarPanelPowerProfile(double start, double end, SystemState state, DynamicState position, Domain universe)
         {
-            var POWIN_KEY = Dkeys[1];
             Sun sun = universe.GetObject<Sun>("SUN");
             // create solar panel profile for this event
             double freq = 5;
@@ -132,8 +108,6 @@ namespace HSFSystem
         /// <returns></returns>
         public override bool CanPerform(Event proposedEvent, Domain universe)
         {
-            var DOD_KEY = Dkeys[0]; // Should be needed?
-
             double es = proposedEvent.GetEventStart(Asset);
             double te = proposedEvent.GetTaskEnd(Asset);
             double ee = proposedEvent.GetEventEnd(Asset);
@@ -146,7 +120,7 @@ namespace HSFSystem
             }
 
             // get the old DOD
-            double olddod = NewState.GetLastValue(Dkeys.First()).Item2;
+            double olddod = NewState.GetLastValue(DOD_KEY).Item2;
 
             // collect power profile out
             Delegate DepCollector;
@@ -167,52 +141,6 @@ namespace HSFSystem
             NewState.AddValues(DOD_KEY, dodProf);
             return true;
         }
-
-        /// <summary>
-        /// Override of the canExtend method for the power subsystem
-        /// </summary>
-        /// <param name="newState"></param>
-        /// <param name="universe"></param>
-        /// <param name="evalToTime"></param>
-        /// <returns></returns>
-        /*
-        public override bool CanExtend(Event proposedEvent, Domain universe, double evalToTime) {
-            var DOD_KEY = Dkeys[0];
-            double ee = proposedEvent.GetEventEnd(Asset);
-            if (ee > SimParameters.SimEndSeconds)
-                return false;
-
-            Sun sun = universe.GetObject<Sun>("SUN");
-            double te = proposedEvent.State.GetLastValue(DOD_KEY).Time;
-            if (proposedEvent.GetEventEnd(Asset) < evalToTime)
-                proposedEvent.SetEventEnd(Asset, evalToTime);
-
-            // get the dod initial conditions
-            double olddod = proposedEvent.State.GetValueAtTime(DOD_KEY, te).Value;
-
-            // collect power profile out
-            Delegate DepCollector;
-            SubsystemDependencyFunctions.TryGetValue("DepCollector", out DepCollector);
-            HSFProfile<double> powerOut = (HSFProfile<double>)DepCollector.DynamicInvoke(proposedEvent); // deps->callDoubleDependency("POWERSUB_getPowerProfile");
-            // collect power profile in
-            DynamicState position = Asset.AssetDynamicState;
-            HSFProfile<double> powerIn = CalcSolarPanelPowerProfile(te, ee, proposedEvent.State, position, universe);
-            // calculate dod rate
-            HSFProfile<double> dodrateofchange = ((powerOut - powerIn) / _batterySize);
-
-            bool exceeded_lower = false, exceeded_upper = false;
-            double freq =  1.0;
-            HSFProfile<double> dodProf = dodrateofchange.limitIntegrateToProf(te, ee, freq, 0.0, 1.0, ref exceeded_lower, ref exceeded_upper, 0, olddod);
-            if (exceeded_upper)  // why is exceeded upper checked and not exceeded lower?  
-                return false;
-            if(dodProf.LastTime() != ee && ee == SimParameters.SimEndSeconds)
-            {
-                dodProf[ee] = dodProf.LastValue();
-            }
-            proposedEvent.State.AddValues(DOD_KEY, dodProf);
-            return true;
-        }
-        */
         #endregion Methods
     }
 
