@@ -40,6 +40,7 @@ namespace Horizon
 
         // Load the environment. First check if there is an ENVIRONMENT XMLNode in the input file
         public Domain SystemUniverse { get; set; }
+        public Scheduler? scheduler { get; set; }
 
         //Create singleton dependency dictionary
         public Dependency Dependencies { get; } = Dependency.Instance;
@@ -561,8 +562,9 @@ namespace Horizon
             if (SimSystem.CheckForCircularDependencies())
                 throw new NotFiniteNumberException("System has circular dependencies! Please correct then try again.");
 
-            Scheduler _scheduler = new Scheduler(SchedEvaluator);
-            Schedules = _scheduler.GenerateSchedules(SimSystem, SystemTasks, InitialSysState);
+            // Updated so that program has its own scheduler object. 
+            this.scheduler = new Scheduler(SchedEvaluator); // Scheduler _scheduler = new Scheduler(SchedEvaluator);
+            Schedules = this.scheduler.GenerateSchedules(SimSystem, SystemTasks, InitialSysState); // Schedules = _scheduler.GenerateSchedules(SimSystem, SystemTasks, InitialSysState);
         }
         public double EvaluateSchedules()
         {

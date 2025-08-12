@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug Horizon - Aeolus (Native Style)",
+      "name": "Debug Horizon - Aeolus (VS Code)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
@@ -14,9 +14,21 @@
       "console": "internalConsole",
       "stopAtEntry": false
     },
-
     {
-      "name": "Debug Horizon - Test Case (Native Style)",
+      "name": "Debug Horizon - Aeolus (Cursor)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon.dll",
+      "args": [
+        "-scen", "Aeolus"
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Horizon - Test Case (VS Code)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
@@ -28,6 +40,33 @@
         "-o", "${workspaceFolder}/test/HSFSchedulerUnitTest/Output"
       ],
       "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Horizon - Test Case (Cursor)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon.dll",
+      "args": [
+        "-s", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestSimulationInput.json",
+        "-m", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestModel.json",
+        "-t", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestTasks.json",
+        "-o", "${workspaceFolder}/test/HSFSchedulerUnitTest/Output"
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Scheduler Unit Tests",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-scheduler-tests",
+      "program": "${workspaceFolder}/test/HSFSchedulerUnitTest/bin/Debug/net8.0/HSFSchedulerUnitTest",
+      "args": [],
+      "cwd": "${workspaceFolder}/test/HSFSchedulerUnitTest",
       "console": "internalConsole",
       "stopAtEntry": false
     }

@@ -13,6 +13,19 @@
         "cwd": "${workspaceFolder}/src/Horizon"
       },
       "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build-scheduler-tests",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/test/HSFSchedulerUnitTest/HSFSchedulerUnitTest.csproj"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/test/HSFSchedulerUnitTest"
+      },
+      "problemMatcher": "$msCompile"
     }
   ]
 }

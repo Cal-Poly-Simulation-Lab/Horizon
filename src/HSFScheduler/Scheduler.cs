@@ -94,6 +94,7 @@ namespace HSFScheduler
             // Otherwise, generate an exhaustive list of possibilities for assetTaskList:
             else
             {
+                // This step is generates all combinations with the default assumotion that access is the entire simulation time... 
                 log.Info("Generating Exhaustive Task Combinations... ");
 
                 /* This method creates a shell for all (empty/not-yet-assessed) Accesses by Asset & Task combination.  Thus many of these potential schedules will be cropped out via non-accesses.
