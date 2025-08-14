@@ -20,11 +20,11 @@ namespace HSFSchedulerUnitTest
     // Place common "HSFSchedulerUnitTest" functionality here to be used in other classes and/or overriden. 
     {
         // Attributes that can be inherited to other Test Classes (fixtures) 
-        protected string? SimInputFile {get; set; }
-        protected string? TaskInputFile {get; set; }
-        protected string? ModelInputFile {get; set; }
-        protected Horizon.Program? program {get; set; }
-        protected int? _emptySchedIdx {get; set; }
+        protected string? SimInputFile { get; set; }
+        protected string? TaskInputFile { get; set; }
+        protected string? ModelInputFile { get; set; }
+        protected Horizon.Program? program { get; set; }
+        protected int? _emptySchedIdx { get; set; }
 
         // //String Writer & Thread attributes
         // //protected static StringWriter? stringWriter {get; set; }
