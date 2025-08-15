@@ -436,18 +436,19 @@ namespace Horizon
                                     }
 
                                     // Load Subsystem Parameters
-                                    if (subsys.Type == "scripted") // Need to include scriptedcs thing here too? 
+                                    if (subsys.Type == "scripted" || subsys.Type == "scriptedcs") // Need to include scriptedcs thing here too? 
                                     {
                                         // Load Subsystem Parameters                        
                                         if (JsonLoader<JToken>.TryGetValue("parameters", subsystemJson, out JToken parameterListJson))
-                                            foreach (JObject parameterJson in parameterListJson)
-                                                SubsystemFactory.SetParameters(parameterJson, subsys);
-                                        else
-                                        {
-                                            msg = $"Warning: Subsystem {subsys.Name} loaded with no parameters";
-                                            Console.WriteLine(msg);
-                                            log.Warn(msg);
-                                        }
+                                            if (parameterListJson.First.HasValues)
+                                            {
+                                                foreach (JObject parameterJson in parameterListJson)
+                                                    SubsystemFactory.SetParameters(parameterJson, subsys);
+                                                return; 
+                                            }
+                                        msg = $"Warning: Subsystem {subsys.Name} loaded with no parameters";
+                                        Console.WriteLine(msg);
+                                        log.Warn(msg);
                                     }
                                 }
                             }
@@ -562,9 +563,9 @@ namespace Horizon
             if (SimSystem.CheckForCircularDependencies())
                 throw new NotFiniteNumberException("System has circular dependencies! Please correct then try again.");
 
-            // Updated so that program has its own scheduler object. 
+            
             this.scheduler = new Scheduler(SchedEvaluator); // Scheduler _scheduler = new Scheduler(SchedEvaluator);
-            Schedules = this.scheduler.GenerateSchedules(SimSystem, SystemTasks, InitialSysState); // Schedules = _scheduler.GenerateSchedules(SimSystem, SystemTasks, InitialSysState);
+            Schedules = this.scheduler.GenerateSchedules(SimSystem, SystemTasks, InitialSysState);
         }
         public double EvaluateSchedules()
         {

@@ -61,52 +61,80 @@ namespace HSFScheduler
             Dictionary<Asset, double> taskEnds = new Dictionary<Asset, double>();
             Dictionary<Asset, double> eventStarts = new Dictionary<Asset, double>();
             Dictionary<Asset, double> eventEnds = new Dictionary<Asset, double>();
-            //Name = name; 
 
-            foreach (var access in newAccessList)
+            // Helper value 
+            double _nextTimeStep; 
+            // Set the next timestep window:
+            if (currentTime + SimParameters.SimStepSeconds <= SimParameters.SimEndSeconds)
             {
+                _nextTimeStep = currentTime + SimParameters.SimStepSeconds;
+            }
+            else { _nextTimeStep = SimParameters.SimEndSeconds;
+                throw new InvalidOperationException(
+                    $"nextTimeStep ({_nextTimeStep}) is after Sim end time ({SimParameters.SimEndSeconds})" +
+                    $"and is the same as currentTime ({currentTime}). Scheduler main time loop has been breached."
+                ); } // Would this ever happen? Dont think so. Not with the main for loop setup in Scheduler.GenerateSchedules()
+                
+
+            foreach (var access in newAccessList) // The reason this is a for loop is because these access are on the ASSET level
+            {                                     // MEANING: There are multiple assets that can do things in 1 schedule. 
+
                 if (access.Task != null)
                 {
-                    //  Access Starts before Event Start && Event Start is before the Access End
-                    if (access.AccessStart <= currentTime && currentTime <= access.AccessEnd)
-                        taskStarts.Add(access.Asset, currentTime);
-                    //  Access starts after Event Start && Access Starts before Step Size
-                    else if (access.AccessStart >= currentTime && access.AccessStart <= currentTime + SimParameters.SimStepSeconds)
-                        taskStarts.Add(access.Asset, access.AccessStart);
-                    //  Set Task Start to Event Start Time
+                    // First things first -- set the Event time
+                    // Default functionality --> Set Event start time to closest part of fundamental timestep that has acces.
+
+                    // EVENT START SET:
+                    if (access.AccessStart <= currentTime && access.AccessEnd > currentTime)
+                    {
+                        // Add the EventStartTime as the current time (fundamental timestep time)
+                        eventStarts.Add(access.Asset, currentTime);
+                    }
+                    else if (access.AccessStart > currentTime && access.AccessEnd > currentTime)
+                    {
+                        // Add the EventStartTime as the AccessStartTime (past the fundamental timestep)
+                        eventStarts.Add(access.Asset, access.AccessStart);
+                    }
+                    else if (access.AccessStart > currentTime && access.AccessEnd == currentTime)
+                    {
+                        // This is an access error -- access starts after access ends...
+                        throw new InvalidOperationException(
+                                $"Invalid access time range for asset {access.Asset}. " +
+                                $"Start: {access.AccessStart}, End: {access.AccessEnd}" +
+                                "AccessStart > currentTime; but AccessEnd == AccessEnd"
+                                ); // Ask how to handle this better moving forward. 
+                    }
                     else
                     {
-                        //Console.WriteLine("Event Start: " + newEventStartTime + " AccesStart: " + access.AccessStart + " AccessEnd: " + access.AccessEnd);
-                        taskStarts.Add(access.Asset, currentTime);
+                        // This is an access error -- access starts after access ends...
+                        throw new InvalidOperationException(
+                                $"Invalid access time range for asset {access.Asset}. " +
+                                $"Start: {access.AccessStart}, End: {access.AccessEnd};" +
+                                "AccessStart <= currentTime; but AccessEnd <= AccessEnd"
+                                ); // Ask how to handle this better moving forward.  
                     }
-                    tasks.Add(access.Asset, access.Task);
+                    // EVENT END SET: 
+                    if (access.AccessEnd >= _nextTimeStep)
+                    {
+                        // Add the EventEndTime as the end of this current fundamental timestep
+                        eventEnds.Add(access.Asset, _nextTimeStep);
+                    }
+                    else if (access.AccessEnd < _nextTimeStep)
+                    {
+                        // Add the EventEndTime as the AccessEndTime (fully within the fundamental timestep)
+                        eventEnds.Add(access.Asset, access.AccessEnd);
+                    }
 
-                    //  Access Ends after the Simulation End Time - Set Task End time to Sim End Time
-                    if (access.AccessEnd > SimParameters.SimEndSeconds)
-                        taskEnds.Add(access.Asset, SimParameters.SimEndSeconds);
-                    // Set, set Task End time to Access End Time
-                    else
-                        taskEnds.Add(access.Asset, access.AccessEnd);
-
-                    eventStarts.Add(access.Asset, currentTime);
-                    
-                    //  If Event Start + Step Size > Sim End Time - Set Event End time to Sim End Time
-                    if (currentTime + SimParameters.SimStepSeconds > SimParameters.SimEndSeconds)
-                        eventEnds.Add(access.Asset, SimParameters.SimEndSeconds);
-                    //  Else, set Event End time to Event Start Time + Sim Step
-                    else
-                        eventEnds.Add(access.Asset, currentTime + SimParameters.SimStepSeconds);
+                    // Now for the tasks:
+                    taskStarts.Add(access.Asset, eventStarts[access.Asset]); // Task set to start at Event Start
+                    taskEnds.Add(access.Asset, eventEnds[access.Asset]); // Task set to end at Event End
+                    Console.WriteLine("AccesStart: " + access.AccessStart + " AccessEnd: " + access.AccessEnd + "; EventStart: " + eventStarts[access.Asset] +
+                                     " EventEnd: " + eventEnds[access.Asset] + "; TaskStart = EventStart, TaskEnd=EventEnd.");
+                    // Now add the task:
+                    tasks.Add(access.Asset, access.Task); 
                 }
-                else
-                {
-                    taskStarts.Add(access.Asset, currentTime);
-                    taskEnds.Add(access.Asset, currentTime);
-                    tasks.Add(access.Asset, null);
-                    eventStarts.Add(access.Asset, currentTime);
-                    eventEnds.Add(access.Asset, currentTime + SimParameters.SimStepSeconds);
-                }
-
             }
+            // Now add the newly created event to the SystemSchdule being constructed: 
             Event eventToAdd = new Event(tasks, new SystemState(oldStates.GetLastState())); //all references
             eventToAdd.SetEventEnd(eventEnds);
             eventToAdd.SetTaskEnd(taskEnds);
@@ -114,6 +142,41 @@ namespace HSFScheduler
             eventToAdd.SetTaskStart(taskStarts);
             AllStates = new StateHistory(oldStates, eventToAdd);
         }
+                
+            // if (access.Task != null)
+            //     {
+            //         //  Access Starts before Event Start && Event Start is before the Access End
+            //         if (access.AccessStart <= currentTime && currentTime <= access.AccessEnd)
+            //             taskStarts.Add(access.Asset, currentTime);
+            //         //  Access starts after Event Start && Access Starts before Step Size
+            //         else if (access.AccessStart >= currentTime && access.AccessStart <= currentTime + SimParameters.SimStepSeconds)
+            //             taskStarts.Add(access.Asset, access.AccessStart);
+            //         //  Set Task Start to Event Start Time
+            //         else
+            //         {
+            //             //Console.WriteLine("Event Start: " + newEventStartTime + " AccesStart: " + access.AccessStart + " AccessEnd: " + access.AccessEnd);
+            //             taskStarts.Add(access.Asset, currentTime);
+            //         }
+            //         tasks.Add(access.Asset, access.Task);
+
+            //         //  Access Ends after the Simulation End Time - Set Task End time to Sim End Time
+            //         if (access.AccessEnd > SimParameters.SimEndSeconds)
+            //             taskEnds.Add(access.Asset, SimParameters.SimEndSeconds);
+            //         // Set, set Task End time to Access End Time
+            //         else
+            //             taskEnds.Add(access.Asset, access.AccessEnd);
+
+            //         eventStarts.Add(access.Asset, currentTime);
+
+            //         //  If Event Start + Step Size > Sim End Time - Set Event End time to Sim End Time
+            //         if (currentTime + SimParameters.SimStepSeconds > SimParameters.SimEndSeconds)
+            //             eventEnds.Add(access.Asset, SimParameters.SimEndSeconds);
+            //         //  Else, set Event End time to Event Start Time + Sim Step
+            //         else
+            //             eventEnds.Add(access.Asset, currentTime + SimParameters.SimStepSeconds);
+            //     }
+ 
+
         #endregion
         
         /// <summary>
@@ -122,27 +185,30 @@ namespace HSFScheduler
         /// <param name="newAccessList"></param>
         /// <param name="newTaskStartTime"></param>
         /// <returns></returns>
-        public bool CanAddTasks(Stack<Access> newAccessList, double newTaskStartTime)
+        public bool CanAddTasks(Stack<Access> newAccessList, double currentTime)
         {
             int count = 0;
 
 	        foreach(var access in newAccessList)
             {
-                if (!AllStates.isEmpty(access.Asset))
+                // This is where event timing gets enforced. 
+                if (!AllStates.isEmpty(access.Asset)) // Ensure there is an event with the accessible asset. Otherwise skip
                 {
                     // This is where the event timing is enforced. 
-                    if (AllStates.GetLastEvent().GetEventEnd(access.Asset) > newTaskStartTime)
+                    // If the last event ends after this current task start time, then its a no go (system is busy). 
+                    if (AllStates.GetLastEvent().GetEventEnd(access.Asset) > currentTime)
                         return false;
                 }
 
-		        if(access.Task != null)
+                // This is where the task count gets enforced. 
+		        if (access.Task != null)
                 {
-				    count += AllStates.timesCompletedTask(access.Task);
-			        if(count >= access.Task.MaxTimesToPerform)
-				        return false;
-		        }
+                    count += AllStates.timesCompletedTask(access.Task);
+                    if (count >= access.Task.MaxTimesToPerform)
+                        return false; // Return false (cant add tasks) if the task has been performed too many times. 
+                }
 	        }
-	        return true;
+	        return true; // otherwise return true! 
         }
 
         #region Accessors

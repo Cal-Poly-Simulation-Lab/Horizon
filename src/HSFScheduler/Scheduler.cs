@@ -158,6 +158,8 @@ namespace HSFScheduler
 
                     if (Checker.CheckSchedule(system, potentialSchedule)) {
                         //potentialSchedule.GetEndState().GetLastValue()
+
+                        
                         systemCanPerformList.Add(potentialSchedule);
                         numSched++;
                     }
@@ -302,13 +304,13 @@ namespace HSFScheduler
             foreach(var oldSystemSchedule in systemSchedules)
             {
                 //potentialSystemSchedules.Add(new SystemSchedule( new StateHistory(oldSystemSchedule.AllStates)));
-                foreach (var newAccessStack in scheduleCombos)
+                foreach (var newAccessTaskStack in scheduleCombos)
                 {
                     k++;
-                    if (oldSystemSchedule.CanAddTasks(newAccessStack, currentTime))
+                    if (oldSystemSchedule.CanAddTasks(newAccessTaskStack, currentTime))
                     {
                         var CopySchedule = new StateHistory(oldSystemSchedule.AllStates);
-                        potentialSystemSchedules.Add(new SystemSchedule(CopySchedule, newAccessStack, currentTime));
+                        potentialSystemSchedules.Add(new SystemSchedule(CopySchedule, newAccessTaskStack, currentTime));
                         // oldSched = new SystemSchedule(CopySchedule);
                     }
 

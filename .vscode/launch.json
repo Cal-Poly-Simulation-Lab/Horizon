@@ -2,7 +2,22 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug Horizon - Aeolus (VS Code)",
+      "name": "Debug Horizon ScriptedCS- Aeolus (VS Code)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
+      "args": [
+        "-s", "${workspaceFolder}/samples/Aeolus/AeolusSimulationInput.json",
+        "-m", "${workspaceFolder}/samples/Aeolus/DSAC_Static_ScriptedCS.json",
+        "-t", "${workspaceFolder}/samples/Aeolus/AeolusTasks.json",
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Horizon ScriptedPy - Aeolus (VS Code)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
@@ -28,7 +43,7 @@
       "stopAtEntry": false
     },
     {
-      "name": "Debug Horizon - Test Case (VS Code)",
+      "name": "Debug Horizon - Test Case 1 Asset (VS Code)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
@@ -44,7 +59,23 @@
       "stopAtEntry": false
     },
     {
-      "name": "Debug Horizon - Test Case (Cursor)",
+      "name": "Debug Horizon - Test Case 2 Asset (VS Code)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
+      "args": [
+        "-s", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestSimulationInput.json",
+        "-m", "${workspaceFolder}/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedulesTest/TwoAssetTestModel.json",
+        "-t", "${workspaceFolder}/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedulesTest/ThreeTaskTestInput.json",
+        "-o", "${workspaceFolder}/test/HSFSchedulerUnitTest/Output"
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Horizon - Test Case 1 Asset (Cursor)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
