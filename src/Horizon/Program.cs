@@ -444,7 +444,6 @@ namespace Horizon
                                             {
                                                 foreach (JObject parameterJson in parameterListJson)
                                                     SubsystemFactory.SetParameters(parameterJson, subsys);
-                                                return; 
                                             }
                                         msg = $"Warning: Subsystem {subsys.Name} loaded with no parameters";
                                         Console.WriteLine(msg);
