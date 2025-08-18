@@ -1,17 +1,11 @@
 ﻿// Copyright (c) 2016 California Polytechnic State University
 // Authors: Morgan Yost (morgan.yost125@gmail.com) Eric A. Mehiel (emehiel@calpoly.edu)
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
-using Utilities;
 using HSFUniverse;
 using MissionElements;
-using UserModel;
-using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json.Linq;
+using UserModel;
+using Utilities;
 
 namespace HSFSystem
 {
@@ -20,9 +14,9 @@ namespace HSFSystem
     {
         #region Attributes
         // Some Default Values
-        protected double _batterySize;
-        protected double _fullSolarPanelPower;
-        protected double _penumbraSolarPanelPower;
+        protected double batterySize;
+        protected double fullSolarPanelPower;
+        protected double penumbraSolarPanelPower;
 
         protected StateVariableKey<double> DOD_KEY;
         protected StateVariableKey<double> POWIN_KEY;
@@ -31,9 +25,9 @@ namespace HSFSystem
         #region Constructors
         public Power(JObject PowerJson, Asset asset) : base(PowerJson, asset)
         {
-            this.GetParameterByName<double>(PowerJson, nameof(_batterySize), out _batterySize);
-            this.GetParameterByName<double>(PowerJson, nameof(_fullSolarPanelPower), out _fullSolarPanelPower);
-            this.GetParameterByName<double>(PowerJson, nameof(_penumbraSolarPanelPower), out _penumbraSolarPanelPower);
+            this.GetParameterByName<double>(PowerJson, nameof(batterySize), out batterySize);
+            this.GetParameterByName<double>(PowerJson, nameof(fullSolarPanelPower), out fullSolarPanelPower);
+            this.GetParameterByName<double>(PowerJson, nameof(penumbraSolarPanelPower), out penumbraSolarPanelPower);
         }
         #endregion Constructors
 
@@ -61,9 +55,9 @@ namespace HSFSystem
                 case ShadowState.UMBRA:
                     return 0;
                 case ShadowState.PENUMBRA:
-                    return _penumbraSolarPanelPower;
+                    return penumbraSolarPanelPower;
                 default:
-                    return _fullSolarPanelPower;
+                    return fullSolarPanelPower;
             }
         }
 
@@ -131,7 +125,7 @@ namespace HSFSystem
             DynamicState position = Asset.AssetDynamicState;
             HSFProfile<double> powerIn = CalcSolarPanelPowerProfile(es, te, NewState, position, universe);
             // calculate dod rate
-            HSFProfile<double> dodrateofchange = ((powerOut - powerIn) / _batterySize);
+            HSFProfile<double> dodrateofchange = ((powerOut - powerIn) / batterySize);
 
             bool exceeded = false;
             double freq = 1.0;

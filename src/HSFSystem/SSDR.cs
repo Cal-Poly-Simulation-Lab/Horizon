@@ -18,12 +18,12 @@ namespace HSFSystem
     public class SSDR : Subsystem
     {
         // Default Values
-        protected double _bufferSize;
+        protected double bufferSize;
         protected StateVariableKey<double> DATABUFFERRATIO_KEY;
 
         public SSDR(JObject ssdrJson, Asset asset) : base(ssdrJson, asset)
         {
-            this.GetParameterByName<double>(ssdrJson, nameof(_bufferSize), out _bufferSize);
+            this.GetParameterByName<double>(ssdrJson, nameof(bufferSize), out bufferSize);
         }
 
         public override void SetStateVariableKey(dynamic stateKey)
@@ -58,7 +58,7 @@ namespace HSFSystem
 
                 Delegate DepNeeded;
                 SubsystemDependencyFunctions.TryGetValue("SSDR_asset1_from_EOSensor_asset1", out DepNeeded);
-                HSFProfile<double> newdataratein = ((HSFProfile<double>)DepNeeded.DynamicInvoke(proposedEvent) / _bufferSize);
+                HSFProfile<double> newdataratein = ((HSFProfile<double>)DepNeeded.DynamicInvoke(proposedEvent) / bufferSize);
 
                 bool exceeded = false;
                 HSFProfile<double> newdataratio = newdataratein.upperLimitIntegrateToProf(ts, te, 1, 1, ref exceeded, 0, oldbufferratio);
@@ -78,14 +78,14 @@ namespace HSFSystem
                 proposedEvent.SetTaskEnd(Asset, ts + 60.0);
                 double te = proposedEvent.GetTaskEnd(Asset);
 
-                double data = _bufferSize * NewState.GetLastValue(DATABUFFERRATIO_KEY).Value;
+                double data = bufferSize * NewState.GetLastValue(DATABUFFERRATIO_KEY).Value;
                 double dataqueout = data / 2 > 50 ? data / 2 : data;
 
                 if (data - dataqueout < 0)
                     dataqueout = data;
 
                 if (dataqueout > 0)
-                    NewState.AddValue(DATABUFFERRATIO_KEY, te, (data - dataqueout) / _bufferSize);
+                    NewState.AddValue(DATABUFFERRATIO_KEY, te, (data - dataqueout) / bufferSize);
                 return true;
             }
             return true;

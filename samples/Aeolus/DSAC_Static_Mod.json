@@ -352,7 +352,7 @@
             "value": 0.25,
             "subsystemName": "Power",
             "type": "FAIL_IF_HIGHER",
-            "name": "con1",
+            "name": "con3",
             "state": {
               "type": "double",
               "key": "DepthOfDischarge"
@@ -362,7 +362,7 @@
             "value": 0.7,
             "subsystemName": "SSDR",
             "type": "FAIL_IF_HIGHER",
-            "name": "con2",
+            "name": "con4",
             "state": {
               "type": "double",
               "key": "DataBufferFillRatio"

@@ -125,7 +125,7 @@ namespace HSFScheduler
             {
                 // TODO: Change this to logger
                 // HSFLogger.Log(new HSFLogData(constraint, subsystem, task, value, time));
-                Console.WriteLine("Constraint Failed");
+                Console.WriteLine($"Constraint Failed: The constraint {constraint.Name} failed with value");
                 return false;
             }
         }
