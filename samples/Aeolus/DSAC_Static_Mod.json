@@ -54,32 +54,32 @@
             "name": "EOSensor",
             "parameters": [
               {
-                "name": "lowQualityCaptureTime",
+                "name": "lowQualityTime",
                 "type": "double",
                 "value": 3
               },
               {
-                "name": "midQualityCaptureTime",
+                "name": "midQualityTime",
                 "type": "double",
                 "value": 5
               },
               {
-                "name": "highQualityCaptureTime",
+                "name": "highQualityTime",
                 "type": "double",
                 "value": 7
               },
               {
-                "name": "lowQualityNumPixels",
+                "name": "lowQualityPixels",
                 "type": "double",
                 "value": 5000
               },
               {
-                "name": "midQualityNumPixels",
+                "name": "midQualityPixels",
                 "type": "double",
                 "value": 10000
               },
               {
-                "name": "highQualityNumPixels",
+                "name": "highQualityPixels",
                 "type": "double",
                 "value": 15000
               }
@@ -229,32 +229,32 @@
             "name": "EOSensor",
             "parameters": [
               {
-                "name": "lowQualityCaptureTime",
+                "name": "lowQualityTime",
                 "type": "double",
                 "value": 3
               },
               {
-                "name": "midQualityCaptureTime",
+                "name": "midQualityTime",
                 "type": "double",
                 "value": 5
               },
               {
-                "name": "highQualityCaptureTime",
+                "name": "highQualityTime",
                 "type": "double",
                 "value": 7
               },
               {
-                "name": "lowQualityNumPixels",
+                "name": "lowQualityPixels",
                 "type": "double",
                 "value": 5000
               },
               {
-                "name": "midQualityNumPixels",
+                "name": "midQualityPixels",
                 "type": "double",
                 "value": 10000
               },
               {
-                "name": "highQualityNumPixels",
+                "name": "highQualityPixels",
                 "type": "double",
                 "value": 15000
               }
