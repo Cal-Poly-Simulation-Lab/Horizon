@@ -424,7 +424,7 @@ namespace Horizon
                             Asset asset = new Asset(assetJson);
                             if (asset.AssetDynamicState.Eoms != null)
                             {
-                                asset.AssetDynamicState.Eoms.SetEnvironment(SystemUniverse); 
+                                asset.AssetDynamicState.Eoms.Environment = SystemUniverse;// SetEnvironment(SystemUniverse); 
                             }
                             AssetList.Add(asset);
 

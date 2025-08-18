@@ -20,23 +20,23 @@ namespace HSFSystem
         public StateVariableKey<double> PIXELS_KEY;
         public StateVariableKey<double> INCIDENCE_KEY;
         public StateVariableKey<bool> EOON_KEY;
-        protected double _lowQualityPixels;
-        protected double _lowQualityTime;
-        protected double _midQualityPixels;
-        protected double _midQualityTime;
-        protected double _highQualityPixels;
-        protected double _highQualityTime;
+        protected double lowQualityPixels;
+        protected double lowQualityTime;
+        protected double midQualityPixels;
+        protected double midQualityTime;
+        protected double highQualityPixels;
+        protected double highQualityTime;
         #endregion
 
         #region Constructors
         public EOSensor(JObject eoSensorJson, Asset asset):base(eoSensorJson, asset)
         {
-            this.GetParameterByName<double>(eoSensorJson, nameof(_lowQualityPixels), out _lowQualityPixels);
-            this.GetParameterByName<double>(eoSensorJson, nameof(_lowQualityTime), out _lowQualityTime);
-            this.GetParameterByName<double>(eoSensorJson, nameof(_midQualityPixels), out _midQualityPixels);
-            this.GetParameterByName<double>(eoSensorJson, nameof(_midQualityTime), out _midQualityTime);
-            this.GetParameterByName<double>(eoSensorJson, nameof(_highQualityPixels), out _highQualityPixels);
-            this.GetParameterByName<double>(eoSensorJson, nameof(_highQualityTime), out _highQualityTime);
+            this.GetParameterByName<double>(eoSensorJson, nameof(lowQualityPixels), out lowQualityPixels);
+            this.GetParameterByName<double>(eoSensorJson, nameof(lowQualityTime), out lowQualityTime);
+            this.GetParameterByName<double>(eoSensorJson, nameof(midQualityPixels), out midQualityPixels);
+            this.GetParameterByName<double>(eoSensorJson, nameof(midQualityTime), out midQualityTime);
+            this.GetParameterByName<double>(eoSensorJson, nameof(highQualityPixels), out highQualityPixels);
+            this.GetParameterByName<double>(eoSensorJson, nameof(highQualityTime), out highQualityTime);
         }
         
         public override void SetStateVariableKey(dynamic stateKey)
@@ -65,17 +65,17 @@ namespace HSFSystem
             {
                 //set pixels and time to caputre based on target value
                 int value = Task.Target.Value;
-                double pixels = _lowQualityPixels;
-                double timetocapture = _lowQualityTime;
-                if (value <= _highQualityTime && value >= _midQualityTime) //Morgan took out magic numbers
+                double pixels = lowQualityPixels;
+                double timetocapture = lowQualityTime;
+                if (value <= highQualityTime && value >= midQualityTime) //Morgan took out magic numbers
                 {
-                    pixels = _midQualityPixels;
-                    timetocapture = _midQualityTime;
+                    pixels = midQualityPixels;
+                    timetocapture = midQualityTime;
                 }
-                if (value > _highQualityTime)
+                if (value > highQualityTime)
                 {
-                    pixels = _highQualityPixels;
-                    timetocapture = _highQualityTime;
+                    pixels = highQualityPixels;
+                    timetocapture = highQualityTime;
                 }
 
                 // get event start and task start times
