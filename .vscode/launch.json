@@ -1,0 +1,105 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Horizon ScriptedCS- Aeolus (VS Code)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
+      "args": [
+        "-s", "${workspaceFolder}/samples/Aeolus/AeolusSimulationInput.json",
+        "-m", "${workspaceFolder}/samples/Aeolus/DSAC_Static_ScriptedCS.json",
+        "-t", "${workspaceFolder}/samples/Aeolus/AeolusTasks.json",
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Horizon ScriptedPy - Aeolus (VS Code)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
+      "args": [
+        "-scen", "Aeolus"
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Horizon - Aeolus (Cursor)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon.dll",
+      "args": [
+        "-scen", "Aeolus"
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Horizon - Test Case 1 Asset (VS Code)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
+      "args": [
+        "-s", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestSimulationInput.json",
+        "-m", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestModel.json",
+        "-t", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestTasks.json",
+        "-o", "${workspaceFolder}/test/HSFSchedulerUnitTest/Output"
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Horizon - Test Case 2 Asset (VS Code)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
+      "args": [
+        "-s", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestSimulationInput.json",
+        "-m", "${workspaceFolder}/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedulesTest/TwoAssetTestModel.json",
+        "-t", "${workspaceFolder}/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedulesTest/ThreeTaskTestInput.json",
+        "-o", "${workspaceFolder}/test/HSFSchedulerUnitTest/Output"
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Horizon - Test Case 1 Asset (Cursor)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon.dll",
+      "args": [
+        "-s", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestSimulationInput.json",
+        "-m", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestModel.json",
+        "-t", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestTasks.json",
+        "-o", "${workspaceFolder}/test/HSFSchedulerUnitTest/Output"
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Scheduler Unit Tests",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-scheduler-tests",
+      "program": "${workspaceFolder}/test/HSFSchedulerUnitTest/bin/Debug/net8.0/HSFSchedulerUnitTest",
+      "args": [],
+      "cwd": "${workspaceFolder}/test/HSFSchedulerUnitTest",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    }
+  ]
+}

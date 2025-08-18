@@ -10,6 +10,7 @@ using System.IO;
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using Utilities;
 
 namespace HSFScheduler
 {
@@ -39,13 +40,11 @@ namespace HSFScheduler
             JsonLoader<string>.TryGetValue("src", scriptedJson, out src);
             JsonLoader<string>.TryGetValue("ClassName", scriptedJson, out className);
 
+            // If the file does not exist as read by json, assume it is a relative path. 
+            src = src.Replace('\\','/');
+            if (!File.Exists(src)) { src = Path.Combine(DevEnvironment.RepoDirectory,src); }
 
-            if (!src.StartsWith("..\\")) //patch work for nunit testing which struggles with relative paths
-            {
-                string baselocation = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\"));
-                src = Path.Combine(baselocation, src);
-            }
-
+            // Create scripted instance of evaluator:
             var engine = Python.CreateEngine();
             var scope = engine.CreateScope();
             var ops = engine.Operations;
@@ -54,6 +53,7 @@ namespace HSFScheduler
             _pythonInstance = ops.CreateInstance(pythonType, keychain);
             //_pythonInstance = ops.CreateInstance(pythonType, deps);
             //Dependencies = deps;
+
         }
         #endregion
 

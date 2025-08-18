@@ -40,6 +40,7 @@ namespace Horizon
 
         // Load the environment. First check if there is an ENVIRONMENT XMLNode in the input file
         public Domain SystemUniverse { get; set; }
+        public Scheduler? scheduler { get; set; }
 
         //Create singleton dependency dictionary
         public Dependency Dependencies { get; } = Dependency.Instance;
@@ -120,8 +121,10 @@ namespace Horizon
         }
         public void InitInput(List<string> argsList)
         {
-            // This would be in a config file - not used right now (4/26/24)
-            string basePath = @"C:\Users\emehiel\Source\Repos\Horizon8\";
+            // This would be in a config file - not used right now (4/26/24) -EM
+            string basePath = Utilities.DevEnvironment.RepoDirectory;
+            // DirectoryInfo testdir = DevEnvironment.testDirectory; 
+            // string basePath = DevEnvironment.RepoDirectory; //Establsih the repo directory as the basePath
             string subPath = "";
 
             if (argsList.Contains("-scen"))
@@ -144,6 +147,7 @@ namespace Horizon
                 subPath = Path.Combine(basePath, argsList[indx + 1]);
             }
 
+            // Default startup project
             if (argsList.Count == 0)
             {
                 argsList.Add("-scen");
@@ -189,7 +193,7 @@ namespace Horizon
                                 // Asset 1 C#, Asset 2 C#
                                 ModelFilePath = Path.Combine(subPath, "DSAC_Static_Mod.json");
                                 // Asset 1 mix Scripted/C#, Asset 2 C#
-                                //ModelInputFilePath = subpath + @"DSAC_Static_Mod_PartialScripted.xml"; 
+                                //ModelInputFilePath = subpath + @"DSAC_Static_Mod_PartialScripted.xml"; a
                                 // Asset 1 C#, Asset 2 C#
                                 //ModelInputFilePath = subpath + @"DSAC_Static_Mod.xml";
                                 simulationSet = true;
@@ -418,7 +422,10 @@ namespace Horizon
                         foreach (JObject assetJson in assetsListJson)
                         {
                             Asset asset = new Asset(assetJson);
-                            asset.AssetDynamicState.Eoms.Environment = SystemUniverse;
+                            if (asset.AssetDynamicState.Eoms != null)
+                            {
+                                asset.AssetDynamicState.Eoms.SetEnvironment(SystemUniverse); 
+                            }
                             AssetList.Add(asset);
 
                             // Load Subsystems
@@ -448,18 +455,18 @@ namespace Horizon
                                     }
 
                                     // Load Subsystem Parameters
-                                    if (subsys.Type == "scripted")
+                                    if (subsys.Type == "scripted" || subsys.Type == "scriptedcs") // Need to include scriptedcs thing here too? 
                                     {
                                         // Load Subsystem Parameters                        
                                         if (JsonLoader<JToken>.TryGetValue("parameters", subsystemJson, out JToken parameterListJson))
-                                            foreach (JObject parameterJson in parameterListJson)
-                                                SubsystemFactory.SetParameters(parameterJson, subsys);
-                                        else
-                                        {
-                                            msg = $"Warning: Subsystem {subsys.Name} loaded with no parameters";
-                                            Console.WriteLine(msg);
-                                            log.Warn(msg);
-                                        }
+                                            if (parameterListJson.First.HasValues)
+                                            {
+                                                foreach (JObject parameterJson in parameterListJson)
+                                                    SubsystemFactory.SetParameters(parameterJson, subsys);
+                                            }
+                                        msg = $"Warning: Subsystem {subsys.Name} loaded with no parameters";
+                                        Console.WriteLine(msg);
+                                        log.Warn(msg);
                                     }
                                 }
                             }
@@ -576,8 +583,9 @@ namespace Horizon
             if (SimSystem.CheckForCircularDependencies())
                 throw new NotFiniteNumberException("System has circular dependencies! Please correct then try again.");
 
-            Scheduler _scheduler = new Scheduler(SchedEvaluator);
-            Schedules = _scheduler.GenerateSchedules(SimSystem, SystemTasks, InitialSysState);
+            
+            this.scheduler = new Scheduler(SchedEvaluator); // Scheduler _scheduler = new Scheduler(SchedEvaluator);
+            Schedules = this.scheduler.GenerateSchedules(SimSystem, SystemTasks, InitialSysState);
         }
         public double EvaluateSchedules()
         {

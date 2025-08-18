@@ -5,18 +5,19 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Xml;
 
+
 namespace UserModel
 {
     public static class SimParameters
     {
         #region Attributes
         public static double EARTH_RADIUS = 6378.137; //km
-        public static double SimStartJD { get; private set; }
-        public static double SimStartSeconds { get; private set; }
-        public static double SimEndSeconds { get; private set; }
-        public static double SimStepSeconds { get; private set; }
-        public static string ScenarioName { get; private set; }
-        public static string OutputDirectory { get; private set; }
+        public static double SimStartJD { get; private set; } = 0;
+        public static double SimStartSeconds { get; private set; } = 0;
+        public static double SimEndSeconds { get; private set; } = 60;
+        public static double SimStepSeconds { get; private set; } = 12;
+        public static string ScenarioName { get; private set; } = "Default Scenario";
+        public static string OutputDirectory { get; private set; } = "";
 
         private static bool _isInitialized = false;
         #endregion

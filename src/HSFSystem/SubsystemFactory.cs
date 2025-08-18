@@ -53,6 +53,16 @@ namespace HSFSystem
             {
                 subsystem = new ScriptedSubsystem(SubsystemJson, asset);
             }
+
+            else if (type.Equals("scriptedcs"))
+            {
+                ScriptedSubsystemCS scriptedSubLoader = new ScriptedSubsystemCS(SubsystemJson, asset);
+            
+                // All properties already set within ScriptedSubsystemCSLoader constructor... Just take loaded Subsystem object.
+                subsystem = scriptedSubLoader.LoadedSubsystem;
+
+            }
+
             else // not scripted subsystem
             {
                 if (type.Equals("access"))
@@ -90,6 +100,10 @@ namespace HSFSystem
                     //sub = new SubTest(SubsystemXmlNode, asset);
                     //throw new NotImplementedException("Removed after the great SubsystemFactory update.");
                 }
+                // else if (type.Equals("schedtestsub"))
+                // {
+                //     subsystem = new SchedTestSub(SubsystemJson); 
+                // }
                 else if (type.Equals("networked"))
                 {
                     throw new NotImplementedException("Networked Subsystem is a depreciated feature!");

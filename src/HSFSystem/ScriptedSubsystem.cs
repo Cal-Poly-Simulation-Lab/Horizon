@@ -77,9 +77,16 @@ namespace HSFSystem
 
             if (scriptedSubsystemJson.TryGetValue("src", stringCompare, out JToken srcJason))
             {
-                this.src = srcJason.ToString();
-                this.src = Path.Combine(Utilities.DevEnvironment.RepoDirectory, src.Replace('\\', '/')); //Replace backslashes with forward slashes, if applicable
+                this.src = srcJason.ToString().Replace('\\','/');
+                if (!File.Exists(src))
+                {
+                    this.src = Path.Combine(Utilities.DevEnvironment.RepoDirectory, src); //Replace backslashes with forward slashes, if applicable
+                }
             }
+
+            // else if (scriptedSubsystemJson.TryGetValue("fullpath", stringCompare, out JToken fullpathJason))
+            // {
+            // }
             else
             {
                 Console.WriteLine($"Error loading subsytem of type {this.Type}, missing Src attribute");

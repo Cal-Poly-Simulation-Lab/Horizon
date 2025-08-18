@@ -1,0 +1,58 @@
+{
+  "tasks": [
+    {
+      "name": "Task1",
+      "type": "None",
+      "maxTimes": 1,
+      "target": {
+        "name": "Target1",
+        "type": "None",
+        "value": 10.0,
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "integratorType": "None",
+          "stateData": [0.0],
+          "eoms": {
+            "type": "None"
+          }
+        }
+      }
+    },
+    {
+      "name": "Task2",
+      "type": "None",
+      "maxTimes": 1,
+      "target": {
+        "name": "Target2",
+        "type": "None",
+        "value": 20.0,
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "integratorType": "None",
+          "stateData": [0.0],
+          "eoms": {
+            "type": "None"
+          }
+        }
+      }
+    },
+    {
+      "name": "Task3",
+      "type": "None",
+      "maxTimes": 1,
+      "target": {
+        "name": "Target3",
+        "type": "None",
+        "value": 30.0,
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "integratorType": "None",
+          "stateData": [0.0],
+          "eoms": {
+            "type": "None"
+          }
+        }
+      }
+    }
+  ]
+}

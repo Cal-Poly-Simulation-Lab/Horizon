@@ -28,6 +28,7 @@ namespace HSFSystem
         public virtual Dictionary<string, Delegate> SubsystemDependencyFunctions { get; set; }
         public virtual SystemState NewState { get; set; }
         public virtual MissionElements.Task Task { get; set; }
+        public ScriptedSubsystemCS? Loader {get; set; }
 
         #endregion Attributes
 
@@ -117,9 +118,12 @@ namespace HSFSystem
                 bool result = false;
                 try
                 {
-                    result = CanPerform(proposedEvent, environment);
+                    result = this.CanPerform(proposedEvent, environment);
+                    // Enforce that Task Start and End are within EVENT task start and end
+                    // Also report this out. Where to report? --> 
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     Console.WriteLine(ex.ToString());
                 }
                 //  Need to deal with this issue in next update
