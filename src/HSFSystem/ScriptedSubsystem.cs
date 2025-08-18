@@ -6,6 +6,7 @@ using MissionElements;
 using HSFUniverse;
 using Utilities;
 using Newtonsoft.Json.Linq;
+using UserModel;
 using System.Security.Permissions;
 
 namespace HSFSystem

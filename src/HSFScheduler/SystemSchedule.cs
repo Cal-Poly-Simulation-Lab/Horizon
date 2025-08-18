@@ -67,6 +67,7 @@ namespace HSFScheduler
                     if (access.AccessEnd > SimParameters.SimEndSeconds)
                         taskEnds.Add(access.Asset, SimParameters.SimEndSeconds);
                     // Set, set Task End time to Access End Time
+                    // set Task End time to Event End Time = newEventStartTime + SimParameters.SimStepSeconds
                     else
                         taskEnds.Add(access.Asset, access.AccessEnd);
 
