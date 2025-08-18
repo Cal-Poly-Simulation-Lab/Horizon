@@ -67,7 +67,7 @@ namespace HSFScheduler
         /// <returns></returns>
         public static Stack<Access> getCurrentAccesses(Stack<Access> accesses, double currentTime)
         {
-              return new Stack<Access>(accesses.Where(item => (item.AccessStart <= currentTime && item.AccessEnd >= currentTime)));
+              return new Stack<Access>(accesses.Where(item => (item.AccessStart <= currentTime && item.AccessEnd > currentTime)));
         }
 
         /// <summary>

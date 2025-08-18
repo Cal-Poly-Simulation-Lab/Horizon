@@ -15,6 +15,7 @@ namespace HSFSystem
 
         Dictionary<string, double> lookup;
         protected StateVariableKey<double> maj_Key;
+        string temporary = "This is the scheduler unit test subsystem"; 
 
         #endregion
 
