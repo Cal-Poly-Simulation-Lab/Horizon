@@ -152,7 +152,7 @@ namespace HSFSystem
             references.Add(MetadataReference.CreateFromFile(typeof(System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute).Assembly.Location));
             references.Add(MetadataReference.CreateFromFile(typeof(Newtonsoft.Json.Linq.JObject).Assembly.Location));
             references.Add(MetadataReference.CreateFromFile(typeof(System.Xml.XmlDocument).Assembly.Location));
-
+            references.Add(MetadataReference.CreateFromFile(typeof(System.Runtime.CompilerServices.DynamicAttribute).Assembly.Location));
             // Add project references
             string relBuildDir = "src/HSFSystem/bin/Debug/net8.0"; // Currently hardcoded
             string buildDir = Path.Combine(Utilities.DevEnvironment.RepoDirectory, relBuildDir);
