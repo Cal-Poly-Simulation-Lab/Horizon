@@ -9,18 +9,18 @@ using Utilities;
 
 namespace HSFSystem
 {
-    public class SubTest : Subsystem
+    public class SchedulerSubTest : Subsystem
     {
         #region Attributes
 
         Dictionary<string, double> lookup;
         protected StateVariableKey<double> maj_Key;
-        string temporary = "This is the scheduler unit test subsystem"; 
+        string temporary = "This is the scheduler unit test subsystem";
 
         #endregion
 
         #region Constructors
-        public SubTest(JObject subtestJson)
+        public SchedulerSubTest(JObject subtestJson)
         {
             // Initialize lookup to prevent null reference exceptions
             lookup = new Dictionary<string, double>();
@@ -55,35 +55,16 @@ namespace HSFSystem
                 return false;
             }
         }
+        public override void SetStateVariableKey(dynamic stateKey)
+        {
+            // if (stateKey.VariableName.Equals(Asset.Name + ".datarate(mb/s)"))
+            //     this.DATARATE_KEY = stateKey;
+            // else
+            //     throw new ArgumentException("Attempting to set unknown Comm state variable key.", stateKey);
+        }
 
 
 
     }
     #endregion
 }
-        // public double depFunc(Event currentEvent)
-        // {
-        //     return currentEvent.EventEnds[Asset]; //no reason for this, just need to return something
-        // }
-
-        // #endregion Methods
-        // static Dictionary<string, double> getList()
-        // {
-        //     Dictionary<string, double> lookup = new Dictionary<string, double>();
-        //     lookup.Add("target0", 0);
-        //     lookup.Add("target1", 1);
-        //     lookup.Add("target1.1", 1);
-        //     lookup.Add("target2", 2);
-        //     lookup.Add("target3", 3);
-        //     return lookup;
-        // }
-        // static Dictionary<string, double> getList(double time)
-        // {
-        //     Dictionary<string, double> lookup = new Dictionary<string, double>();
-        //     lookup.Add("target0", 0);
-        //     lookup.Add("target1", 0);
-        //     lookup.Add("target1.1", time);
-        //     lookup.Add("target2", time);
-        //     lookup.Add("target3", time);
-        //     return lookup;
-        // }
