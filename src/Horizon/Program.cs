@@ -170,7 +170,7 @@ namespace Horizon
                     case "-scen":
                         switch (argsList[i])
                         {
-                            case "Aeolus_scripted":
+                            case "Aeolus_scriptedpy":
                                 // Set Defaults
                                 //subpath = @"..\..\..\..\samples\Aeolus\";
                                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");

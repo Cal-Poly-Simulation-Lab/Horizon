@@ -17,13 +17,26 @@
       "stopAtEntry": false
     },
     {
+      "name": "Debug Horizon - Aeolus CS (VS Code)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
+      "args": [
+        "-scen", "Aeolus_CS"
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
       "name": "Debug Horizon ScriptedPy - Aeolus (VS Code)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
       "args": [
-        "-scen", "Aeolus"
+        "-scen", "Aeolus_scriptedpy"
       ],
       "cwd": "${workspaceFolder}/src/Horizon",
       "console": "internalConsole",
