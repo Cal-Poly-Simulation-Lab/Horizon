@@ -439,13 +439,13 @@ namespace Horizon
                                     // Load Subsystem States (Formerly ICs)
                                     if (JsonLoader<JToken>.TryGetValue("states", subsystemJson, out JToken stateListJson))
                                     {
-                                            foreach (JObject stateJson in stateListJson)
-                                            {
-                                                // Parse state node for key name and state type, add the key to the subsys's list of keys, return the key name
-                                                SubsystemFactory.SetInitialState(stateJson, subsys, InitialSysState);
-                                                // Use key name and state type to set initial conditions 
-                                                //InitialSysState.SetInitialSystemState(stateJson, stateVarKey);
-                                            }
+                                        foreach (JObject stateJson in stateListJson)
+                                        {
+                                            // Parse state node for key name and state type, add the key to the subsys's list of keys, return the key name
+                                            SubsystemFactory.SetInitialState(stateJson, subsys, InitialSysState);
+                                            // Use key name and state type to set initial conditions 
+                                            //InitialSysState.SetInitialSystemState(stateJson, stateVarKey);
+                                        }
                                     }
                                     else
                                     {
