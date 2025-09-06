@@ -18,8 +18,8 @@
             "name": "SchedulerUnitTest Subsystem",
             "src": "test\\HSFSchedulerUnitTest\\SchedulerSubTest.cs",
             "className": "SchedulerSubTest",
-            "parameters": [{}],
-            "states": [{}]
+            "parameters": [],
+            "states": []
           }
         ],
         "constraints": []
