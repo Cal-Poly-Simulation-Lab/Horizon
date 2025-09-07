@@ -28,6 +28,8 @@ namespace HSFSystem
         private readonly Type[] constructorArgTypes = [typeof(JObject)]; 
         private readonly object[] constructorArgs = [];
 
+        private static readonly string CompiledFilesListPath = Path.Combine(Utilities.DevEnvironment.RepoDirectory, "user-compiled-subsystems.txt");
+
         public ScriptedSubsystemCS(JObject scriptedSubsystemJson, Asset asset)//string dllPath, string typeName, string subsystemJson)
         {
            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
@@ -176,6 +178,32 @@ namespace HSFSystem
             using (var fs = new FileStream(outputDllPath, FileMode.Create, FileAccess.Write))
             {
                 result = compilation.Emit(fs);
+            }
+
+            if (result.Success)
+            {
+                // Add to compiled files list with timestamp
+                string dllPath = outputDllPath;
+                string pdbPath = Path.ChangeExtension(outputDllPath, ".pdb");
+                string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                
+                // Remove old entries for the same files if they exist
+                if (File.Exists(CompiledFilesListPath))
+                {
+                    var existingLines = File.ReadAllLines(CompiledFilesListPath).ToList();
+                    var filteredLines = existingLines.Where(line => 
+                        !line.Contains(dllPath) && !line.Contains(pdbPath)).ToList();
+                    File.WriteAllLines(CompiledFilesListPath, filteredLines);
+                }
+                
+                // Append to the compiled files list with timestamp
+                File.AppendAllText(CompiledFilesListPath, $"[{timestamp}] {dllPath}\n");
+                if (File.Exists(pdbPath))
+                {
+                    File.AppendAllText(CompiledFilesListPath, $"[{timestamp}] {pdbPath}\n");
+                }
+                
+                return dllPath;
             }
 
             if (!result.Success)
