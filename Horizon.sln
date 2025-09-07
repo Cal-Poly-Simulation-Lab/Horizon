@@ -19,8 +19,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UserModel", "src\UserModel\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utilities", "src\Utilities\Utilities.csproj", "{2FC401AA-3CBC-4353-AFD0-18D61F89832B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{6A8B27C3-EA24-4642-88E7-AB3B6C0DF070}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{376D597B-2A4D-4E96-9783-B611BDD87586}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HSFSchedulerUnitTest", "test\HSFSchedulerUnitTest\HSFSchedulerUnitTest.csproj", "{F72A4CA3-414C-4868-AB09-31C6619A1965}"

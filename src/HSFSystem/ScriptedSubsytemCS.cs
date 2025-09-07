@@ -132,9 +132,10 @@ namespace HSFSystem
 
             // Read the source code
             string sourceCode = File.ReadAllText(sourceFilePath);
+            string absoluteSourcePath = Path.GetFullPath(sourceFilePath);
 
-            // Create a syntax tree from the source code
-            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
+            // Create a syntax tree from the source code with encoding
+            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(sourceCode, path: absoluteSourcePath, encoding: System.Text.Encoding.UTF8);
 
             // Define references
             List<MetadataReference> references = new List<MetadataReference>
@@ -167,7 +168,8 @@ namespace HSFSystem
                 Path.GetFileNameWithoutExtension(outputDllPath),
                 new[] { syntaxTree },
                 references,
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                    .WithOptimizationLevel(OptimizationLevel.Debug));
 
             // Emit the compilation to a DLL
             EmitResult result;
