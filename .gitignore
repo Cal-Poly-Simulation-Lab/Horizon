@@ -260,5 +260,7 @@ _Pvt_Extensions
 /sousam_dynamicStateData.csv
 /skyguard_dynamicStateData.csv
 /concord_dynamicStateData.csv
+user-compiled-subsystems.txt
 
-################# END VISUAL STUDIO ITEMS ########################user-compiled-subystems.txt
+################# END VISUAL STUDIO ITEMS ########################
+
