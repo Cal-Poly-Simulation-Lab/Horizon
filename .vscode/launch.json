@@ -69,7 +69,7 @@
       ],
       "cwd": "${workspaceFolder}/src/Horizon",
       "console": "internalConsole",
-      "stopAtEntry": false
+      "stopAtEntry": false,
     },
     {
       "name": "Debug Horizon - Test Case 2 Asset (VS Code)",

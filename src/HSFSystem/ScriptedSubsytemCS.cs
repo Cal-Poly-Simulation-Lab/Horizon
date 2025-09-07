@@ -49,8 +49,10 @@ namespace HSFSystem
                 this.src = srcJason.ToString().Replace('\\','/');
                 if (!File.Exists(src)) // Make it a relative (repo) path if the file doesn't exist given by src
                 { this.src = Path.Combine(Utilities.DevEnvironment.RepoDirectory, src); } //Replace backslashes with forward slashes, if applicable 
-  
-                this.dll = CompileDll(this.src,Path.Combine(Directory.GetParent(src).FullName,"bin"));
+
+                string executableDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                this.dll = CompileDll(this.src, executableDir);
+                //this.dll = CompileDll(this.src,Path.Combine(Directory.GetParent(src).FullName,"bin"));
 
             }
             else
@@ -175,16 +177,18 @@ namespace HSFSystem
 
             // Emit the compilation to a DLL
             EmitResult result;
+            string pdbPath = Path.ChangeExtension(outputDllPath, ".pdb");
             using (var fs = new FileStream(outputDllPath, FileMode.Create, FileAccess.Write))
+            using (var pdbStream = new FileStream(pdbPath, FileMode.Create, FileAccess.Write))
             {
-                result = compilation.Emit(fs);
+                var emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb);
+                result = compilation.Emit(fs, pdbStream, options: emitOptions);
             }
 
             if (result.Success)
             {
                 // Add to compiled files list with timestamp
                 string dllPath = outputDllPath;
-                string pdbPath = Path.ChangeExtension(outputDllPath, ".pdb");
                 string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                 
                 // Remove old entries for the same files if they exist
@@ -281,7 +285,7 @@ namespace HSFSystem
                 throw new FileNotFoundException($"DLL file not found: {dll}");
             }
             // Load the assembly
-            Assembly assembly = Assembly.LoadFrom(dll);
+            Assembly assembly = Assembly.LoadFile(dll);
 
             Type[] types = assembly.GetTypes();
             // Filter the types that inherit from Subsystem
