@@ -1,0 +1,39 @@
+{
+  "tasks": [
+    {
+      "name": "TestTask1",
+      "type": "imaging",
+      "maxTimesToPerform": 1,
+      "duration": 5.0,
+      "value": 10.0
+    },
+    {
+      "name": "TestTask2",
+      "type": "communication",
+      "maxTimesToPerform": 2,
+      "duration": 3.0,
+      "value": 15.0
+    },
+    {
+      "name": "TestTask3",
+      "type": "data_collection",
+      "maxTimesToPerform": 3,
+      "duration": 8.0,
+      "value": 20.0
+    },
+    {
+      "name": "TestTask4",
+      "type": "navigation",
+      "maxTimesToPerform": 1,
+      "duration": 2.0,
+      "value": 5.0
+    },
+    {
+      "name": "TestTask5",
+      "type": "maintenance",
+      "maxTimesToPerform": 1,
+      "duration": 10.0,
+      "value": 25.0
+    }
+  ]
+}

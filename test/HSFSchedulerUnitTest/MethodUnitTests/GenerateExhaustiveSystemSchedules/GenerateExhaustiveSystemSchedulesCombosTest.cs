@@ -18,25 +18,24 @@ using UserModel;
 namespace HSFSchedulerUnitTest
 {
     [TestFixture]
-    public class GenerateExhaustiveSchedulesCombosTest : SchedulerUnitTest
+    public class GenerateExhaustiveSystemSchedulesCombosTest : SchedulerUnitTest
     {
-        private string testDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../MethodUnitTests/GenerateExhaustiveSystemSchedulesTest"));
         private string? DefaultSimInputFile;
         private string? DefaultModelInputFile;
         private string? DefaultTaskInputFile;
         private SystemClass? testSystem;
         private Stack<MissionElements.Task>? testTasks;
-        private Stack<Stack<Access>>? scheduleCombos;
 
         [SetUp]
         public void SetupDefaultExhaustiveTest()
         {
-            // Set up the test directory for the input files:
-
             // // Use the existing test files for the 1 asset, 3 tasks scenario
-            SimInputFile = "SchedulerTestSimulationInput.json"; // Using default HSFSchedulerUnitTest Simulation Input File. 
-            TaskInputFile = Path.Combine(testDir, "ThreeTaskTestInput.json");
-            ModelInputFile = Path.Combine(testDir, "OneAssetTestModel.json");
+            SimInputFile = Path.Combine(Utilities.DevEnvironment.GetTestDirectory(), "HSFSchedulerUnitTest", "SchedulerTestSimulationInput.json"); // Bulletproof path to default simulation input
+            TaskInputFile = Path.Combine(CurrentTestDir, "ThreeTaskTestInput.json");
+            ModelInputFile = Path.Combine(CurrentTestDir, "OneAssetTestModel.json");
+
+            //Console.WriteLine($"  Setting up GenerateExhaustiveSystemSchedules test with {SimInputFile}");
+            TestContext.WriteLine($"\n{CurrentTestName}--->Setting up test with -s {SimInputFile}, -t {TaskInputFile}, -m  {ModelInputFile}\n");
 
             // Load the program to get the system and tasks & Create the system and tasks for testing      
             BuildProgram();
@@ -48,9 +47,11 @@ namespace HSFSchedulerUnitTest
             program = HorizonLoadHelper(SimInputFile, TaskInputFile, ModelInputFile);
 
 
-            // Create the system and tasks for testing
+            // Create (a copy of) the system and tasks for testing -- These are created by the program, under program.SimSystem and program.SystemTasks
             testSystem = new SystemClass(program.AssetList, program.SubList, program.ConstraintsList, program.SystemUniverse);
             testTasks = new Stack<MissionElements.Task>(program.SystemTasks);
+
+            // Initialize the scheduleCombos stack, in preparation for the method call
             scheduleCombos = new Stack<Stack<Access>>();
         }
 
@@ -59,8 +60,8 @@ namespace HSFSchedulerUnitTest
         public void TestNumberTotalCombosGenerated(string _modelInputFile, string _taskInputFile, int _numAssets, int _numTasks, int _expectedResult)
         {
             // Set the proper (variable) test case input files
-            TaskInputFile = Path.Combine(testDir, _taskInputFile);
-            ModelInputFile = Path.Combine(testDir, _modelInputFile);
+            TaskInputFile = Path.Combine(CurrentTestDir, _taskInputFile);
+            ModelInputFile = Path.Combine(CurrentTestDir, _modelInputFile);
 
             //Manually call the setup:
             BuildProgram();
@@ -80,8 +81,13 @@ namespace HSFSchedulerUnitTest
 
                 // Main Assertion: Schedule combos; should be Tasks^assets
                 Assert.That(result.Count, Is.EqualTo(_expectedResult), "Should return exactly 3 combinations for 1 asset and 3 tasks");
+
+                // Assert.Pass Message out to Console:
+                // Assert.Pass($"Successfully generated {result.Count} schedule combos for {_numAssets} assets and {_numTasks} tasks");
             });
 
+            // Write to TextContext Console:
+            TestContext.WriteLine($"\n--->{CurrentClassName}--->{CurrentTestName}---> passed!\n");
         }
 
         [Test]
@@ -109,6 +115,9 @@ namespace HSFSchedulerUnitTest
                     }
                 }
             });
+
+            // Write to TextContext Console:
+            TestContext.WriteLine($"\n--->{CurrentClassName}--->{CurrentTestName}---> passed!\n");
         }
 
         [Test]
@@ -136,6 +145,9 @@ namespace HSFSchedulerUnitTest
                     }
                 }
             });
+
+            // Write to TextContext Console:
+            TestContext.WriteLine($"\n--->{CurrentClassName}--->{CurrentTestName}---> passed!\n");    
         }
 
         

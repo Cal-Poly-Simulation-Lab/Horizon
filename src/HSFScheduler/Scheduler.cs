@@ -35,7 +35,7 @@ namespace HSFScheduler
         public double AccumSchedTime { get; }
                 
         // Needed for schedule evaluation and computation:
-        private SystemSchedule emptySchedule {get; set; }
+        public static SystemSchedule? emptySchedule {get; private set; }
         private List<SystemSchedule> systemSchedules = new List<SystemSchedule>();
         private bool canPregenAccess {get; set; }
         private Stack<Stack<Access>> scheduleCombos = new Stack<Stack<Access>>(); 
@@ -75,7 +75,7 @@ namespace HSFScheduler
             log.Info("SIMULATING... ");
 
             // Create empty systemSchedule with initial state set
-            InitializeEmptySchedule(initialStateList); // Add Unit Test #0 (test empty schedule) --- Or do it later after cropping? Can do both.
+            InitializeEmptySchedule(this.systemSchedules, initialStateList); // Add Unit Test #0 (test empty schedule) --- Or do it later after cropping? Can do both.
 
             // if all asset position types are not dynamic types, can pregenerate accesses for the simulation
             canPregenAccessLogic(system); // Unit Test Method #
@@ -125,7 +125,7 @@ namespace HSFScheduler
                 }
                 
                 // First, crop schedules to maxNumchedules: 
-                systemSchedules = CropToMaxSchedules(systemSchedules, emptySchedule);
+                systemSchedules = CropToMaxSchedules(systemSchedules, Scheduler.emptySchedule);
 
                 // Generate an exhaustive list of new tasks possible from the combinations of Assets and Tasks
                 //TODO: Parallelize this.
@@ -191,7 +191,7 @@ namespace HSFScheduler
         /// <param name="scheduleEvaluator"></param>
         /// <param name="emptySched"></param>
         /// 
-        public void InitializeEmptySchedule(SystemState initialStateList)
+        public static void InitializeEmptySchedule(List<SystemSchedule> systemSchedules, SystemState initialStateList)
         {
             string Name = "Empty Schedule"; 
             emptySchedule = new SystemSchedule(initialStateList, Name); // Create the first empty schedule. This should schange as things move forward. 

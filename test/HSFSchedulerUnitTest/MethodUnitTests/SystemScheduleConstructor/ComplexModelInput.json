@@ -1,0 +1,40 @@
+{
+  "assets": [
+    {
+      "name": "TestAsset1",
+      "type": "satellite",
+      "subsystems": [
+        {
+          "name": "TestSubsystem1",
+          "type": "scriptedcs",
+          "src": "TestSubsystem.cs",
+          "className": "TestSubsystem"
+        }
+      ]
+    },
+    {
+      "name": "TestAsset2",
+      "type": "satellite",
+      "subsystems": [
+        {
+          "name": "TestSubsystem2",
+          "type": "scriptedcs",
+          "src": "TestSubsystem.cs",
+          "className": "TestSubsystem"
+        }
+      ]
+    },
+    {
+      "name": "TestAsset3",
+      "type": "ground_station",
+      "subsystems": [
+        {
+          "name": "TestSubsystem3",
+          "type": "scriptedcs",
+          "src": "TestSubsystem.cs",
+          "className": "TestSubsystem"
+        }
+      ]
+    }
+  ]
+}

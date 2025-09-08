@@ -54,7 +54,7 @@ namespace HSFScheduler
             Name = name;
         }
 
-        public SystemSchedule(StateHistory oldStates, Stack<Access> newAccessList, double newEventStartTime)
+        public SystemSchedule(StateHistory oldStates, Stack<Access> newAccessList, double currentTime)
         {
             
             Dictionary<Asset, Task> tasks = new Dictionary<Asset, Task>();
@@ -68,16 +68,16 @@ namespace HSFScheduler
                 if (access.Task != null)
                 {
                     //  Access Starts before Event Start && Event Start is before the Access End
-                    if (access.AccessStart <= newEventStartTime && newEventStartTime <= access.AccessEnd)
-                        taskStarts.Add(access.Asset, newEventStartTime);
+                    if (access.AccessStart <= currentTime && currentTime <= access.AccessEnd)
+                        taskStarts.Add(access.Asset, currentTime);
                     //  Access starts after Event Start && Access Starts before Step Size
-                    else if (access.AccessStart >= newEventStartTime && access.AccessStart <= newEventStartTime + SimParameters.SimStepSeconds)
+                    else if (access.AccessStart >= currentTime && access.AccessStart <= currentTime + SimParameters.SimStepSeconds)
                         taskStarts.Add(access.Asset, access.AccessStart);
                     //  Set Task Start to Event Start Time
                     else
                     {
                         //Console.WriteLine("Event Start: " + newEventStartTime + " AccesStart: " + access.AccessStart + " AccessEnd: " + access.AccessEnd);
-                        taskStarts.Add(access.Asset, newEventStartTime);
+                        taskStarts.Add(access.Asset, currentTime);
                     }
                     tasks.Add(access.Asset, access.Task);
 
@@ -89,22 +89,22 @@ namespace HSFScheduler
                     else
                         taskEnds.Add(access.Asset, access.AccessEnd);
 
-                    eventStarts.Add(access.Asset, newEventStartTime);
+                    eventStarts.Add(access.Asset, currentTime);
                     
                     //  If Event Start + Step Size > Sim End Time - Set Event End time to Sim End Time
-                    if (newEventStartTime + SimParameters.SimStepSeconds > SimParameters.SimEndSeconds)
+                    if (currentTime + SimParameters.SimStepSeconds > SimParameters.SimEndSeconds)
                         eventEnds.Add(access.Asset, SimParameters.SimStepSeconds);
                     //  Else, set Event End time to Event Start Time + Sim Step
                     else
-                        eventEnds.Add(access.Asset, newEventStartTime + SimParameters.SimStepSeconds);
+                        eventEnds.Add(access.Asset, currentTime + SimParameters.SimStepSeconds);
                 }
                 else
                 {
-                    taskStarts.Add(access.Asset, newEventStartTime);
-                    taskEnds.Add(access.Asset, newEventStartTime);
+                    taskStarts.Add(access.Asset, currentTime);
+                    taskEnds.Add(access.Asset, currentTime);
                     tasks.Add(access.Asset, null);
-                    eventStarts.Add(access.Asset, newEventStartTime);
-                    eventEnds.Add(access.Asset, newEventStartTime + SimParameters.SimStepSeconds);
+                    eventStarts.Add(access.Asset, currentTime);
+                    eventEnds.Add(access.Asset, currentTime + SimParameters.SimStepSeconds);
                 }
 
             }

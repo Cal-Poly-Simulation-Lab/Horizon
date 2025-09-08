@@ -1,0 +1,25 @@
+{
+  "tasks": [
+    {
+      "name": "TestTask1",
+      "type": "imaging",
+      "maxTimesToPerform": 1,
+      "duration": 5.0,
+      "value": 5.0
+    },
+    {
+      "name": "TestTask2",
+      "type": "imaging",
+      "maxTimesToPerform": 1,
+      "duration": 7.5,
+      "value": 7.5
+    },
+    {
+      "name": "TestTask3",
+      "type": "imaging",
+      "maxTimesToPerform": 1,
+      "duration": 10,
+      "value": 10.0
+    }
+  ]
+}

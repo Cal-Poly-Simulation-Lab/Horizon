@@ -32,7 +32,7 @@
       "type": "scripted",
       "src": "test\\HSFSchedulerUnitTest\\SchedulerTestEval.py",
       "className": "eval",
-      "keyRequests": []
+      "states": []
     }
     
   }
