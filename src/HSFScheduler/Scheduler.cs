@@ -36,13 +36,12 @@ namespace HSFScheduler
                 
         // Needed for schedule evaluation and computation:
         public static SystemSchedule? emptySchedule {get; private set; }
-        private List<SystemSchedule> systemSchedules = new List<SystemSchedule>();
-        private bool canPregenAccess {get; set; }
-        private Stack<Stack<Access>> scheduleCombos = new Stack<Stack<Access>>(); 
-        private Stack<Access>? preGeneratedAccesses {get; set;}
-        private List<SystemSchedule> potentialSystemSchedules = new List<SystemSchedule>();
-        private List<SystemSchedule> systemCanPerformList = new List<SystemSchedule>();
-
+        public List<SystemSchedule> systemSchedules { get; private set; } = new List<SystemSchedule>();
+        public bool canPregenAccess {get; private set; }
+        public Stack<Stack<Access>> scheduleCombos { get; private set; }= new Stack<Stack<Access>>(); 
+        public Stack<Access>? preGeneratedAccesses { get; private set; }
+        public List<SystemSchedule> potentialSystemSchedules { get; private set; } = new List<SystemSchedule>();
+        public List<SystemSchedule> systemCanPerformList { get; private set; } = new List<SystemSchedule>();
         
         public Evaluator ScheduleEvaluator { get; private set; }
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);

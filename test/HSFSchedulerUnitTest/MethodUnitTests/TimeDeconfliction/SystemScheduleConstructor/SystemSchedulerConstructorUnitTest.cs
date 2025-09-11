@@ -20,12 +20,9 @@ namespace HSFSchedulerUnitTest
     [TestFixture]
     public class SystemSchedulerConstructorUnitTest : SchedulerUnitTest
     {
-        private string? DefaultSimInputFile = "SchedulerTestSimulationInput.json";
-        private string? DefaultModelInputFile;
-        private string? DefaultTaskInputFile;
-        private SystemClass? testSystem;
-        private Stack<MissionElements.Task>? testTasks;
+        # region Derived-Class Attributes
 
+        # endregion
 
         [SetUp]
         public void SetupDefaultExhaustiveTest()
@@ -50,18 +47,14 @@ namespace HSFSchedulerUnitTest
 
             //Schedules = this.scheduler.GenerateSchedules(SimSystem, SystemTasks, InitialSysState);
 
-            // Create (a copy of) the system and tasks for testing -- These are created by the program, under program.SimSystem and program.SystemTasks
-            testSystem = new SystemClass(program.AssetList, program.SubList, program.ConstraintsList, program.SystemUniverse);
-            testTasks = new Stack<MissionElements.Task>(program.SystemTasks);
-
             // SimParameters are read-only, use the values from the loaded program
             double simEnd = SimParameters.SimEndSeconds;
             double simStep = SimParameters.SimStepSeconds;
             double simStart = SimParameters.SimStartSeconds;
             
-            Scheduler.InitializeEmptySchedule(systemSchedules, program.InitialSysState); // Create the empty schedule and add it to the systemSchedules list
-            scheduleCombos = Scheduler.GenerateExhaustiveSystemSchedules(testSystem, testTasks, scheduleCombos, simStart, simEnd);
-            systemSchedules = program.scheduler.CropToMaxSchedules(systemSchedules, Scheduler.emptySchedule);
+            Scheduler.InitializeEmptySchedule(_systemSchedules, program.InitialSysState); // Create the empty schedule and add it to the systemSchedules list
+            _scheduleCombos = Scheduler.GenerateExhaustiveSystemSchedules(program.SimSystem, program.SystemTasks, _scheduleCombos, simStart, simEnd);
+            _systemSchedules = program.scheduler.CropToMaxSchedules(_systemSchedules, Scheduler.emptySchedule);
         }
 
         [Test, Order(1)]
@@ -77,10 +70,10 @@ namespace HSFSchedulerUnitTest
 
             // Loop through all systemschedules that will be generated (skipping CanAddTasks logic here-- just to test the constructor)
             int k = 0; 
-            foreach(var oldSystemSchedule in systemSchedules)
+            foreach(var oldSystemSchedule in _systemSchedules)
             {
                 //potentialSystemSchedules.Add(new SystemSchedule( new StateHistory(oldSystemSchedule.AllStates)));
-                foreach (var newAccessTaskStack in scheduleCombos)
+                foreach (var newAccessTaskStack in _scheduleCombos)
                 {
                 }
             }

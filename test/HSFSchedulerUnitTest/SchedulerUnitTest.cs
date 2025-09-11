@@ -25,19 +25,26 @@ namespace HSFSchedulerUnitTest
         protected string? SimInputFile { get; set; }
         protected string? TaskInputFile { get; set; }
         protected string? ModelInputFile { get; set; }
-        protected Horizon.Program? program { get; set; }
+        protected Horizon.Program program { get; set; } = new Horizon.Program();
         protected int? _emptySchedIdx { get; set; }
         # endregion
 
+
+        # region Private/Internal Program Attributes
+        protected SystemClass? _testSimSystem {get; set; }
+        protected Stack<MissionElements.Task>? _testSystemTasks {get; set; }
+        #endregion
+        
         #region Private/Intneral Scheduler Attributes
         // Attributes that are private in the Scheduler class that are needed for testing:
         // Needed for schedule evaluation and computation:
-        protected List<SystemSchedule> systemSchedules = new List<SystemSchedule>();
-        protected Stack<Stack<Access>> scheduleCombos = new Stack<Stack<Access>>(); 
-        protected List<SystemSchedule> potentialSystemSchedules = new List<SystemSchedule>();
-        protected List<SystemSchedule> systemCanPerformList = new List<SystemSchedule>();
-        protected bool? canPregenAccess {get; set; }
-        protected Stack<Access>? preGeneratedAccesses {get; set;}
+        protected List<SystemSchedule> _systemSchedules = new List<SystemSchedule>();
+        protected Stack<Stack<Access>> _scheduleCombos = new Stack<Stack<Access>>(); 
+        protected List<SystemSchedule> _potentialSystemSchedules = new List<SystemSchedule>();
+        protected List<SystemSchedule> _systemCanPerformList = new List<SystemSchedule>();
+        protected bool? _canPregenAccess {get; set; }
+        protected Stack<Access>? _preGeneratedAccesses {get; set;}
+        protected Evaluator? _schedEvaluator { get; set; }
         # endregion
 
         # region Test Class Attributes
@@ -48,97 +55,12 @@ namespace HSFSchedulerUnitTest
         // Class file tracking variables
         private string? _classSourceFilePath;
         private string? _className;
-        
-        /// <summary>
         /// Property that automatically resolves the test project root directory
-        /// Derived classes can use this directly without needing their own property
-        /// </summary>
         protected string ProjectTestDir => GetTestProjectRootDirectory();
-        
-        /// <summary>
         /// Property that automatically resolves the test directory for the current test class
-        /// Derived classes can use this directly without needing their own property
-        /// </summary>
         protected string CurrentTestDir => GetClassSourceDirectory();
-
-        /// <summary>
-        /// Gets the source file path of the derived class using StackFrame analysis
-        /// </summary>
-        /// <returns>Full path to the derived class source file</returns>
-        protected string GetClassSourceFilePath()
-        {
-            if (!string.IsNullOrEmpty(_classSourceFilePath))
-                return _classSourceFilePath;
-
-            var stackTrace = new StackTrace(true);
-            
-            // Walk up the stack to find the first frame that's not in the base class
-            for (int i = 0; i < stackTrace.FrameCount; i++)
-            {
-                var frame = stackTrace.GetFrame(i);
-                string fileName = frame?.GetFileName();
-                
-                if (!string.IsNullOrEmpty(fileName) && 
-                    !fileName.EndsWith("SchedulerUnitTest.cs") &&
-                    fileName.EndsWith(".cs"))
-                {
-                    _classSourceFilePath = fileName;
-                    return fileName;
-                }
-            }
-            
-            // Fallback: try to construct expected path
-            string expectedFileName = $"{this.GetType().Name}.cs";
-            string fallbackPath = Path.Combine(ProjectTestDir, "MethodUnitTests", this.GetType().Name.Replace("Test", ""), expectedFileName);
-            _classSourceFilePath = fallbackPath;
-            return fallbackPath;
-        }
-
-        /// <summary>
-        /// Gets the source directory of the derived class using StackFrame analysis
-        /// </summary>
-        /// <returns>Full path to the derived class source directory</returns>
-        protected string GetClassSourceDirectory()
-        {
-            if (!string.IsNullOrEmpty(_classSourceFilePath))
-            {
-                _className = this.GetType().Name;
-                return Path.GetDirectoryName(_classSourceFilePath) ?? ProjectTestDir;
-            }
-
-            var stackTrace = new StackTrace(true);
-            
-            // Walk up the stack to find the first frame that's not in the base class
-            for (int i = 0; i < stackTrace.FrameCount; i++)
-            {
-                var frame = stackTrace.GetFrame(i);
-                string fileName = frame?.GetFileName();
-                
-                if (!string.IsNullOrEmpty(fileName) && 
-                    !fileName.EndsWith("SchedulerUnitTest.cs") &&
-                    fileName.EndsWith(".cs"))
-                {
-                    _classSourceFilePath = fileName;
-                    _className = this.GetType().Name;
-                    return Path.GetDirectoryName(fileName) ?? ProjectTestDir;
-                }
-            }
-            
-            // Fallback: construct expected directory
-            string fallbackDir = this.GetType().Name.Replace("Test", "");
-            string fallbackPath = Path.Combine(ProjectTestDir, "MethodUnitTests", fallbackDir);
-            _className = this.GetType().Name;
-            return fallbackPath;
-        }
-
-        protected string GetTestProjectRootDirectory()
-        {
-            string baseTestDir = Utilities.DevEnvironment.GetTestDirectory();
-            return Path.Combine(baseTestDir, "HSFSchedulerUnitTest");
-        }
-        
         # endregion
-        
+
         # region Setup and TearDown
         [SetUp]
         public virtual void Setup()
@@ -193,7 +115,7 @@ namespace HSFSchedulerUnitTest
             #endregion
 
             // Create a new Horizon program
-            Horizon.Program program = new Horizon.Program();
+            // Horizon.Program program = new Horizon.Program(); // Now created in the program attribute
 
             // Run Horizon like normal to load all necessary elements: 
             program.InitInput(argsList);
@@ -218,6 +140,77 @@ namespace HSFSchedulerUnitTest
             // Return to Test for further Scheduler method entrance / testing ...
             return program;
 
+        }
+        # endregion
+
+        # region Test Directory Helpers
+        protected string GetClassSourceFilePath()
+        {
+            if (!string.IsNullOrEmpty(_classSourceFilePath))
+                return _classSourceFilePath;
+
+            var stackTrace = new StackTrace(true);
+            
+            // Walk up the stack to find the first frame that's not in the base class
+            for (int i = 0; i < stackTrace.FrameCount; i++)
+            {
+                var frame = stackTrace.GetFrame(i);
+                string fileName = frame?.GetFileName();
+                
+                if (!string.IsNullOrEmpty(fileName) && 
+                    !fileName.EndsWith("SchedulerUnitTest.cs") &&
+                    fileName.EndsWith(".cs"))
+                {
+                    _classSourceFilePath = fileName;
+                    return fileName;
+                }
+            }
+            
+            // Fallback: try to construct expected path
+            string expectedFileName = $"{this.GetType().Name}.cs";
+            string fallbackPath = Path.Combine(ProjectTestDir, "MethodUnitTests", this.GetType().Name.Replace("Test", ""), expectedFileName);
+            _classSourceFilePath = fallbackPath;
+            return fallbackPath;
+        }
+
+        /// Gets the source directory of the derived class using StackFrame analysis
+        protected string GetClassSourceDirectory()
+        {
+            if (!string.IsNullOrEmpty(_classSourceFilePath))
+            {
+                _className = this.GetType().Name;
+                return Path.GetDirectoryName(_classSourceFilePath) ?? ProjectTestDir;
+            }
+
+            var stackTrace = new StackTrace(true);
+            
+            // Walk up the stack to find the first frame that's not in the base class
+            for (int i = 0; i < stackTrace.FrameCount; i++)
+            {
+                var frame = stackTrace.GetFrame(i);
+                string fileName = frame?.GetFileName();
+                
+                if (!string.IsNullOrEmpty(fileName) && 
+                    !fileName.EndsWith("SchedulerUnitTest.cs") &&
+                    fileName.EndsWith(".cs"))
+                {
+                    _classSourceFilePath = fileName;
+                    _className = this.GetType().Name;
+                    return Path.GetDirectoryName(fileName) ?? ProjectTestDir;
+                }
+            }
+            
+            // Fallback: construct expected directory
+            string fallbackDir = this.GetType().Name.Replace("Test", "");
+            string fallbackPath = Path.Combine(ProjectTestDir, "MethodUnitTests", fallbackDir);
+            _className = this.GetType().Name;
+            return fallbackPath;
+        }
+
+        protected string GetTestProjectRootDirectory()
+        {
+            string baseTestDir = Utilities.DevEnvironment.GetTestDirectory();
+            return Path.Combine(baseTestDir, "HSFSchedulerUnitTest");
         }
         # endregion
 

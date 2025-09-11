@@ -20,11 +20,8 @@ namespace HSFSchedulerUnitTest
     [TestFixture]
     public class GenerateExhaustiveSystemSchedulesCombosTest : SchedulerUnitTest
     {
-        private string? DefaultSimInputFile;
-        private string? DefaultModelInputFile;
-        private string? DefaultTaskInputFile;
-        private SystemClass? testSystem;
-        private Stack<MissionElements.Task>? testTasks;
+        // private SystemClass? _testSimSystem;
+        // private Stack<MissionElements.Task>? _testSystemTasks;
 
         [SetUp]
         public void SetupDefaultExhaustiveTest()
@@ -36,9 +33,6 @@ namespace HSFSchedulerUnitTest
 
             //Console.WriteLine($"  Setting up GenerateExhaustiveSystemSchedules test with {SimInputFile}");
             TestContext.WriteLine($"\n{CurrentTestName}--->Setting up test with -s {SimInputFile}, -t {TaskInputFile}, -m  {ModelInputFile}\n");
-
-            // Load the program to get the system and tasks & Create the system and tasks for testing      
-            BuildProgram();
         }
 
         private void BuildProgram()
@@ -46,13 +40,12 @@ namespace HSFSchedulerUnitTest
             // Load the program to get the system and tasks
             program = HorizonLoadHelper(SimInputFile, TaskInputFile, ModelInputFile);
 
-
             // Create (a copy of) the system and tasks for testing -- These are created by the program, under program.SimSystem and program.SystemTasks
-            testSystem = new SystemClass(program.AssetList, program.SubList, program.ConstraintsList, program.SystemUniverse);
-            testTasks = new Stack<MissionElements.Task>(program.SystemTasks);
+            _testSimSystem = new SystemClass(program.AssetList, program.SubList, program.ConstraintsList, program.SystemUniverse);
+            _testSystemTasks = new Stack<MissionElements.Task>(program.SystemTasks);
 
-            // Initialize the scheduleCombos stack, in preparation for the method call
-            scheduleCombos = new Stack<Stack<Access>>();
+            // Initialize the (test-internal) _scheduleCombos stack, in preparation for the method call
+            _scheduleCombos = new Stack<Stack<Access>>();
         }
 
         [TestCase("OneAssetTestModel.json", "ThreeTaskTestInput.json", 1, 3, 3)]
@@ -70,7 +63,7 @@ namespace HSFSchedulerUnitTest
             double endTime = 60.0;
 
             // Call the Method
-            var result = Scheduler.GenerateExhaustiveSystemSchedules(testSystem, testTasks, scheduleCombos, currentTime, endTime);
+            var result = Scheduler.GenerateExhaustiveSystemSchedules(_testSimSystem, _testSystemTasks, _scheduleCombos, currentTime, endTime);
 
             // Assert
             Assert.Multiple(() =>
@@ -93,6 +86,9 @@ namespace HSFSchedulerUnitTest
         [Test]
         public void TestAccessStartTime()
         {
+            // Build the program (no longer can do in setup)
+            BuildProgram();
+
             //This input file (used in SetUp()) should start at 0.0 seconds. 
             double _simStart_TestInput = 0.0;
 
@@ -101,13 +97,13 @@ namespace HSFSchedulerUnitTest
 
 
             // Call the Method
-            var result = Scheduler.GenerateExhaustiveSystemSchedules(testSystem, testTasks, scheduleCombos, startTime, endTime);
+            var result = Scheduler.GenerateExhaustiveSystemSchedules(_testSimSystem, _testSystemTasks, _scheduleCombos, startTime, endTime);
 
             // Assert
             Assert.Multiple(() =>
             {
                 Assert.That(SimParameters.SimStartSeconds, Is.EqualTo(_simStart_TestInput), "Esnure the SimStart time is equal to the test case expected Result. Otherwise, may be a bug in the Simluation file and/or the unit test.");
-                foreach (var accessStack in scheduleCombos)
+                foreach (var accessStack in _scheduleCombos)
                 {
                     foreach (var access in accessStack)
                     {
@@ -121,8 +117,11 @@ namespace HSFSchedulerUnitTest
         }
 
         [Test]
-        public void TestAccessSEndTime()
+        public void TestAccessEndTime()
         {
+            // Build the program (no longer can do in setup)
+            BuildProgram();
+
             //This input file (used in SetUp()) should start at 0.0 seconds. 
             double _simEnd_TestInput = 60.0;
 
@@ -131,13 +130,13 @@ namespace HSFSchedulerUnitTest
 
 
             // Call the Method
-            var result = Scheduler.GenerateExhaustiveSystemSchedules(testSystem, testTasks, scheduleCombos, startTime, endTime);
+            var result = Scheduler.GenerateExhaustiveSystemSchedules(_testSimSystem, _testSystemTasks, _scheduleCombos, startTime, endTime);
 
             // Assert
             Assert.Multiple(() =>
             {
                 Assert.That(SimParameters.SimEndSeconds, Is.EqualTo(_simEnd_TestInput), "Esnure the SimEnd time is equal to the test case expected Result. Otherwise, may be a bug in the Simluation file and/or the unit test.");
-                foreach (var accessStack in scheduleCombos)
+                foreach (var accessStack in _scheduleCombos)
                 {
                     foreach (var access in accessStack)
                     {
