@@ -54,7 +54,7 @@ namespace HSFScheduler
             Name = name;
         }
 
-        public SystemSchedule(StateHistory oldStates, Stack<Access> newAccessList, double currentTime)
+        public SystemSchedule(StateHistory oldStates, Stack<Access> newAccessStack, double currentTime)
         {
             
             Dictionary<Asset, Task> tasks = new Dictionary<Asset, Task>();
@@ -63,7 +63,7 @@ namespace HSFScheduler
             Dictionary<Asset, double> eventStarts = new Dictionary<Asset, double>();
             Dictionary<Asset, double> eventEnds = new Dictionary<Asset, double>();
 
-            foreach (var access in newAccessList)
+            foreach (var access in newAccessStack)
             {
                 if (access.Task != null)
                 {
