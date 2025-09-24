@@ -36,8 +36,8 @@ namespace HSFSchedulerUnitTest
             // used in the ScriptedSubsystemCS.cs somehow with .NET dependency madness and like... we just dont fuck with that. No need to fully understand.
             // I underestand perfectly sir, we can add that feature later in another way, perhaps using reflection. 
         }
-    
-        
+
+
         [SetUp]
         public void SetupDefaultExhaustiveTest()
         {
@@ -83,7 +83,7 @@ namespace HSFSchedulerUnitTest
         {
             // Clear the access stack to remove any Access objects from previous tests
             accessStack.Clear();
-            
+
             // Reset the asset and task properties to null
             asset1 = null;
             task1 = null;
@@ -91,7 +91,7 @@ namespace HSFSchedulerUnitTest
 
         # region Tests
         [Test, Order(1)]
-        public void FullAccessTest()
+        public void FullAccessTest_0_60s()
         {
             // Get some time properties:
             var currentTime = SimParameters.SimStartSeconds;
@@ -221,7 +221,7 @@ namespace HSFSchedulerUnitTest
             // We Use a Stack of Access (length one) because on the internal it will go through the stack, in the case that there are multiple assets.
             // This constructor still only creates one schedule per asset/system (per access).
             double accessStart = 6.0;
-            double accessEnd = 14.0; 
+            double accessEnd = 14.0;
             accessStack.Push(new Access(asset1, task1, accessStart, accessEnd));
 
             // Create the new schedule
@@ -314,65 +314,67 @@ namespace HSFSchedulerUnitTest
             });
         }
 
-        [Test, Order(4)]
-        public void AccessPastEventTest_13_20s()
-        {
-            // Not sure if this will ever be able to happen, but we can test for the case where Access is 0-0s. 
-            
-            // Get some time properties:
-            var currentTime = SimParameters.SimStartSeconds;
-            var endTime = SimParameters.SimEndSeconds;
-            var stepTime = SimParameters.SimStepSeconds;
+        // This is actually going to be taken care of by testing the Pre-generation or Scripted-generation of Accesses.
+        // In short, there should not be accesses here that dont start within the event time. End should not count either. 
+        // [Test, Order(4)]
+        // public void AccessPastEventTest_13_20s()
+        // {
+        //     // Not sure if this will ever be able to happen, but we can test for the case where Access is 0-0s. 
 
-            // Lets create the next step on the fundamnetal timestep
-            var nextTime = currentTime + stepTime;
+        //     // Get some time properties:
+        //     var currentTime = SimParameters.SimStartSeconds;
+        //     var endTime = SimParameters.SimEndSeconds;
+        //     var stepTime = SimParameters.SimStepSeconds;
 
-            // Draw an arbitrary Asset and Task to start creating Accesses with the values we want. 
-            asset1 = program.AssetList[0];
-            task1 = program.SystemTasks.Peek();
-            var stateHistory = new StateHistory(_systemSchedules[0].AllStates); // Draw the StateHistory fromt he program-instantiated _systemSchedules 
-                                                                                // Here, it should be the empty schedule, so a list of 0 Events will be copied over.
+        //     // Lets create the next step on the fundamnetal timestep
+        //     var nextTime = currentTime + stepTime;
 
-            // We Use a Stack of Access (length one) because on the internal it will go through the stack, in the case that there are multiple assets.
-            // This constructor still only creates one schedule per asset/system (per access).
-            double accessStart = 6.0;
-            double accessEnd = 11.0;
-            accessStack.Push(new Access(asset1, task1, accessStart, accessEnd));
+        //     // Draw an arbitrary Asset and Task to start creating Accesses with the values we want. 
+        //     asset1 = program.AssetList[0];
+        //     task1 = program.SystemTasks.Peek();
+        //     var stateHistory = new StateHistory(_systemSchedules[0].AllStates); // Draw the StateHistory fromt he program-instantiated _systemSchedules 
+        //                                                                         // Here, it should be the empty schedule, so a list of 0 Events will be copied over.
 
-            // Create the new schedule
-            var newSysSchedule = new SystemSchedule(stateHistory, accessStack, 0.0);
-            var result = newSysSchedule.AllStates.Events.Peek();
-            //Assert the result
-            Assert.Multiple(() =>
-            {
-                #region Assert 0:
-                //Access must start at 6.0/currentTime here
-                Assert.That(accessStack.Peek().AccessStart, Is.EqualTo(accessStart), $"Asset 0a. AccesStart within the stack must be set to {accessStart}s");
-                Assert.That(accessStack.Peek().AccessEnd, Is.EqualTo(accessEnd), $"Asset 0b. AccessEnd within the stack must be {accessEnd}s");
-                #endregion
+        //     // We Use a Stack of Access (length one) because on the internal it will go through the stack, in the case that there are multiple assets.
+        //     // This constructor still only creates one schedule per asset/system (per access).
+        //     double accessStart = 6.0;
+        //     double accessEnd = 11.0;
+        //     accessStack.Push(new Access(asset1, task1, accessStart, accessEnd));
 
-                #region Assert 1:
-                // Assert 1a: that Event Start will always be the start of the fundamental timestep.
-                Assert.That(result.EventStarts[asset1], Is.EqualTo(currentTime), $"Asset 1a: Event Start should always be on the fundamental timestep " +
-                    $"(for Default functionality). The current time, {currentTime}, should be the same as Event Start.");
-                // Assert 1b: that Event End will always be end of the fundamental timestep. 
-                Assert.That(result.EventEnds[asset1], Is.EqualTo(nextTime), $"Assert 1b: Event Ends should always be on the fundamental timestep " +
-                    $"(for Default functionality). The current time, {nextTime}, should be the same as Event Start.");
-                #endregion
+        //     // Create the new schedule
+        //     var newSysSchedule = new SystemSchedule(stateHistory, accessStack, 0.0);
+        //     var result = newSysSchedule.AllStates.Events.Peek();
+        //     //Assert the result
+        //     Assert.Multiple(() =>
+        //     {
+        //         #region Assert 0:
+        //         //Access must start at 6.0/currentTime here
+        //         Assert.That(accessStack.Peek().AccessStart, Is.EqualTo(accessStart), $"Asset 0a. AccesStart within the stack must be set to {accessStart}s");
+        //         Assert.That(accessStack.Peek().AccessEnd, Is.EqualTo(accessEnd), $"Asset 0b. AccessEnd within the stack must be {accessEnd}s");
+        //         #endregion
 
-                # region Assert 2:
-                // Assert 2a: that Task Start will always be end of the fundamental timestep. 
-                Assert.That(result.TaskStarts[asset1], Is.EqualTo(accessStart), $"Assert 2a: Task Start should be at the earliest access within the Event at hand. " +
-                    $"Because the Access starts a bit late, this should be equivalent to the access start time, {accessStart}.");
+        //         #region Assert 1:
+        //         // Assert 1a: that Event Start will always be the start of the fundamental timestep.
+        //         Assert.That(result.EventStarts[asset1], Is.EqualTo(currentTime), $"Asset 1a: Event Start should always be on the fundamental timestep " +
+        //             $"(for Default functionality). The current time, {currentTime}, should be the same as Event Start.");
+        //         // Assert 1b: that Event End will always be end of the fundamental timestep. 
+        //         Assert.That(result.EventEnds[asset1], Is.EqualTo(nextTime), $"Assert 1b: Event Ends should always be on the fundamental timestep " +
+        //             $"(for Default functionality). The current time, {nextTime}, should be the same as Event Start.");
+        //         #endregion
 
-                // Assert 2b: that Task End will always be end of the fundamental timestep. 
-                Assert.That(result.TaskEnds[asset1], Is.EqualTo(accessEnd), $"Assert 2b: Task End should be at the latest accessible time within the Event at hand. " +
-                    $"Because the Access ends within the event, this should be equivalent to the access end time, {accessEnd}s. ");
-                #endregion
-            });
-        }
-        
-        # endregion
+        //         # region Assert 2:
+        //         // Assert 2a: that Task Start will always be end of the fundamental timestep. 
+        //         Assert.That(result.TaskStarts[asset1], Is.EqualTo(accessStart), $"Assert 2a: Task Start should be at the earliest access within the Event at hand. " +
+        //             $"Because the Access starts a bit late, this should be equivalent to the access start time, {accessStart}.");
+
+        //         // Assert 2b: that Task End will always be end of the fundamental timestep. 
+        //         Assert.That(result.TaskEnds[asset1], Is.EqualTo(accessEnd), $"Assert 2b: Task End should be at the latest accessible time within the Event at hand. " +
+        //             $"Because the Access ends within the event, this should be equivalent to the access end time, {accessEnd}s. ");
+        //         #endregion
+        //     });
+        // }
+
+        #endregion
 
     }
 }

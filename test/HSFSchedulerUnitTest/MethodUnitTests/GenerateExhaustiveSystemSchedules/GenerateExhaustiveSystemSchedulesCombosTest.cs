@@ -35,6 +35,34 @@ namespace HSFSchedulerUnitTest
             TestContext.WriteLine($"\n{CurrentTestName}--->Setting up test with -s {SimInputFile}, -t {TaskInputFile}, -m  {ModelInputFile}\n");
         }
 
+        [TearDown]
+        public void GenerateExhaustiveCombosTearDown()
+        {
+            // Reset the main program instance - this is the most important one
+            program = new Horizon.Program();
+            
+            // Reset program-related attributes
+            _testSimSystem = null;
+            _testSystemTasks = null;
+            
+            // Clear all collection attributes (they're initialized as new instances)
+            _systemSchedules.Clear();
+            _scheduleCombos.Clear();
+            _potentialSystemSchedules.Clear();
+            _systemCanPerformList.Clear();
+            
+            // Reset nullable attributes
+            _canPregenAccess = null;
+            _preGeneratedAccesses = null;
+            _schedEvaluator = null;
+            _emptySchedIdx = null;
+            
+            // File paths can stay - they get set by [SetUp] anyway
+            // SimInputFile, TaskInputFile, ModelInputFile don't need resetting
+            
+            TestContext.WriteLine($"=~==~==~= Test {CurrentClassName}.{CurrentTestName} TeraDown Completed =~==~==~=\n");
+        }
+
         private void BuildProgram()
         {
             // Load the program to get the system and tasks
@@ -50,8 +78,14 @@ namespace HSFSchedulerUnitTest
 
         [TestCase("OneAssetTestModel.json", "ThreeTaskTestInput.json", 1, 3, 3)]
         [TestCase("TwoAssetTestModel.json", "ThreeTaskTestInput.json", 2, 3, 9)]
+        [TestCase("TwoAssetTestModel.json", "SixteenTaskTestInput.json", 2, 16, 16*16 )]
         public void TestNumberTotalCombosGenerated(string _modelInputFile, string _taskInputFile, int _numAssets, int _numTasks, int _expectedResult)
         {
+
+            // Reset the program to not add assets and tasks in on accident. This is also taken care of in TearDown(), which fixed this
+            // bug, but leaving it here too to be obivous! 
+            this.program = new Horizon.Program();
+
             // Set the proper (variable) test case input files
             TaskInputFile = Path.Combine(CurrentTestDir, _taskInputFile);
             ModelInputFile = Path.Combine(CurrentTestDir, _modelInputFile);
