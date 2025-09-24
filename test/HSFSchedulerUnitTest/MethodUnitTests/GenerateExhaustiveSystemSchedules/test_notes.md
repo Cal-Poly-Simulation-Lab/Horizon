@@ -35,6 +35,7 @@ The `GenerateExhaustiveSystemSchedules()` method:
 - **Test Cases:**
   - 1 Asset × 3 Tasks = 3 combinations (3^1 = 3)
   - 2 Assets × 3 Tasks = 9 combinations (3^2 = 9)
+  - 2 Assets × 16 Tasks = 256 combinations (16^2 = 256)
 - **Key Assertions:**
   - `result.Count == _expectedResult`
   - `program.AssetList.Count == _numAssets`
@@ -74,14 +75,20 @@ The `GenerateExhaustiveSystemSchedules()` method:
   - `subsystems: [SchedulerSubTest]` - Barebones test subsystem
   - `constraints: []` - No operational constraints
 
-**Task File:**
+**Task Files:**
 
 - **`ThreeTaskTestInput.json`**: Three identical tasks
-- **Task Configuration:**
   - `type: "None"` - Generic task type
   - `maxTimes: 100` - High execution limit
   - `target.dynamicState.type: "NULL_STATE"` - Static targets
   - `value: [10.0, 20.0, 30.0]` - Different target values
+
+- **`SixteenTaskTestInput.json`**: Sixteen identical tasks (stress test)
+  - `type: "None"` - Generic task type
+  - `maxTimes: 100` - High execution limit
+  - `target.dynamicState.type: "NULL_STATE"` - Static targets
+  - `value: [10.0, 20.0, ..., 160.0]` - Incremental target values
+  - **Purpose:** Tests large-scale combinatorial generation (2^16 = 65,536 potential combinations)
 
 ### Evaluator Configuration
 
@@ -116,7 +123,7 @@ The `GenerateExhaustiveSystemSchedules()` method:
 
 - `SchedulerTestSimulationInput.json` - Base simulation configuration
 - Model files: `OneAssetTestModel.json`, `TwoAssetTestModel.json`
-- Task file: `ThreeTaskTestInput.json`
+- Task files: `ThreeTaskTestInput.json`, `SixteenTaskTestInput.json`
 - `SchedulerSubTest.cs` - Test subsystem implementation
 - `SchedulerTestEval.py` - Test evaluator (loaded but not used)
 

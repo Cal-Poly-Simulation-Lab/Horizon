@@ -17,6 +17,7 @@ output/
 
 # Exclude my notes:
 notes.txt
+thesis_notes.md
 
 # MacOS Finder unnecessary file:
 .DS_Store
