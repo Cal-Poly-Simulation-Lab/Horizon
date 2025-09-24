@@ -45,7 +45,7 @@ namespace HSFSchedulerUnitTest
             TestContext.WriteLine($"Test directory resolved to: {CurrentTestDir}");
 
             // // Use the existing test files for the 1 asset, 3 tasks scenario
-            SimInputFile = Path.Combine(ProjectTestDir, "SchedulerTestSimulationInput.json"); // Bulletproof path to default simulation input
+            SimInputFile = Path.Combine(ProjectTestDir, "InputFiles", "SchedulerTestSimulationInput.json"); // Bulletproof path to default simulation input
             TaskInputFile = Path.Combine(CurrentTestDir, "DefaultThreeTaskInput.json");
             ModelInputFile = Path.Combine(CurrentTestDir, "DefaultOneAssetModelInput.json");
 

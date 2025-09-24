@@ -31,19 +31,19 @@ namespace HSFSchedulerUnitTest
 
 
         # region Private/Internal Program Attributes
-        protected SystemClass? _testSimSystem {get; set; }
-        protected Stack<MissionElements.Task>? _testSystemTasks {get; set; }
+        protected SystemClass? _testSimSystem { get; set; }
+        protected Stack<MissionElements.Task>? _testSystemTasks { get; set; }
         #endregion
-        
+
         #region Private/Intneral Scheduler Attributes
         // Attributes that are private in the Scheduler class that are needed for testing:
         // Needed for schedule evaluation and computation:
         protected List<SystemSchedule> _systemSchedules = new List<SystemSchedule>();
-        protected Stack<Stack<Access>> _scheduleCombos = new Stack<Stack<Access>>(); 
+        protected Stack<Stack<Access>> _scheduleCombos = new Stack<Stack<Access>>();
         protected List<SystemSchedule> _potentialSystemSchedules = new List<SystemSchedule>();
         protected List<SystemSchedule> _systemCanPerformList = new List<SystemSchedule>();
-        protected bool? _canPregenAccess {get; set; }
-        protected Stack<Access>? _preGeneratedAccesses {get; set;}
+        protected bool? _canPregenAccess { get; set; }
+        protected Stack<Access>? _preGeneratedAccesses { get; set; }
         protected Evaluator? _schedEvaluator { get; set; }
         # endregion
 
@@ -51,7 +51,7 @@ namespace HSFSchedulerUnitTest
         // Test method name and class name for logging
         protected string? CurrentTestName { get; private set; }
         protected string? CurrentClassName { get; private set; }
-        
+
         // Class file tracking variables
         private string? _classSourceFilePath;
         private string? _className;
@@ -130,7 +130,7 @@ namespace HSFSchedulerUnitTest
             program.SimSystem = new SystemClass(program.AssetList, program.SubList, program.ConstraintsList, program.SystemUniverse);
             if (program.SimSystem.CheckForCircularDependencies())
                 throw new NotFiniteNumberException("System has circular dependencies! Please correct then try again.");
-            program.scheduler = new Scheduler(program.SchedEvaluator); 
+            program.scheduler = new Scheduler(program.SchedEvaluator);
 
             // And this is where we pause the setup because we are testing this method:
             //program.Schedules = program.scheduler.GenerateSchedules(program.SimSystem, program.SystemTasks, program.InitialSysState);
@@ -150,14 +150,14 @@ namespace HSFSchedulerUnitTest
                 return _classSourceFilePath;
 
             var stackTrace = new StackTrace(true);
-            
+
             // Walk up the stack to find the first frame that's not in the base class
             for (int i = 0; i < stackTrace.FrameCount; i++)
             {
                 var frame = stackTrace.GetFrame(i);
                 string fileName = frame?.GetFileName();
-                
-                if (!string.IsNullOrEmpty(fileName) && 
+
+                if (!string.IsNullOrEmpty(fileName) &&
                     !fileName.EndsWith("SchedulerUnitTest.cs") &&
                     fileName.EndsWith(".cs"))
                 {
@@ -165,7 +165,7 @@ namespace HSFSchedulerUnitTest
                     return fileName;
                 }
             }
-            
+
             // Fallback: try to construct expected path
             string expectedFileName = $"{this.GetType().Name}.cs";
             string fallbackPath = Path.Combine(ProjectTestDir, "MethodUnitTests", this.GetType().Name.Replace("Test", ""), expectedFileName);
@@ -183,14 +183,14 @@ namespace HSFSchedulerUnitTest
             }
 
             var stackTrace = new StackTrace(true);
-            
+
             // Walk up the stack to find the first frame that's not in the base class
             for (int i = 0; i < stackTrace.FrameCount; i++)
             {
                 var frame = stackTrace.GetFrame(i);
                 string fileName = frame?.GetFileName();
-                
-                if (!string.IsNullOrEmpty(fileName) && 
+
+                if (!string.IsNullOrEmpty(fileName) &&
                     !fileName.EndsWith("SchedulerUnitTest.cs") &&
                     fileName.EndsWith(".cs"))
                 {
@@ -199,7 +199,7 @@ namespace HSFSchedulerUnitTest
                     return Path.GetDirectoryName(fileName) ?? ProjectTestDir;
                 }
             }
-            
+
             // Fallback: construct expected directory
             string fallbackDir = this.GetType().Name.Replace("Test", "");
             string fallbackPath = Path.Combine(ProjectTestDir, "MethodUnitTests", fallbackDir);
@@ -214,139 +214,6 @@ namespace HSFSchedulerUnitTest
         }
         # endregion
 
-        #region Test Directory Helpers (LEGACY - COMMENTED OUT)
-        /*
-        /// <summary>
-        /// Gets the test project root directory (where HSFSchedulerUnitTest.csproj and SchedulerUnitTest.cs are located)
-        /// </summary>
-        /// <returns>Full path to the test project root directory</returns>
-        protected string GetTestProjectRootDirectory()
-        {
-            string baseTestDir = Utilities.DevEnvironment.GetTestDirectory();
-            return Path.Combine(baseTestDir, "HSFSchedulerUnitTest");
-        }
-
-        /// <summary>
-        /// Gets the test directory path for the current test class by searching for the .cs file
-        /// </summary>
-        /// <returns>Full path to the current test class directory</returns>
-        protected string GetCurrentTestClassDirectory()
-        {
-            string expectedFileName = $"{this.GetType().Name}.cs";
-            
-            // Directories to exclude from search
-            string[] excludeDirs = { "Subsystems", "bin", "obj", "output", "InputFiles" };
-            
-            // First, check if the file is directly in the project root
-            string directPath = Path.Combine(ProjectTestDir, expectedFileName);
-            if (File.Exists(directPath))
-            {
-                return ProjectTestDir;
-            }
-            
-            // Search in MethodUnitTests and all its subdirectories first (priority search)
-            string methodUnitTestsDir = Path.Combine(ProjectTestDir, "MethodUnitTests");
-            if (Directory.Exists(methodUnitTestsDir))
-            {
-                string foundPath = SearchForClassFile(methodUnitTestsDir, expectedFileName, excludeDirs);
-                if (!string.IsNullOrEmpty(foundPath))
-                {
-                    return foundPath;
-                }
-            }
-            
-            // If not found in MethodUnitTests, search all other subdirectories
-            string foundPathInOther = SearchForClassFile(ProjectTestDir, expectedFileName, excludeDirs, skipMethodUnitTests: true);
-            if (!string.IsNullOrEmpty(foundPathInOther))
-            {
-                return foundPathInOther;
-            }
-            
-            // Fallback: if file not found, return MethodUnitTests directory with class name
-            string fallbackDir = this.GetType().Name.Replace("Test", "");
-            return Path.Combine(methodUnitTestsDir, fallbackDir);
-        }
-
-        /// <summary>
-        /// Recursively searches for a class file in a directory and its subdirectories
-        /// </summary>
-        /// <param name="searchDir">Directory to search in</param>
-        /// <param name="fileName">File name to search for</param>
-        /// <param name="excludeDirs">Directories to exclude from search</param>
-        /// <param name="skipMethodUnitTests">If true, skip searching in MethodUnitTests directory</param>
-        /// <returns>Directory path where the file was found, or empty string if not found</returns>
-        private string SearchForClassFile(string searchDir, string fileName, string[] excludeDirs, bool skipMethodUnitTests = false)
-        {
-            if (!Directory.Exists(searchDir))
-                return string.Empty;
-            
-            try
-            {
-                // Check if the file exists in the current directory
-                string filePath = Path.Combine(searchDir, fileName);
-                if (File.Exists(filePath))
-                {
-                    return searchDir;
-                }
-                
-                // Search subdirectories
-                var subDirs = Directory.GetDirectories(searchDir);
-                foreach (string subDir in subDirs)
-                {
-                    string dirName = Path.GetFileName(subDir);
-                    
-                    // Skip excluded directories
-                    if (excludeDirs.Contains(dirName))
-                        continue;
-                    
-                    // Skip MethodUnitTests if requested
-                    if (skipMethodUnitTests && dirName == "MethodUnitTests")
-                        continue;
-                    
-                    // Recursively search the subdirectory
-                    string foundPath = SearchForClassFile(subDir, fileName, excludeDirs, skipMethodUnitTests);
-                    if (!string.IsNullOrEmpty(foundPath))
-                    {
-                        return foundPath;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                // Log the exception but continue searching
-                TestContext.WriteLine($"Warning: Error searching directory {searchDir}: {ex.Message}");
-            }
-            
-            return string.Empty;
-        }
-
-        /// <summary>
-        /// Test method to verify directory resolution works correctly (for debugging)
-        /// </summary>
-        [Test]
-        public void TestDirectoryResolution()
-        {
-            TestContext.WriteLine($"Project Root: {ProjectTestDir}");
-            TestContext.WriteLine($"Current Test Dir: {CurrentTestDir}");
-            TestContext.WriteLine($"Current Class: {CurrentClassName}");
-            TestContext.WriteLine($"Class Source File Path: {_classSourceFilePath ?? "Not Found"}");
-            TestContext.WriteLine($"Class Name: {_className ?? "Not Set"}");
-            
-            // Verify project root contains the expected files
-            Assert.That(File.Exists(Path.Combine(ProjectTestDir, "HSFSchedulerUnitTest.csproj")), Is.True, "Project file should exist in project root");
-            Assert.That(File.Exists(Path.Combine(ProjectTestDir, "SchedulerUnitTest.cs")), Is.True, "Base class file should exist in project root");
-            
-            // Verify current directory exists
-            Assert.That(Directory.Exists(CurrentTestDir), Is.True, "Current test directory should exist");
-            
-            // Verify class source file was found and exists
-            if (!string.IsNullOrEmpty(_classSourceFilePath))
-            {
-                Assert.That(File.Exists(_classSourceFilePath), Is.True, "Class source file should exist at the found path");
-            }
-        }
-        */
-        #endregion
 
 
     }

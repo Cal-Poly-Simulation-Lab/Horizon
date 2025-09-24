@@ -10,16 +10,42 @@
 - Ensure access windows are automatically set to full simulation duration (Default generation setting)
 - Validate input data integrity and loading
 
-## Tested Algorithm Details
+## Test Start Point
 
-The `GenerateExhaustiveSystemSchedules()` method:
+**Program Location:** `Scheduler.GenerateSchedules()` method - **Access Generation Phase**
 
-1. **Creates Access objects** for each Asset-Task pair with full simulation duration
-2. **Groups accesses by asset** into separate stacks
-3. **Generates Cartesian product** of all asset access stacks
-4. **Returns all possible combinations** as `Stack<Stack<Access>>`
+**Program Flow Context (what comes before):**
+1. **Scheduler Constructor** - Initializes scheduler with parameters
+2. **InitializeEmptySchedule** - Creates empty baseline schedule
+3. **Access Generation Decision** - Checks `canPregenAccess` flag (false = exhaustive mode)
+4. **GenerateExhaustiveSystemSchedules** - Generates all possible combinations
 
-**Expected Algorithm Behavior** --> Default Functionality:
+**Required Program Setup (BEFORE tested method):**
+- `canPregenAccess` is false (default exhaustive generation mode) - *Set via canPregenAccessLogic() method*
+- `system` contains loaded assets and subsystems - *Set via Horizon Program loading*
+- `tasks` stack contains all mission tasks - *Set via Horizon Program loading*
+- `scheduleCombos` is empty stack ready for population - *Set via Scheduler constructor*
+- `_startTime` and `_endTime` set from simulation parameters - *Set via Scheduler constructor from SimParameters*
+- `system.Assets` contains all available assets for access generation - *Set via SystemClass construction*
+- `tasks` contains all mission tasks with proper Task definitions - *Set via program.SystemTasks loading*
+- `Access.getCurrentAccessesForAsset()` method available for asset-specific access filtering - *Set via Access class*
+- `CartesianProduct()` extension method available for combinatorial generation - *Set via Utilities extension*
+
+**What the Tested Algorithm Does:**
+- **Method:** `GenerateExhaustiveSystemSchedules(SystemClass system, Stack<Task> tasks, Stack<Stack<Access>> scheduleCombos, double startTime, double endTime)`
+- **Access Object Creation:** Creates Access objects for each Asset-Task combination with full simulation duration (AccessStart = startTime, AccessEnd = endTime)
+- **Asset Grouping:** Groups accesses by asset into separate stacks using `Access.getCurrentAccessesForAsset(asset, currentTime)`
+- **Combinatorial Generation:** Generates Cartesian product of all asset access stacks using `CartesianProduct()` extension method
+- **Return Structure:** Returns complete `Stack<Stack<Access>>` containing all possible schedule combinations (Total = Tasks^Assets)
+- **Default Generation Philosophy:** Assumes full access availability for all Asset-Task pairs, no orbital mechanics constraints
+- **Access Stack Management:** Each inner Stack<Access> represents one possible schedule combination
+
+**Program Context After Tested Method:**
+- `scheduleCombos` populated with all possible access combinations
+- Main scheduling loop can begin using these combinations
+- Each combination represents one possible schedule for TimeDeconfliction phase
+
+## Test Coverage
 
 - **Access windows** automatically span entire simulation (0.0 to 60.0 seconds here, given input file)
 - **No orbital mechanics** - uses NULL_STATE for pure combinatorial testing
@@ -54,7 +80,7 @@ The `GenerateExhaustiveSystemSchedules()` method:
 
 **Simulation File:**
 
-- **`SchedulerTestSimulationInput.json`**: Base simulation configuration
+- **`SchedulerTestSimulationInput.json`**: Base simulation configuration (moved to InputFiles/)
 - **Simulation Configuration:**
   - `simulationParameters.simStartSeconds: 0.0` - Simulation start time
   - `simulationParameters.simEndSeconds: 60.0` - Simulation end time
@@ -141,12 +167,12 @@ The `GenerateExhaustiveSystemSchedules()` method:
 
    **Required Files Filepaths (Reposity-root-relative):**
 
-     1. `test/HSFSchedulerUnitTest/SchedulerTestSimulationInput.json`
+     1. `test/HSFSchedulerUnitTest/InputFiles/SchedulerTestSimulationInput.json`
  	2. `test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedules/OneAssetTestModel.json`
  	3. `test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedules/TwoAssetTestModel.json`
  	4. `test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedules/ThreeTaskTestInput.json`
  	5. `test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedules/SixteenTaskTestInput.json`
- 	6. `test/HSFSchedulerUnitTest/SchedulerSubTest.cs`
+ 	6. `test/HSFSchedulerUnitTest/Subsystems/SchedulerSubTest.cs`
  	7. `test/HSFSchedulerUnitTest/SchedulerTestEval.py`
 
 ## Maintenance Notes

@@ -27,7 +27,7 @@ namespace HSFSchedulerUnitTest
         public void SetupDefaultExhaustiveTest()
         {
             // // Use the existing test files for the 1 asset, 3 tasks scenario
-            SimInputFile = Path.Combine(Utilities.DevEnvironment.GetTestDirectory(), "HSFSchedulerUnitTest", "SchedulerTestSimulationInput.json"); // Bulletproof path to default simulation input
+            SimInputFile = Path.Combine(Utilities.DevEnvironment.GetTestDirectory(), "HSFSchedulerUnitTest", "InputFiles", "SchedulerTestSimulationInput.json"); // Bulletproof path to default simulation input
             TaskInputFile = Path.Combine(CurrentTestDir, "ThreeTaskTestInput.json");
             ModelInputFile = Path.Combine(CurrentTestDir, "OneAssetTestModel.json");
 

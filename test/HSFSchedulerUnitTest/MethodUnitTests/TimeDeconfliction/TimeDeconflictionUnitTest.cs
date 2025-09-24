@@ -34,7 +34,7 @@ namespace HSFSchedulerUnitTest
             // Set up the test directory for the input files:
 
             // // Use the existing test files for the 1 asset, 3 tasks scenario
-            SimInputFile = "SchedulerTestSimulationInput.json"; // Using default HSFSchedulerUnitTest Simulation Input File. 
+            SimInputFile = "InputFiles/SchedulerTestSimulationInput.json"; // Using default HSFSchedulerUnitTest Simulation Input File. 
             TaskInputFile = Path.Combine(testDir, "ThreeTaskTestInput.json");
             ModelInputFile = Path.Combine(testDir, "OneAssetTestModel.json");
 

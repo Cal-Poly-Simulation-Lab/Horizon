@@ -11,21 +11,44 @@
 - Validate exception handling for invalid access time scenarios
 - Test edge cases for access windows that span, start before, or end after event boundaries
 
-## Tested Algorithm Details
+## Test Start Point
 
-The `SystemSchedule(StateHistory oldStates, Stack<Access> newAccessStack, double currentTime)` constructor:
+**Program Location:** `Scheduler.TimeDeconfliction()` method - **Schedule Creation Phase**
 
-1. **Calculates event boundaries** based on current time and simulation step size
-2. **Determines task timing** based on access window availability within events
-3. **Handles edge cases** where access windows don't align with event boundaries
-4. **Validates input** and throws exceptions for invalid access scenarios
+**Program Flow Context (what comes before):**
+1. **InitializeEmptySchedule** - Creates empty baseline schedule
+2. **GenerateExhaustiveSystemSchedules** - Generates all possible access combinations
+3. **Main Scheduling Loop** - Iterates through simulation timesteps
+4. **CropToMaxSchedules** - Maintains schedule count limits
+5. **TimeDeconfliction** - For each existing schedule, tries each access combination
 
-**Expected Algorithm Behavior:**
+**Required Program Setup (BEFORE tested method):**
+- `systemSchedules` contains existing schedules (including empty schedule) - *Set via InitializeEmptySchedule*
+- `scheduleCombos` generated with access/task combinations for current time - *Set via GenerateExhaustiveSystemSchedules*
+- `currentTime` represents current simulation timestep - *Set via main scheduling loop iteration*
+- `oldSystemSchedule` has valid StateHistory from previous timesteps - *Set via existing schedule from systemSchedules*
+- `CanAddTasks()` validation has already passed for this access combination - *Set via TimeDeconfliction loop validation*
+- `SimParameters.SimStepSeconds` available for event boundary calculations - *Set via simulation parameter loading*
+- `newAccessStack` contains valid Access objects with Asset, Task, AccessStart, AccessEnd - *Set via scheduleCombos iteration*
+- `AllStates.GetLastState()` provides initial system state for new schedule - *Set via StateHistory management*
+- `Event` constructor ready to create new event with tasks and SystemState - *Set via Event class availability*
 
-- **EventStart** = always set to `currentTime` (fundamental timestep start)
-- **EventEnd** = always set to `currentTime + SimStepSeconds` (fundamental timestep end)
-- **TaskStart** = earliest available access time within the event
-- **TaskEnd** = latest available access time within the event
+**What the Tested Algorithm Does:**
+- **Constructor:** `SystemSchedule(StateHistory oldStates, Stack<Access> newAccessStack, double currentTime)`
+- Creates new SystemSchedule from existing StateHistory and new Access stack
+- **Event Boundary Calculation:** EventStart = currentTime, EventEnd = currentTime + SimStepSeconds
+- **Task Timing Logic:** 
+  - TaskStart = max(currentTime, access.AccessStart) if access.AccessStart > currentTime, else currentTime
+  - TaskEnd = min(currentTime + SimStepSeconds, access.AccessEnd) if access.AccessEnd < EventEnd, else EventEnd
+- **Access Validation:** Throws InvalidOperationException for AccessStart >= AccessEnd, times before currentTime, times after EventEnd
+- **Event Creation:** Creates new Event with tasks dictionary, SystemState from AllStates.GetLastState()
+- **StateHistory Management:** Constructs new StateHistory(oldStates, eventToAdd) for schedule continuity
+- **Event/Task Philosophy:** Events are fundamental timestep windows, tasks restricted to single event window
+
+**Program Context After Tested Method:**
+- New SystemSchedule added to `potentialSystemSchedules` list
+- Schedule contains properly timed events and tasks for current timestep
+- Enables subsequent schedule evaluation and cropping operations
 
 ## Test Coverage
 
@@ -104,7 +127,7 @@ Input files are rather
 
 **Simulation File:**
 
-- **`SchedulerTestSimulationInput.json`**: Base simulation configuration
+- **`SchedulerTestSimulationInput.json`**: Base simulation configuration (moved to InputFiles/)
 - **Simulation Configuration:**
   - `simulationParameters.simStartSeconds: 0.0` - Simulation start time
   - `simulationParameters.simEndSeconds: 60.0` - Simulation end time
@@ -190,9 +213,9 @@ Input files are rather
 6. `AlwaysTrueSubsystem.cs` - Test subsystem implementation
 7. `SchedulerTestEval.py` - Test evaluator (loaded but not used)
 
-   Required Files Filepaths (Reposity-root-relative):
+   **Required Files Filepaths (Reposity-root-relative):**
 
-    1.`test/HSFSchedulerUnitTest/SchedulerTestSimulationInput.json`
+    1.`test/HSFSchedulerUnitTest/InputFiles/SchedulerTestSimulationInput.json`
 	2. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/SystemScheduleConstructor/DefaultOneAssetModelInput.json`
 	3. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/SystemScheduleConstructor/TwoAssetModelInput.json`
 	4. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/SystemScheduleConstructor/DefaultThreeTaskInput.json`

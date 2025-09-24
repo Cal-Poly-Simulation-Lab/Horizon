@@ -16,7 +16,7 @@
           {
             "type": "scriptedcs",
             "name": "SchedulerUnitTest Subsystem",
-            "src": "test\\HSFSchedulerUnitTest\\SchedulerSubTest.cs",
+            "src": "test\\HSFSchedulerUnitTest\\Subsystems\\SchedulerSubTest.cs",
             "className": "SchedulerSubTest",
             "parameters": [],
             "states": []
