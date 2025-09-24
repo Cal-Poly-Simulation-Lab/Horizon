@@ -50,7 +50,7 @@ The `GenerateExhaustiveSystemSchedules()` method:
   - `access.AccessEnd == SimParameters.SimEndSeconds` (60.0)
   - All accesses span entire simulation by default
 
-## Test Input Files
+## Test Input & Required Files
 
 **Simulation File:**
 
@@ -78,17 +78,27 @@ The `GenerateExhaustiveSystemSchedules()` method:
 **Task Files:**
 
 - **`ThreeTaskTestInput.json`**: Three identical tasks
+
   - `type: "None"` - Generic task type
   - `maxTimes: 100` - High execution limit
   - `target.dynamicState.type: "NULL_STATE"` - Static targets
   - `value: [10.0, 20.0, 30.0]` - Different target values
-
 - **`SixteenTaskTestInput.json`**: Sixteen identical tasks (stress test)
+
   - `type: "None"` - Generic task type
   - `maxTimes: 100` - High execution limit
   - `target.dynamicState.type: "NULL_STATE"` - Static targets
   - `value: [10.0, 20.0, ..., 160.0]` - Incremental target values
   - **Purpose:** Tests large-scale combinatorial generation (2^16 = 65,536 potential combinations)
+
+### Subsystem Configuration
+
+- **`SchedulerSubTest.cs`**: Test subsystem implementation
+- **Subsystem Behavior:**
+  - `CanPerform()` always returns `true` for testing purposes
+  - `type: "scriptedcs"` - C# scripted subsystem
+  - `className: "SchedulerSubTest"` - Class name for dynamic loading
+  - **Purpose:** Provides minimal subsystem functionality for combinatorial testing
 
 ### Evaluator Configuration
 
@@ -121,11 +131,23 @@ The `GenerateExhaustiveSystemSchedules()` method:
 
 ### Required Files
 
-- `SchedulerTestSimulationInput.json` - Base simulation configuration
-- Model files: `OneAssetTestModel.json`, `TwoAssetTestModel.json`
-- Task files: `ThreeTaskTestInput.json`, `SixteenTaskTestInput.json`
-- `SchedulerSubTest.cs` - Test subsystem implementation
-- `SchedulerTestEval.py` - Test evaluator (loaded but not used)
+1. `SchedulerTestSimulationInput.json` - Base simulation configuration
+2. `OneAssetTestModel.json` - Single asset model
+3. `TwoAssetTestModel.json` - Two asset model
+4. `ThreeTaskTestInput.json` - Three task definitions
+5. `SixteenTaskTestInput.json` - Sixteen task definitions (stress test)
+6. `SchedulerSubTest.cs` - Test subsystem implementation
+7. `SchedulerTestEval.py` - Test evaluator (loaded but not used)
+
+   **Required Files Filepaths (Reposity-root-relative):**
+
+     1. `test/HSFSchedulerUnitTest/SchedulerTestSimulationInput.json`
+ 	2. `test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedules/OneAssetTestModel.json`
+ 	3. `test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedules/TwoAssetTestModel.json`
+ 	4. `test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedules/ThreeTaskTestInput.json`
+ 	5. `test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedules/SixteenTaskTestInput.json`
+ 	6. `test/HSFSchedulerUnitTest/SchedulerSubTest.cs`
+ 	7. `test/HSFSchedulerUnitTest/SchedulerTestEval.py`
 
 ## Maintenance Notes
 

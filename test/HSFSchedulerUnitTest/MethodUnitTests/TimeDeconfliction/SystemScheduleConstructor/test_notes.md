@@ -100,7 +100,7 @@ The constructor validates access times and throws `InvalidOperationException` fo
 
 ## Test Input Files
 
-Input files are rather 
+Input files are rather
 
 **Simulation File:**
 
@@ -110,21 +110,41 @@ Input files are rather
   - `simulationParameters.simEndSeconds: 60.0` - Simulation end time
   - `simulationParameters.simStepSeconds: 12.0` - Time step size (fundamental timestep)
 
-**Model File:**
+**Model Files:**
 
 - **`DefaultOneAssetModelInput.json`**: Single asset configuration
+- **`TwoAssetModelInput.json`**: Two asset configuration
 - **Asset Configuration:**
   - `dynamicState.type: "NULL_STATE"` - No orbital mechanics
-  - `subsystems: [SchedulerSubTest]` - Test subsystem
+  - `subsystems: [AlwaysTrueSubsystem]` - Test subsystem
   - `constraints: []` - No operational constraints
 
-**Task File:**
+**Task Files:**
 
 - **`DefaultThreeTaskInput.json`**: Three test tasks
+- **`TwoTaskInput.json`**: Two test tasks
 - **Task Configuration:**
   - `type: "None"` - Generic task type
   - `maxTimes: 100` - High execution limit
   - `target.dynamicState.type: "NULL_STATE"` - Static targets
+
+### Subsystem Configuration
+
+- **`AlwaysTrueSubsystem.cs`**: Test subsystem implementation
+- **Subsystem Behavior:**
+  - `CanPerform()` always returns `true` for testing purposes
+  - `type: "scriptedcs"` - C# scripted subsystem
+  - `className: "AlwaysTrueSubsystem"` - Class name for dynamic loading
+  - **Purpose:** Provides minimal subsystem functionality for constructor testing
+
+### Evaluator Configuration
+
+- **`SchedulerTestEval.py`**: Python scripted evaluator
+- **Evaluator Behavior:**
+  - `type: "scripted"` - Python scripted evaluator
+  - `className: "eval"` - Python class name
+  - **Note:** Evaluator is loaded but **Checker is never called** in these tests
+  - **Purpose:** Complete system setup without evaluation logic
 
 ## Test Results & Notes
 
@@ -162,10 +182,23 @@ Input files are rather
 
 ### Required Files
 
-- `SchedulerTestSimulationInput.json` - Base simulation configuration
-- `DefaultOneAssetModelInput.json` - Single asset model
-- `DefaultThreeTaskInput.json` - Test task definitions
-- `SchedulerSubTest.cs` - Test subsystem implementation
+1. `SchedulerTestSimulationInput.json` - Base simulation configuration
+2. `DefaultOneAssetModelInput.json` - Single asset model
+3. `TwoAssetModelInput.json` - Two asset model
+4. `DefaultThreeTaskInput.json` - Three task definitions
+5. `TwoTaskInput.json` - Two task definitions
+6. `AlwaysTrueSubsystem.cs` - Test subsystem implementation
+7. `SchedulerTestEval.py` - Test evaluator (loaded but not used)
+
+   Required Files Filepaths (Reposity-root-relative):
+
+    1.`test/HSFSchedulerUnitTest/SchedulerTestSimulationInput.json`
+	2. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/SystemScheduleConstructor/DefaultOneAssetModelInput.json`
+	3. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/SystemScheduleConstructor/TwoAssetModelInput.json`
+	4. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/SystemScheduleConstructor/DefaultThreeTaskInput.json`
+	5. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/SystemScheduleConstructor/TwoTaskInput.json`
+	6. `test/HSFSchedulerUnitTest/Subsystems/AlwaysTrueSubsystem.cs`
+	7. `test/HSFSchedulerUnitTest/SchedulerTestEval.py`
 
 ## Maintenance Notes
 
