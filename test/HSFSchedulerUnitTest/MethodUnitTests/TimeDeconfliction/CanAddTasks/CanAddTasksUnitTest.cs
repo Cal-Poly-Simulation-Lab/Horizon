@@ -61,11 +61,6 @@ namespace HSFSchedulerUnitTest
             // GenerateSchedules() Method Flow Stop #2: Generate all default schedule combos
             _scheduleCombos = Scheduler.GenerateExhaustiveSystemSchedules(program.SimSystem, program.SystemTasks, _scheduleCombos, simStart, simEnd);
 
-            // Genera
-            //Now that we have generated the exhaustive system schedules, we can be at the CURRENT TIME: SIM START, and execute the first CropToMaxSchedules call.:
-            _systemSchedules = program.scheduler.CropToMaxSchedules(_systemSchedules, Scheduler.emptySchedule);
-            // Later, we will have to manually propagate the currentTime to the nextTime for the next call to CropToMaxSchedules.
-
         }
 
         [Test, Order(1)]
@@ -73,6 +68,9 @@ namespace HSFSchedulerUnitTest
         {
             // Have to call the build manually
             BuildProgram();
+            //Now that we have generated the exhaustive system schedules, we can be at the CURRENT TIME: SIM START, and execute the first CropToMaxSchedules call.:
+            _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, Scheduler.emptySchedule, program.SchedEvaluator); //bump
+
 
             // Define the empty Schedule. It is the first one in Scheduler.systemSchedules after InitializeEmptyShecule() has been called. 
             var _emptySchedule = _systemSchedules[0];
@@ -112,6 +110,9 @@ namespace HSFSchedulerUnitTest
             ModelInputFile = Path.Combine(CurrentTestDir, "OneAssetTestModel_CanAddTasks.json");
             TaskInputFile = Path.Combine(CurrentTestDir, "OneTaskTestFile_CanAddTasks.json");
             BuildProgram(); 
+            //Now that we have generated the exhaustive system schedules, we can be at the CURRENT TIME: SIM START, and execute the first CropToMaxSchedules call.:
+            _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, Scheduler.emptySchedule, program.SchedEvaluator); //bump
+
 
             var _sched = _systemSchedules[0]; // This is the empty schedule here
             var _newAccessStack = _scheduleCombos.First(); // This is the one and only 

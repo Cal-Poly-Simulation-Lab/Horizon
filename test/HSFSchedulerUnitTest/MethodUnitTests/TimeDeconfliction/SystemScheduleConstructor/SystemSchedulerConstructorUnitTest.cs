@@ -73,7 +73,7 @@ namespace HSFSchedulerUnitTest
 
             Scheduler.InitializeEmptySchedule(_systemSchedules, program.InitialSysState); // Create the empty schedule and add it to the systemSchedules list
             _scheduleCombos = Scheduler.GenerateExhaustiveSystemSchedules(program.SimSystem, program.SystemTasks, _scheduleCombos, simStart, simEnd);
-            _systemSchedules = program.scheduler.CropToMaxSchedules(_systemSchedules, Scheduler.emptySchedule);
+            _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, Scheduler.emptySchedule, program.SchedEvaluator); // bump
 
 
         }
