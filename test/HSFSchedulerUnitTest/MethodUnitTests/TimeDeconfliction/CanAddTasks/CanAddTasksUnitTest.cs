@@ -20,6 +20,10 @@ namespace HSFSchedulerUnitTest
     [TestFixture]
     public class CanAddTasksUnitTest : SchedulerUnitTest
     {
+        protected override string SimInputFile { get; set; } = "InputFiles/SchedulerTestSimulationInput.json";
+        protected override string TaskInputFile { get; set; } = Path.Combine(ProjectTestDir, "InputFiles", "ThreeTaskTestInput.json");
+        protected override string ModelInputFile { get; set; } = Path.Combine(ProjectTestDir, "InputFiles", "TwoAssetTestModel.json");
+
         // private SystemClass? testSystem;
         // private Stack<MissionElements.Task>? testTasks;
         // private SystemSchedule? testSchedule;
@@ -33,12 +37,12 @@ namespace HSFSchedulerUnitTest
         public void SetupDefaults()
         {
             // Use the existing test files for the 1 asset, 3 tasks scenario
-            SimInputFile = "InputFiles/SchedulerTestSimulationInput.json";
-            TaskInputFile = Path.Combine(ProjectTestDir, "InputFiles", "ThreeTaskTestInput.json");
-            ModelInputFile = Path.Combine(ProjectTestDir, "InputFiles", "TwoAssetTestModel.json");
+            // SimInputFile = "InputFiles/SchedulerTestSimulationInput.json";
+            //TaskInputFile = Path.Combine(ProjectTestDir, "InputFiles", "ThreeTaskTestInput.json");
+            // ModelInputFile = Path.Combine(ProjectTestDir, "InputFiles", "TwoAssetTestModel.json");
 
             // Load the program to get the system and tasks
-            BuildProgram();
+            // BuildProgram();
         }
 
         private void BuildProgram()
@@ -65,8 +69,11 @@ namespace HSFSchedulerUnitTest
         }
 
         [Test, Order(1)]
-        public void EmptySchedule_CanAddTasks_ReturnsTrue()
+        public void EmptySchedule_CanAddTasks_ReturnsTrue_TwoAssetThreeTask()
         {
+            // Have to call the build manually
+            BuildProgram();
+
             // Define the empty Schedule. It is the first one in Scheduler.systemSchedules after InitializeEmptyShecule() has been called. 
             var _emptySchedule = _systemSchedules[0];
 
@@ -98,8 +105,42 @@ namespace HSFSchedulerUnitTest
             });
 
         }
+        [Test, Order(2)]
+        public void OneAssetOneTask_FirstIterationReturnsTrue()
+        {
+            // Set Inputs and call the build program
+            ModelInputFile = Path.Combine(CurrentTestDir, "OneAssetTestModel_CanAddTasks.json");
+            TaskInputFile = Path.Combine(CurrentTestDir, "OneTaskTestFile_CanAddTasks.json");
+            BuildProgram(); 
 
-        
+            var _sched = _systemSchedules[0]; // This is the empty schedule here
+            var _newAccessStack = _scheduleCombos.First(); // This is the one and only 
+
+
+            Assert.Multiple(() =>
+            {
+                //First Ensure that there is only one task and one asset and that they have been loaded properly.
+                Assert.IsTrue(_newAccessStack.Count() == 1, "The access stack should have one access");
+                Assert.IsTrue(_newAccessStack.First().Asset.Name.ToLower() == "testasset1", "The asset should be TestAsset1 (case in-sensitive).");
+                Assert.IsTrue(_newAccessStack.First().Task.Name.ToLower() == "task1", "The task should be Task1 (case in-sensitive).");
+                Assert.IsTrue(_newAccessStack.First().Task.MaxTimesToPerform == 1, "The task should have a MaxTimesToPerform of 1");
+
+                // The first call should return true
+                Assert.IsTrue(_sched.CanAddTasks(_newAccessStack, currentTime), "The empty schedule should always allow task addition; given the MaxTimesToPerform == 1 .... INFO: AccessStack {k},");
+                Assert.That(_sched.AllStates.timesCompletedTask(_newAccessStack.First().Task), Is.EqualTo(1), "The task should have been completed once given the first call to CanAddTasks.");
+                // The second call should return false
+                Assert.IsFalse(_sched.CanAddTasks(_newAccessStack, currentTime), "The empty schedule should not allow task addition, given the MaxTimesToPerform > 0 .... INFO: AccessStack {k},");
+                Assert.That(_sched.AllStates.timesCompletedTask(_newAccessStack.First().Task), Is.EqualTo(2), "The task should have been completed twice given the second call to CanAddTasks.");
+            });
+            }
+
+
+    
+
+        // [TestCase("OneAssetTestModel.json", "ThreeTaskTestInput_ThreeTimesMax.json")]
+        // public void MaxTimesToPerform_TestFalse(string _modelFile, string _taskFile){
+
+        // }
 
     }    
 }

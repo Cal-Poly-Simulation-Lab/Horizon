@@ -175,7 +175,8 @@ namespace HSFScheduler
         /// <returns></returns>
         public bool CanAddTasks(Stack<Access> newAccessList, double currentTime)
         {
-            int count = 0;
+            // Track which tasks we've already checked to avoid double-counting
+            HashSet<Task> checkedTasks = new HashSet<Task>();
 
 	        foreach(var access in newAccessList)
             {
@@ -189,10 +190,23 @@ namespace HSFScheduler
                 // Check Access times here?  
 
                 // This is where the task count gets enforced. 
-                if (access.Task != null)
+                if (access.Task != null && !checkedTasks.Contains(access.Task))
                 {
-                    count += AllStates.timesCompletedTask(access.Task);
-                    if (count >= access.Task.MaxTimesToPerform)
+                    checkedTasks.Add(access.Task);
+                    
+                    // Count how many times this task has been completed historically (across all assets -- All Events)
+                    int historicalCount = AllStates.timesCompletedTask(access.Task);
+                    
+                    // Count how many times we're adding it in this newAccessList (across all assets -- newAccessList)
+                    int newCount = 0;
+                    foreach(var a in newAccessList)
+                    {
+                        if (a.Task == access.Task)
+                            newCount++;
+                    }
+                    
+                    // Reject if adding these new instances would exceed the limit
+                    if (historicalCount + newCount > access.Task.MaxTimesToPerform)
                         return false; // Return false (cant add tasks) if the task has been performed too many times. 
                 }
 	        }

@@ -22,9 +22,9 @@ namespace HSFSchedulerUnitTest
     // Place common "HSFSchedulerUnitTest" functionality here to be used in other classes and/or overriden. 
     {
         # region Scheduler Unit Test Base Attributes 
-        protected string? SimInputFile { get; set; }
-        protected string? TaskInputFile { get; set; }
-        protected string? ModelInputFile { get; set; }
+        protected virtual string? SimInputFile { get; set; }
+        protected virtual string? TaskInputFile { get; set; }
+        protected virtual string? ModelInputFile { get; set; }
         protected Horizon.Program program { get; set; } = new Horizon.Program();
         protected int? _emptySchedIdx { get; set; }
         # endregion
@@ -56,7 +56,7 @@ namespace HSFSchedulerUnitTest
         private string? _classSourceFilePath;
         private string? _className;
         /// Property that automatically resolves the test project root directory
-        protected string ProjectTestDir => GetTestProjectRootDirectory();
+        protected static string ProjectTestDir => GetTestProjectRootDirectory();
         /// Property that automatically resolves the test directory for the current test class
         protected string CurrentTestDir => GetClassSourceDirectory();
         # endregion
@@ -207,7 +207,7 @@ namespace HSFSchedulerUnitTest
             return fallbackPath;
         }
 
-        protected string GetTestProjectRootDirectory()
+        protected static string GetTestProjectRootDirectory()
         {
             string baseTestDir = Utilities.DevEnvironment.GetTestDirectory();
             return Path.Combine(baseTestDir, "HSFSchedulerUnitTest");

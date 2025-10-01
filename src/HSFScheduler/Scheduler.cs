@@ -150,32 +150,12 @@ namespace HSFScheduler
                 //}
 
                 // "State Deconfliction" Step --> 
-                int numSched = 0;
-                foreach (var potentialSchedule in potentialSystemSchedules)
-                {
+                systemCanPerformList = CheckAllPotentialSchedules(system, potentialSystemSchedules);
 
+                systemCanPerformList = EvaluateAndSortCanPerformSchedules(ScheduleEvaluator, systemCanPerformList);
 
-                    if (Checker.CheckSchedule(system, potentialSchedule)) {
-                        //potentialSchedule.GetEndState().GetLastValue()
-
-                        
-                        systemCanPerformList.Add(potentialSchedule);
-                        numSched++;
-                    }
-                }
-
-                // Evaluate Schedule Step --> 
-                foreach (SystemSchedule systemSchedule in systemCanPerformList)
-                    systemSchedule.ScheduleValue = ScheduleEvaluator.Evaluate(systemSchedule);
-
-                systemCanPerformList.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
-                systemCanPerformList.Reverse();
-                
-                // Merge old and new systemSchedules
-                var oldSystemCanPerfrom = new List<SystemSchedule>(systemCanPerformList);
-                systemSchedules.InsertRange(0, oldSystemCanPerfrom);//<--This was potentialSystemSchedule doubling stuff up
-                potentialSystemSchedules.Clear();
-                systemCanPerformList.Clear();
+        
+                systemSchedules = MergeAndClearSystemSchedules();
 
                 // Print completion percentage in command window
                 Console.WriteLine("Scheduler Status: {0:F}% done; {1} schedules generated.", 100 * currentTime / _endTime, systemSchedules.Count);
@@ -317,7 +297,48 @@ namespace HSFScheduler
             }
             return potentialSystemSchedules; 
         }
+        public List<SystemSchedule> CheckAllPotentialSchedules(SystemClass system, List<SystemSchedule> potentialSystemSchedules)
+        {
+                int numSched = 0;
+                foreach (var potentialSchedule in potentialSystemSchedules)
+                {
 
+
+                    if (Checker.CheckSchedule(system, potentialSchedule)) {
+                        //potentialSchedule.GetEndState().GetLastValue()
+
+                        
+                        systemCanPerformList.Add(potentialSchedule);
+                        numSched++;
+                    }
+                }
+                return systemCanPerformList;
+        }
+
+        public static List<SystemSchedule> EvaluateAndSortCanPerformSchedules(Evaluator scheduleEvaluator, List<SystemSchedule> systemCanPerformList)
+        {
+           // Evaluate Schedule Step --> 
+            foreach (SystemSchedule systemSchedule in systemCanPerformList)
+                systemSchedule.ScheduleValue = scheduleEvaluator.Evaluate(systemSchedule);
+
+            // Sort the schedule by their values:
+            systemCanPerformList.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
+            systemCanPerformList.Reverse();
+            
+            // Return the sorted list back to the scheduler (caller):
+            return systemCanPerformList;
+        }
+
+        public List<SystemSchedule> MergeAndClearSystemSchedules()
+        {
+            // Merge old and new systemSchedules
+            var oldSystemCanPerfrom = new List<SystemSchedule>(this.systemCanPerformList);
+            this.systemSchedules.InsertRange(0, oldSystemCanPerfrom);//<--This was potentialSystemSchedule doubling stuff up
+            this.potentialSystemSchedules.Clear();
+            this.systemCanPerformList.Clear();
+
+            return this.systemSchedules;
+        }
 
         #region GenerateSchedules() sub methods 
 
