@@ -1,6 +1,7 @@
 {
   "version": "0.2.0",
   "configurations": [
+
     {
       "name": "Debug Horizon ScriptedCS- Aeolus (VS Code)",
       "type": "coreclr",
@@ -30,13 +31,26 @@
       "stopAtEntry": false
     },
     {
-      "name": "Debug Horizon - Aeolus (Cursor)",
+      "name": "Debug Horizon - Aeolus Python Scripted (Cursor)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon.dll",
       "args": [
-        "-scen", "Aeolus"
+        "-scen", "Aeolus_scripted"
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Debug Horizon - Aeolus CS Complied (Cursor)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon.dll",
+      "args": [
+        "-scen", "Aeolus_CS"
       ],
       "cwd": "${workspaceFolder}/src/Horizon",
       "console": "internalConsole",

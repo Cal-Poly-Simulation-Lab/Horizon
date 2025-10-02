@@ -179,9 +179,11 @@ namespace Horizon
                                 TaskDeckFilePath = Path.Combine(subPath, "AeolusTasks.json");
                                 // Asset 1 Scripted, Asset 2 Scripted
                                 ModelFilePath = Path.Combine(subPath, "DSAC_Static_Scripted.json");
+                                OutputPath = Path.Combine(subPath, argsList[i] + "_Output");
                                 simulationSet = true;
                                 targetSet = true;
                                 modelSet = true;
+                                outputSet = true;
                                 break;
                             case "Aeolus_CS":
                                 // Set Defaults
@@ -263,11 +265,25 @@ namespace Horizon
                 Console.WriteLine("Using simulation file: " + SimulationFilePath);
                 log.Info("Using simulation file: " + SimulationFilePath);
             }
+            else
+            {
+                string msg = "No simulation file specified.";
+                log.Fatal(msg);
+                Console.WriteLine(msg);
+                throw new ArgumentException(msg);
+            }
 
             if (targetSet)
             {
                 Console.WriteLine("Using target deck file: " + TaskDeckFilePath);
                 log.Info("Using simulation file: " + TaskDeckFilePath);
+            }
+            else
+            {
+                string msg = "No target deck file specified.";
+                log.Fatal(msg);
+                Console.WriteLine(msg);
+                throw new ArgumentException(msg);
             }
 
             if (modelSet)
@@ -275,10 +291,24 @@ namespace Horizon
                 Console.WriteLine("Using model file: " + ModelFilePath);
                 log.Info("Using model file: " + ModelFilePath);
             }
+            else
+            {
+                string msg = "No model file specified.";
+                log.Fatal(msg);
+                Console.WriteLine(msg);
+                throw new ArgumentException(msg);
+            }
             if (outputSet)
             {
                 Console.WriteLine("Using output path: " + OutputPath);
                 log.Info("Using output path: " + OutputPath);
+            }
+            else
+            {
+                string msg = "No output path specified.";
+                log.Fatal(msg);
+                Console.WriteLine(msg);
+                throw new ArgumentException(msg);
             }
 
         }
