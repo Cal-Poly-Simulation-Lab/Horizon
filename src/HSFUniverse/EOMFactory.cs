@@ -53,6 +53,11 @@ namespace HSFUniverse
                 eoms = new StaticEOMS();
                 eoms.Environment = new StaticEnvironment();
             }
+            else if (eomsType.Equals("none") || eomsType.Equals("null") || eomsType.Equals(""))
+            {
+                eoms = null;
+                //eoms.Environment = null; 
+            }
             else
             {
                 msg = $"EOMS 'type' attribute not found for EOMS in {eomsJson}";

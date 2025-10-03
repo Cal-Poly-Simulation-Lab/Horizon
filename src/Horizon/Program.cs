@@ -170,7 +170,7 @@ namespace Horizon
                     case "-scen":
                         switch (argsList[i])
                         {
-                            case "Aeolus_scripted":
+                            case "Aeolus_scriptedpy":
                                 // Set Defaults
                                 //subpath = @"..\..\..\..\samples\Aeolus\";
                                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
@@ -489,14 +489,14 @@ namespace Horizon
                                     {
                                         // Load Subsystem Parameters                        
                                         if (JsonLoader<JToken>.TryGetValue("parameters", subsystemJson, out JToken parameterListJson))
-                                            if (parameterListJson.First.HasValues)
-                                            {
                                                 foreach (JObject parameterJson in parameterListJson)
                                                     SubsystemFactory.SetParameters(parameterJson, subsys);
+                                            else
+                                            {
+                                                msg = $"Warning: Subsystem {subsys.Name} loaded with no parameters";
+                                                Console.WriteLine(msg);
+                                                log.Warn(msg);
                                             }
-                                        msg = $"Warning: Subsystem {subsys.Name} loaded with no parameters";
-                                        Console.WriteLine(msg);
-                                        log.Warn(msg);
                                     }
                                 }
                             }

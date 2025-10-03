@@ -18,13 +18,26 @@
       "stopAtEntry": false
     },
     {
+      "name": "Debug Horizon - Aeolus CS (VS Code)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
+      "args": [
+        "-scen", "Aeolus_CS"
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
       "name": "Debug Horizon ScriptedPy - Aeolus (VS Code)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
       "args": [
-        "-scen", "Aeolus"
+        "-scen", "Aeolus_scriptedpy"
       ],
       "cwd": "${workspaceFolder}/src/Horizon",
       "console": "internalConsole",
@@ -63,14 +76,30 @@
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
       "args": [
-        "-s", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestSimulationInput.json",
-        "-m", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestModel.json",
-        "-t", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestTasks.json",
+        "-s", "${workspaceFolder}/test/HSFSchedulerUnitTest/InputFiles/SchedulerTestSimulationInput.json",
+        "-m", "${workspaceFolder}/test/HSFSchedulerUnitTest/InputFiles/SchedulerTestModel.json",
+        "-t", "${workspaceFolder}/test/HSFSchedulerUnitTest/InputFiles/SchedulerTestTasks.json",
         "-o", "${workspaceFolder}/test/HSFSchedulerUnitTest/Output"
       ],
       "cwd": "${workspaceFolder}/src/Horizon",
       "console": "internalConsole",
-      "stopAtEntry": false
+      "stopAtEntry": false,
+    },
+    {
+      "name": "Debug Horizon - Test Case 1A 1T (VS Code)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
+      "args": [
+        "-s", "${workspaceFolder}/test/HSFSchedulerUnitTest/InputFiles/SchedulerTestSimulationInput.json",
+        "-m", "${workspaceFolder}/test/HSFSchedulerUnitTest/InputFiles/SchedulerTestModel.json",
+        "-t", "${workspaceFolder}/test/HSFSchedulerUnitTest/InputFiles/SchedulerTestOneTask.json",
+        "-o", "${workspaceFolder}/test/HSFSchedulerUnitTest/Output"
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false,
     },
     {
       "name": "Debug Horizon - Test Case 2 Asset (VS Code)",
@@ -79,9 +108,9 @@
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
       "args": [
-        "-s", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestSimulationInput.json",
-        "-m", "${workspaceFolder}/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedulesTest/TwoAssetTestModel.json",
-        "-t", "${workspaceFolder}/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedulesTest/ThreeTaskTestInput.json",
+        "-s", "${workspaceFolder}/test/HSFSchedulerUnitTest/InputFiles/SchedulerTestSimulationInput.json",
+        "-m", "${workspaceFolder}/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedules/TwoAssetTestModel.json",
+        "-t", "${workspaceFolder}/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedules/ThreeTaskTestInput.json",
         "-o", "${workspaceFolder}/test/HSFSchedulerUnitTest/Output"
       ],
       "cwd": "${workspaceFolder}/src/Horizon",
@@ -95,9 +124,9 @@
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon.dll",
       "args": [
-        "-s", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestSimulationInput.json",
-        "-m", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestModel.json",
-        "-t", "${workspaceFolder}/test/HSFSchedulerUnitTest/SchedulerTestTasks.json",
+        "-s", "${workspaceFolder}/test/HSFSchedulerUnitTest/InputFiles/SchedulerTestSimulationInput.json",
+        "-m", "${workspaceFolder}/test/HSFSchedulerUnitTest/InputFiles/SchedulerTestModel.json",
+        "-t", "${workspaceFolder}/test/HSFSchedulerUnitTest/InputFiles/SchedulerTestTasks.json",
         "-o", "${workspaceFolder}/test/HSFSchedulerUnitTest/Output"
       ],
       "cwd": "${workspaceFolder}/src/Horizon",

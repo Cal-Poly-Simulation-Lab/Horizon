@@ -35,14 +35,13 @@ namespace HSFScheduler
         public double AccumSchedTime { get; }
                 
         // Needed for schedule evaluation and computation:
-        private SystemSchedule emptySchedule {get; set; }
-        private List<SystemSchedule> systemSchedules = new List<SystemSchedule>();
-        private bool canPregenAccess {get; set; }
-        private Stack<Stack<Access>> scheduleCombos = new Stack<Stack<Access>>(); 
-        private Stack<Access>? preGeneratedAccesses {get; set;}
-        private List<SystemSchedule> potentialSystemSchedules = new List<SystemSchedule>();
-        private List<SystemSchedule> systemCanPerformList = new List<SystemSchedule>();
-
+        public static SystemSchedule? emptySchedule {get; private set; }
+        public List<SystemSchedule> systemSchedules { get; private set; } = new List<SystemSchedule>();
+        public bool canPregenAccess {get; private set; }
+        public Stack<Stack<Access>> scheduleCombos { get; private set; }= new Stack<Stack<Access>>(); 
+        public Stack<Access>? preGeneratedAccesses { get; private set; }
+        public List<SystemSchedule> potentialSystemSchedules { get; private set; } = new List<SystemSchedule>();
+        public List<SystemSchedule> systemCanPerformList { get; private set; } = new List<SystemSchedule>();
         
         public Evaluator ScheduleEvaluator { get; private set; }
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -75,10 +74,10 @@ namespace HSFScheduler
             log.Info("SIMULATING... ");
 
             // Create empty systemSchedule with initial state set
-            InitializeEmptySchedule(initialStateList); // Add Unit Test #0 (test empty schedule) --- Or do it later after cropping? Can do both.
+            this.systemSchedules = InitializeEmptySchedule(this.systemSchedules, initialStateList); // Add Unit Test #0 (test empty schedule) --- Or do it later after cropping? Can do both.
 
             // if all asset position types are not dynamic types, can pregenerate accesses for the simulation
-            canPregenAccessLogic(system); // Unit Test Method #
+            canPregenAccess = canPregenAccessLogic(system); // Unit Test Method #
 
             // Unit Test Method #2: Pregen access logic
             if (canPregenAccess) // If accesses can be pregenereated; do it now. 
@@ -125,14 +124,14 @@ namespace HSFScheduler
                 }
                 
                 // First, crop schedules to maxNumchedules: 
-                systemSchedules = CropToMaxSchedules(systemSchedules, emptySchedule);
+                systemSchedules = CropToMaxSchedules(systemSchedules, Scheduler.emptySchedule, ScheduleEvaluator);
 
                 // Generate an exhaustive list of new tasks possible from the combinations of Assets and Tasks
                 //TODO: Parallelize this.
 
                 //Parallel.ForEach(systemSchedules, (oldSystemSchedule) =>
                 //"Time Deconfliction" step --> we dont create possible schedules when a schedule is bust ()
-                potentialSystemSchedules = TimeDeconfliction(systemSchedules, currentTime,scheduleCombos);
+                potentialSystemSchedules = TimeDeconfliction(systemSchedules, scheduleCombos, currentTime);
                 //int k = 0; 
                 // foreach(var oldSystemSchedule in systemSchedules)
                 // {
@@ -151,37 +150,17 @@ namespace HSFScheduler
                 //}
 
                 // "State Deconfliction" Step --> 
-                int numSched = 0;
-                foreach (var potentialSchedule in potentialSystemSchedules)
-                {
+                systemCanPerformList = CheckAllPotentialSchedules(system, potentialSystemSchedules);
 
+                systemCanPerformList = EvaluateAndSortCanPerformSchedules(this.ScheduleEvaluator, systemCanPerformList);
 
-                    if (Checker.CheckSchedule(system, potentialSchedule)) {
-                        //potentialSchedule.GetEndState().GetLastValue()
-
-                        
-                        systemCanPerformList.Add(potentialSchedule);
-                        numSched++;
-                    }
-                }
-
-                // Evaluate Schedule Step --> 
-                foreach (SystemSchedule systemSchedule in systemCanPerformList)
-                    systemSchedule.ScheduleValue = ScheduleEvaluator.Evaluate(systemSchedule);
-
-                systemCanPerformList.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
-                systemCanPerformList.Reverse();
-                
-                // Merge old and new systemSchedules
-                var oldSystemCanPerfrom = new List<SystemSchedule>(systemCanPerformList);
-                systemSchedules.InsertRange(0, oldSystemCanPerfrom);//<--This was potentialSystemSchedule doubling stuff up
-                potentialSystemSchedules.Clear();
-                systemCanPerformList.Clear();
+        
+                this.systemSchedules = MergeAndClearSystemSchedules(this.systemSchedules, this.systemCanPerformList);
 
                 // Print completion percentage in command window
                 Console.WriteLine("Scheduler Status: {0:F}% done; {1} schedules generated.", 100 * currentTime / _endTime, systemSchedules.Count);
             }
-            return systemSchedules;
+            return this.systemSchedules;
         }
 
         /// <summary>
@@ -191,14 +170,17 @@ namespace HSFScheduler
         /// <param name="scheduleEvaluator"></param>
         /// <param name="emptySched"></param>
         /// 
-        public void InitializeEmptySchedule(SystemState initialStateList)
+        public static List<SystemSchedule> InitializeEmptySchedule(List<SystemSchedule> systemSchedules, SystemState initialStateList)
         {
             string Name = "Empty Schedule"; 
-            emptySchedule = new SystemSchedule(initialStateList, Name); // Create the first empty schedule. This should schange as things move forward. 
-            systemSchedules.Add(emptySchedule);  
+            Scheduler.emptySchedule = new SystemSchedule(initialStateList, Name); // Create the first empty schedule. This should schange as things move forward. 
+            systemSchedules.Add(Scheduler.emptySchedule);
+
+            // Return the systemSchedules list back to the caller (scheduler) for readability's sake (Even though it was already changed). 
+            return systemSchedules;
 
         }
-        public virtual void canPregenAccessLogic(SystemClass system)
+        public virtual bool canPregenAccessLogic(SystemClass system)
         {
             canPregenAccess = true;
             foreach (var asset in system.Assets)
@@ -208,21 +190,23 @@ namespace HSFScheduler
                 else
                     canPregenAccess = false;
             }
-            //return canPregenAccess; 
+
+            // Cahnged to return the boolinstead of changing insternally (as this is not a static method because we want to be able to override it in the unit tests). 
+            return canPregenAccess; 
         }
 
-        public List<SystemSchedule> CropToMaxSchedules(List<SystemSchedule> systemSchedules, SystemSchedule emptySchedule)
+        public static List<SystemSchedule> CropToMaxSchedules(List<SystemSchedule> systemSchedules, SystemSchedule emptySchedule, Evaluator scheduleEvaluator)
         {
-            if (systemSchedules.Count > _maxNumSchedules)
+            if (systemSchedules.Count > SchedParameters.MaxNumScheds)
             {
                 log.Info("Cropping " + systemSchedules.Count + " Schedules.");
-                CropSchedules(systemSchedules, ScheduleEvaluator, emptySchedule);
+                Scheduler.CropSchedules(systemSchedules, scheduleEvaluator, emptySchedule, SchedParameters.NumSchedCropTo);
                 systemSchedules.Add(emptySchedule);
             }
             return systemSchedules; 
         }
 
-        public void CropSchedules(List<SystemSchedule> schedulesToCrop, Evaluator scheduleEvaluator, SystemSchedule emptySched)
+        public static void CropSchedules(List<SystemSchedule> schedulesToCrop, Evaluator scheduleEvaluator, SystemSchedule emptySched, int _numSchedCropTo)
         {
             // Evaluate the schedules and set their values
             foreach (SystemSchedule systemSchedule in schedulesToCrop)
@@ -298,11 +282,12 @@ namespace HSFScheduler
             return scheduleCombos; 
         }
 
-        public virtual List<SystemSchedule> TimeDeconfliction(List<SystemSchedule> systemSchedules,double currentTime,Stack<Stack<Access>> scheduleCombos)
+        public static List<SystemSchedule> TimeDeconfliction(List<SystemSchedule> systemSchedules, Stack<Stack<Access>> scheduleCombos, double currentTime)
         {
+            var _potentialSystemSchedules = new List<SystemSchedule>();
             int k = 0; 
             foreach(var oldSystemSchedule in systemSchedules)
-            {
+            {   
                 //potentialSystemSchedules.Add(new SystemSchedule( new StateHistory(oldSystemSchedule.AllStates)));
                 foreach (var newAccessTaskStack in scheduleCombos)
                 {
@@ -310,15 +295,57 @@ namespace HSFScheduler
                     if (oldSystemSchedule.CanAddTasks(newAccessTaskStack, currentTime))
                     {
                         var CopySchedule = new StateHistory(oldSystemSchedule.AllStates);
-                        potentialSystemSchedules.Add(new SystemSchedule(CopySchedule, newAccessTaskStack, currentTime));
+                        _potentialSystemSchedules.Add(new SystemSchedule(CopySchedule, newAccessTaskStack, currentTime));
                         // oldSched = new SystemSchedule(CopySchedule);
                     }
 
                 }
             }
-            return potentialSystemSchedules; 
+            return _potentialSystemSchedules; 
+        }
+        public static List<SystemSchedule> CheckAllPotentialSchedules(SystemClass system, List<SystemSchedule> potentialSystemSchedules)
+        {
+                int numSched = 0;
+                List<SystemSchedule> _canPerformList = new List<SystemSchedule>();
+                foreach (var potentialSchedule in potentialSystemSchedules)
+                {
+
+
+                    if (Checker.CheckSchedule(system, potentialSchedule)) {
+                        //potentialSchedule.GetEndState().GetLastValue()
+
+                        
+                        _canPerformList.Add(potentialSchedule);
+                        numSched++;
+                    }
+                }
+                return _canPerformList;
         }
 
+        public static List<SystemSchedule> EvaluateAndSortCanPerformSchedules(Evaluator scheduleEvaluator, List<SystemSchedule> _canPerformList)
+        {
+           // Evaluate Schedule Step --> 
+            foreach (SystemSchedule systemSchedule in _canPerformList)
+                systemSchedule.ScheduleValue = scheduleEvaluator.Evaluate(systemSchedule);
+
+            // Sort the schedule by their values:
+            _canPerformList.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
+            _canPerformList.Reverse();
+            
+            // I used an interal can perform list to prevent conrfuision and not change attribute within static method. 
+            // Need to return to caller (scheduelr) to update the list as sorted:
+            return _canPerformList;
+        }
+
+        public static List<SystemSchedule> MergeAndClearSystemSchedules(List<SystemSchedule> systemSchedules, List<SystemSchedule> systemCanPerformList)
+        {
+            // Merge old and new systemSchedules
+            var oldSystemCanPerfrom = new List<SystemSchedule>(systemCanPerformList);
+            systemSchedules.InsertRange(0, oldSystemCanPerfrom);//<--This was potentialSystemSchedule doubling stuff up
+            systemCanPerformList.Clear(); // Only attribute that needs clearing as potentialSystemSchedules is newly created every TimeDconfliction call. 
+
+            return systemSchedules;
+        }
 
         #region GenerateSchedules() sub methods 
 

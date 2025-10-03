@@ -1,0 +1,64 @@
+{
+  "tasks": [
+    {
+      "name": "TestTask1",
+      "type": "imaging",
+      "maxTimes": 1,
+      "duration": 5.0,
+      "value": 5.0,
+      "target": {
+        "name": "Target1",
+        "type": "None",
+        "value": 10.0,
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "integratorType": "None",
+          "stateData": [0.0],
+          "eoms": {
+            "type": "None"
+          }
+        }
+      }
+    },
+    {
+      "name": "TestTask2",
+      "type": "imaging",
+      "maxTimesToPerform": 1,
+      "duration": 7.5,
+      "value": 7.5,
+      "target": {
+        "name": "Target2",
+        "type": "None",
+        "value": 10.0,
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "integratorType": "None",
+          "stateData": [0.0],
+          "eoms": {
+            "type": "None"
+          }
+        }
+      }
+    },
+    {
+      "name": "TestTask3",
+      "type": "imaging",
+      "maxTimesToPerform": 1,
+      "duration": 10,
+      "value": 10.0,
+      "target": {
+        "name": "Target3",
+        "type": "None",
+        "value": 10.0,
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "integratorType": "None",
+          "stateData": [0.0],
+          "eoms": {
+            "type": "None"
+          }
+        }
+      }
+    }
+  ]
+}

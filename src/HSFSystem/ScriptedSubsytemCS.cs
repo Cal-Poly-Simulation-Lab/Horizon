@@ -28,6 +28,8 @@ namespace HSFSystem
         private readonly Type[] constructorArgTypes = [typeof(JObject)]; 
         private readonly object[] constructorArgs = [];
 
+        private static readonly string CompiledFilesListPath = Path.Combine(Utilities.DevEnvironment.RepoDirectory, "user-compiled-subsystems.txt");
+
         public ScriptedSubsystemCS(JObject scriptedSubsystemJson, Asset asset)//string dllPath, string typeName, string subsystemJson)
         {
            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
@@ -47,8 +49,10 @@ namespace HSFSystem
                 this.src = srcJason.ToString().Replace('\\','/');
                 if (!File.Exists(src)) // Make it a relative (repo) path if the file doesn't exist given by src
                 { this.src = Path.Combine(Utilities.DevEnvironment.RepoDirectory, src); } //Replace backslashes with forward slashes, if applicable 
-  
-                this.dll = CompileDll(this.src,Path.Combine(Directory.GetParent(src).FullName,"bin"));
+
+                string executableDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                this.dll = CompileDll(this.src, executableDir);
+                //this.dll = CompileDll(this.src,Path.Combine(Directory.GetParent(src).FullName,"bin"));
 
             }
             else
@@ -132,9 +136,10 @@ namespace HSFSystem
 
             // Read the source code
             string sourceCode = File.ReadAllText(sourceFilePath);
+            string absoluteSourcePath = Path.GetFullPath(sourceFilePath);
 
-            // Create a syntax tree from the source code
-            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
+            // Create a syntax tree from the source code with encoding
+            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(sourceCode, path: absoluteSourcePath, encoding: System.Text.Encoding.UTF8);
 
             // Define references
             List<MetadataReference> references = new List<MetadataReference>
@@ -152,7 +157,7 @@ namespace HSFSystem
             references.Add(MetadataReference.CreateFromFile(typeof(System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute).Assembly.Location));
             references.Add(MetadataReference.CreateFromFile(typeof(Newtonsoft.Json.Linq.JObject).Assembly.Location));
             references.Add(MetadataReference.CreateFromFile(typeof(System.Xml.XmlDocument).Assembly.Location));
-
+            references.Add(MetadataReference.CreateFromFile(typeof(System.Runtime.CompilerServices.DynamicAttribute).Assembly.Location));
             // Add project references
             string relBuildDir = "src/HSFSystem/bin/Debug/net8.0"; // Currently hardcoded
             string buildDir = Path.Combine(Utilities.DevEnvironment.RepoDirectory, relBuildDir);
@@ -167,13 +172,42 @@ namespace HSFSystem
                 Path.GetFileNameWithoutExtension(outputDllPath),
                 new[] { syntaxTree },
                 references,
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                    .WithOptimizationLevel(OptimizationLevel.Debug));
 
             // Emit the compilation to a DLL
             EmitResult result;
+            string pdbPath = Path.ChangeExtension(outputDllPath, ".pdb");
             using (var fs = new FileStream(outputDllPath, FileMode.Create, FileAccess.Write))
+            using (var pdbStream = new FileStream(pdbPath, FileMode.Create, FileAccess.Write))
             {
-                result = compilation.Emit(fs);
+                var emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb);
+                result = compilation.Emit(fs, pdbStream, options: emitOptions);
+            }
+
+            if (result.Success)
+            {
+                // Add to compiled files list with timestamp
+                string dllPath = outputDllPath;
+                string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                
+                // Remove old entries for the same files if they exist
+                if (File.Exists(CompiledFilesListPath))
+                {
+                    var existingLines = File.ReadAllLines(CompiledFilesListPath).ToList();
+                    var filteredLines = existingLines.Where(line => 
+                        !line.Contains(dllPath) && !line.Contains(pdbPath)).ToList();
+                    File.WriteAllLines(CompiledFilesListPath, filteredLines);
+                }
+                
+                // Append to the compiled files list with timestamp
+                File.AppendAllText(CompiledFilesListPath, $"[{timestamp}] {dllPath}\n");
+                if (File.Exists(pdbPath))
+                {
+                    File.AppendAllText(CompiledFilesListPath, $"[{timestamp}] {pdbPath}\n");
+                }
+                
+                return dllPath;
             }
 
             if (!result.Success)
@@ -251,7 +285,7 @@ namespace HSFSystem
                 throw new FileNotFoundException($"DLL file not found: {dll}");
             }
             // Load the assembly
-            Assembly assembly = Assembly.LoadFrom(dll);
+            Assembly assembly = Assembly.LoadFile(dll);
 
             Type[] types = assembly.GetTypes();
             // Filter the types that inherit from Subsystem

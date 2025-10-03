@@ -16,10 +16,10 @@
           {
             "type": "scriptedcs",
             "name": "SchedulerSubTest",
-            "src": "test\\HSFSchedulerUnitTest\\SchedulerSubTest.cs",
+            "src": "test\\HSFSchedulerUnitTest\\Subsystems\\SchedulerSubTest.cs",
             "className": "SubTest",
-            "parameters": [{}],
-            "states": [{}]
+            "parameters": [],
+            "states": []
           }
         ],
         "constraints": []
@@ -39,10 +39,10 @@
           {
             "type": "scriptedcs",
             "name": "SchedulerSubTest",
-            "src": "test\\HSFSchedulerUnitTest\\SchedulerSubTest.cs",
+            "src": "test\\HSFSchedulerUnitTest\\Subsystems\\SchedulerSubTest.cs",
             "className": "SubTest",
-            "parameters": [{}],
-            "states": [{}]
+            "parameters": [],
+            "states": []
           }
         ],
         "constraints": []
@@ -56,7 +56,7 @@
       "type": "scripted",
       "src": "test\\HSFSchedulerUnitTest\\SchedulerTestEval.py",
       "className": "eval",
-      "keyRequests": []
+      "states": []
     }
     
   }
