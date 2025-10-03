@@ -9,7 +9,8 @@
   },
   "schedulerParameters": {
     "maxSchedules": 64,
-    "cropTo": 5
+    "cropTo": 5,
+    "ConsoleLog": "on"
   },
   "dependencies": {
     "baseSrc": "../../test/HSFSchdulerUnitTest/"

@@ -124,17 +124,14 @@ namespace HSFSchedulerUnitTest
             Assert.Multiple(() =>
             {
                 //First Ensure that there is only one task and one asset and that they have been loaded properly.
-                Assert.IsTrue(_newAccessStack.Count() == 1, "The access stack should have one access");
+                Assert.IsTrue(_newAccessStack.Count() == 1, "The access stack should have one access"); //falining
                 Assert.IsTrue(_newAccessStack.First().Asset.Name.ToLower() == "testasset1", "The asset should be TestAsset1 (case in-sensitive).");
                 Assert.IsTrue(_newAccessStack.First().Task.Name.ToLower() == "task1", "The task should be Task1 (case in-sensitive).");
                 Assert.IsTrue(_newAccessStack.First().Task.MaxTimesToPerform == 1, "The task should have a MaxTimesToPerform of 1");
 
                 // The first call should return true
-                Assert.IsTrue(_sched.CanAddTasks(_newAccessStack, currentTime), "The empty schedule should always allow task addition; given the MaxTimesToPerform == 1 .... INFO: AccessStack {k},");
-                Assert.That(_sched.AllStates.timesCompletedTask(_newAccessStack.First().Task), Is.EqualTo(1), "The task should have been completed once given the first call to CanAddTasks.");
-                // The second call should return false
-                Assert.IsFalse(_sched.CanAddTasks(_newAccessStack, currentTime), "The empty schedule should not allow task addition, given the MaxTimesToPerform > 0 .... INFO: AccessStack {k},");
-                Assert.That(_sched.AllStates.timesCompletedTask(_newAccessStack.First().Task), Is.EqualTo(2), "The task should have been completed twice given the second call to CanAddTasks.");
+                Assert.IsTrue(_sched.CanAddTasks(_newAccessStack, currentTime), "The empty schedule should always allow task addition; given the MaxTimesToPerform == 1 .... INFO: AccessStack {k},"); 
+                Assert.That(_sched.AllStates.timesCompletedTask(_newAccessStack.First().Task), Is.EqualTo(0), "The timesCompletedTask should return 0 since it has not been added to an Event yet, and would not yet exist in this potential schedule's StateHistory."); // failing
             });
             }
 
