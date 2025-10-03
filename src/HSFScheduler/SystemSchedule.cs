@@ -17,7 +17,8 @@ namespace HSFScheduler
     public class SystemSchedule
     {
         #region Attributes
-        public string Name = ""; 
+        public string Name = "";
+        public string _scheduleID{ get; set; } = "";
         public StateHistory AllStates; //pop never gets used so just use list
         public double ScheduleValue;
         #endregion
@@ -36,6 +37,34 @@ namespace HSFScheduler
             numEvents = this.AllStates.Events.Count();
             EventExistString = this.ScheduleInfo.EventString; 
         }
+
+        public string UpdateScheduleID(SystemSchedule oldSystemSchedule)
+        {
+            string prefix = "";
+            if (oldSystemSchedule.Name.ToLower().Contains("empty")) // This is the empty schedule
+            {
+                for (int i = 0; i < Scheduler.SchedulerStep; i++)
+                {
+                    prefix += "0.";
+                }
+                _scheduleID = prefix + Scheduler._schedID.ToString();
+            }
+            else
+            {
+                _scheduleID = oldSystemSchedule._scheduleID + "." + Scheduler._schedID.ToString(); 
+            }
+            // else
+            // {
+            //     int numPeriods = oldSystemScheduleID.Count(c => c == '.');
+            //     for (int i = 0; i < Scheduler.SchedulerStep - 1 - numPeriods; i++)
+            //     {
+            //         prefix += ".0";
+            //     }
+            //     _scheduleID = oldSystemScheduleID + prefix + "." + Scheduler._schedID.ToString();
+            // }
+            Scheduler._schedID++;
+            return _scheduleID; 
+        }
         #endregion
 
         #region Constructors
@@ -49,7 +78,7 @@ namespace HSFScheduler
         }
 
 
-        public SystemSchedule(StateHistory oldStates, Stack<Access> newAccessStack, double currentTime)
+        public SystemSchedule(StateHistory oldStates, Stack<Access> newAccessStack, double currentTime, SystemSchedule oldSystemSchedule)
         {
 
             Dictionary<Asset, Task> tasks = new Dictionary<Asset, Task>();
@@ -160,6 +189,7 @@ namespace HSFScheduler
 
             // Informational Use Only:
             ScheduleInfo = new SystemScheduleInfo(AllStates, Scheduler.SchedulerStep);
+            _scheduleID = UpdateScheduleID(oldSystemSchedule);
             UpdateInfoStrings();
 
         }

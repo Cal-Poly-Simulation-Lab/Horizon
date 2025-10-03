@@ -6,7 +6,8 @@ using System;
 using Utilities;
 using MissionElements;
 using HSFSystem;
-using Task = MissionElements.Task; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
+using Task = MissionElements.Task;
+using System.Data; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
 
 namespace HSFScheduler
 {
@@ -16,6 +17,7 @@ namespace HSFScheduler
         #region Attributes
         public SystemState InitialState { get; private set; }
         public Stack<Event> Events { get; private set; }
+        public string _stateHistoryID{ get; private set; } = "";
         #endregion
 
         /// <summary>
@@ -27,7 +29,6 @@ namespace HSFScheduler
             InitialState = initialState;
             Events = new Stack<Event>();
         }
-
         /// <summary>
         /// Creates a new copy of a state history so that events can be added to it
         /// </summary>
@@ -45,6 +46,7 @@ namespace HSFScheduler
                 eit = copy[i];
                 Events.Push(eit);
             }
+            //UpdateStateHistoryID(this, oldSchedule);
         }
 
         /// <summary>
@@ -60,7 +62,27 @@ namespace HSFScheduler
             InitialState = oldSchedule.InitialState;  //Should maybe be a deep copy -->not for this one
             Events.Push(newEvent);
         //    Asset = newAssetSched.Asset;
+            //UpdateStateHistoryID(this, oldSchedule);
         }
+        // public static void UpdateStateHistoryID(StateHistory newStartStateHistory, StateHistory oldStateHistory)
+        // {
+        //     if (oldStateHistory._stateHistoryID == "")
+        //     {
+        //         var prefix = ""; 
+        //         for (int i = 0; i < Scheduler.SchedulerStep; i++)
+        //         {
+        //             if (i==0) { prefix += "0";  }
+        //             else if (i>0) { prefix += ".0";  } 
+        //         }
+        //         newStartStateHistory._stateHistoryID = prefix + Scheduler._schedID.ToString();
+        //         Scheduler._schedID++;
+        //     }
+        //     else
+        //     {
+        //         newStartStateHistory._stateHistoryID = $"{oldStateHistory._stateHistoryID}.{Scheduler._schedID.ToString()}";
+        //         Scheduler._schedID++;
+        //     }
+        //}
 
 
         /// <summary>

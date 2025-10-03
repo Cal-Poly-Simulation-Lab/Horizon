@@ -241,8 +241,11 @@ namespace HSFScheduler
         /// </summary>
         public static void PrintAllSchedulesSummary(List<SystemSchedule> schedules, bool showAssetTaskDetails = false)
         {
+            string statusMessage = $"Scheduler Status: {100 * Scheduler.CurrentTime / SimParameters.SimEndSeconds:F}% done; Generated: {Scheduler._SchedulesGenerated} " +
+                                $"| Carried Over: {Scheduler._SchedulesCarriedOver} | Cropped: {Scheduler._SchedulesCropped} | Total: {schedules.Count}";
             Console.WriteLine("\n" + new string('=', 80));
             Console.WriteLine($"SCHEDULE SUMMARY - Current Scheduler Step: {Scheduler.SchedulerStep} | Total Schedules: {schedules.Count}");
+            Console.WriteLine($"{statusMessage}");
             Console.WriteLine(new string('=', 80));
             
             if (schedules.Count == 0)
@@ -260,8 +263,8 @@ namespace HSFScheduler
             for (int i = 0; i < schedules.Count; i++)
             {
                 var schedule = schedules[i];
-                Console.WriteLine($"Schedule #{i + 1,2}: Events={schedule.AllStates.Events.Count,2} | Value={schedule.ScheduleValue,8:F2} | Pattern: {schedule.ScheduleInfo.EventString}");
-                
+                // Console.WriteLine($"Schedule #{i + 1,2}: Events={schedule.AllStates.Events.Count,2} | Value={schedule.ScheduleValue,8:F2} | Pattern: {schedule.ScheduleInfo.EventString}");
+                Console.WriteLine($"Schedule {schedule._scheduleID}: Events={schedule.AllStates.Events.Count,2} | Value={schedule.ScheduleValue,8:F2} | Pattern: {schedule.ScheduleInfo.EventString}");
                 if (showAssetTaskDetails)
                 {
                     PrintAssetTaskDetails(schedule);
