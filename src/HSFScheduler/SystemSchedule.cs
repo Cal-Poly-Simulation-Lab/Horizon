@@ -9,7 +9,8 @@ using Utilities;
 using MissionElements;
 using UserModel;
 using Task = MissionElements.Task;
-using Microsoft.CodeAnalysis.CSharp.Syntax; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Scripting.Interpreter; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
 
 namespace HSFScheduler
 {
@@ -20,43 +21,37 @@ namespace HSFScheduler
         public StateHistory AllStates; //pop never gets used so just use list
         public double ScheduleValue;
         #endregion
+        
+        # region Debug / Private Attributes & Methods
+        private int numEvents { get; set; }
+        private string EventExistString { get; set; }
+        
+        /// <summary>
+        /// Debug and visualization information for this schedule
+        /// </summary>
+        public SystemScheduleInfo ScheduleInfo { get; private set; }
+
+        public void UpdateInfoStrings()
+        {
+            numEvents = this.AllStates.Events.Count();
+            EventExistString = this.ScheduleInfo.EventString; 
+        }
+        #endregion
 
         #region Constructors
-        public SystemSchedule(SystemState initialstates) 
-        {
-            ScheduleValue = 0;
-            AllStates = new StateHistory(initialstates);
-        }
-        public SystemSchedule(SystemState initialstates, string name) 
+        public SystemSchedule(SystemState initialstates, string name)
         {
             ScheduleValue = 0;
             Name = name;
             AllStates = new StateHistory(initialstates);
+            ScheduleInfo = new SystemScheduleInfo();
+            UpdateInfoStrings();
         }
-        public SystemSchedule(StateHistory allStates)
-        {
-            AllStates = new StateHistory(allStates);
-        }
-        public SystemSchedule(StateHistory allStates, string name)
-        {
-            AllStates = new StateHistory(allStates);
-            Name = name; 
-        }
-        public SystemSchedule(SystemSchedule oldSchedule, Event emptyEvent)
-        {
-            AllStates = new StateHistory(oldSchedule.AllStates);
-            AllStates.Events.Push(emptyEvent);
-        }
-        public SystemSchedule(SystemSchedule oldSchedule, Event emptyEvent,string name)
-        {
-            AllStates = new StateHistory(oldSchedule.AllStates);
-            AllStates.Events.Push(emptyEvent);
-            Name = name;
-        }
+
 
         public SystemSchedule(StateHistory oldStates, Stack<Access> newAccessStack, double currentTime)
         {
-            
+
             Dictionary<Asset, Task> tasks = new Dictionary<Asset, Task>();
             Dictionary<Asset, double> taskStarts = new Dictionary<Asset, double>();
             Dictionary<Asset, double> taskEnds = new Dictionary<Asset, double>();
@@ -162,6 +157,10 @@ namespace HSFScheduler
             eventToAdd.SetEventStart(eventStarts);
             eventToAdd.SetTaskStart(taskStarts);
             AllStates = new StateHistory(oldStates, eventToAdd);
+
+            // Informational Use Only:
+            ScheduleInfo = new SystemScheduleInfo(AllStates, Scheduler.SchedulerStep);
+            UpdateInfoStrings();
 
         }
                 

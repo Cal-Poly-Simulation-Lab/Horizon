@@ -57,8 +57,11 @@ namespace HSFSchedulerUnitTest
 
             // GenerateSchedules() Method Flow Stop #1: Initialize Empty Shchedule
             Scheduler.InitializeEmptySchedule(_systemSchedules, program.InitialSysState); // Create the empty schedule and add it to the systemSchedules list
+            //Sccheduler.InitializeEmptySchedule(_systemSchedules, program.InitialSysState); // Create the empty schedule and add it to the systemSchedules list
 
+            // Make sure the Test Attributes and Program Attributes are loaded together
             // GenerateSchedules() Method Flow Stop #2: Generate all default schedule combos
+            // program.scheduler.scheduleCombos = _scheduleCombos; //bump
             _scheduleCombos = Scheduler.GenerateExhaustiveSystemSchedules(program.SimSystem, program.SystemTasks, _scheduleCombos, simStart, simEnd);
 
         }
@@ -135,7 +138,14 @@ namespace HSFSchedulerUnitTest
             });
             }
 
-
+        [Test, Order(3)]
+        public void OneAssetOneTask_SecondIterationReturnsFalse()
+        {
+            // Set Inputs and call the build program
+            ModelInputFile = Path.Combine(CurrentTestDir, "OneAssetTestModel_CanAddTasks.json");
+            TaskInputFile = Path.Combine(CurrentTestDir, "OneTaskTestFile_CanAddTasks.json");
+            BuildProgram(); 
+        }
     
 
         // [TestCase("OneAssetTestModel.json", "ThreeTaskTestInput_ThreeTimesMax.json")]

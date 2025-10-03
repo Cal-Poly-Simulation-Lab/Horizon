@@ -69,6 +69,7 @@ namespace HSFSchedulerUnitTest
             CurrentTestName = TestContext.CurrentContext.Test.Name;
             CurrentClassName = TestContext.CurrentContext.Test.ClassName;
             //Console.WriteLine($"=~==~= Starting Test: {CurrentTestName} =~==~=\n");
+            
             TestContext.WriteLine($"=~==~==~= Starting Test: {CurrentClassName}.{CurrentTestName} =~==~==~=\n");
         }
 
@@ -80,6 +81,27 @@ namespace HSFSchedulerUnitTest
             TestContext.WriteLine($"=~==~==~= Test {CurrentClassName}.{CurrentTestName} Completed =~==~==~=\n");
         }
         # endregion
+        public static List<SystemSchedule> MainSchedulingLoopHelper(
+            List<SystemSchedule> systemSchedules,
+            Stack<Stack<Access>> scheduleCombos,
+            SystemClass system,
+            Evaluator evaluator,
+            SystemSchedule emptySchedule,
+            double startTime, 
+            double endTime, 
+            double timeStep)
+        {
+            for (double currentTime = startTime; currentTime < endTime; currentTime += timeStep)
+            {
+                systemSchedules = Scheduler.CropToMaxSchedules(systemSchedules, emptySchedule, evaluator);
+                var potential = Scheduler.TimeDeconfliction(systemSchedules, scheduleCombos, currentTime);
+                var canPerform = Scheduler.CheckAllPotentialSchedules(system, potential);
+                var sorted = Scheduler.EvaluateAndSortCanPerformSchedules(evaluator, canPerform);
+                systemSchedules = Scheduler.MergeAndClearSystemSchedules(systemSchedules, sorted);
+            }
+            return systemSchedules;
+        }
+
 
         #region Horizon Load Helper
         public virtual Horizon.Program HorizonLoadHelper(string SimInputFile, string TaskInputFile, string ModelInputFile)

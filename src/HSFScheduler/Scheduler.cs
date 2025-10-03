@@ -21,6 +21,11 @@ namespace HSFScheduler
     [Serializable]
     public class Scheduler
     {
+        #region Static Accesible Attributes
+        public static int SchedulerStep {get; private set;} = -1;
+        public static double CurrentTime {get; private set;} = SimParameters.SimStartSeconds;
+        public static double NextTime {get; private set;} = SimParameters.SimStartSeconds + SimParameters.SimStepSeconds;
+        #endregion
         //TODO:  Support monitoring of scheduler progress - Eric Mehiel
         #region Attributes
         private double _startTime;
@@ -113,6 +118,12 @@ namespace HSFScheduler
             //mainSchedulingLoop(double currentTime, double endTime, double timeStep)
             for (double currentTime = _startTime; currentTime < _endTime; currentTime += _stepLength)
             {
+                // Update the scheduler step, current time, and next time (static attributes)
+                Scheduler.SchedulerStep += 1;
+                Scheduler.CurrentTime = currentTime;
+                Scheduler.NextTime = currentTime + _stepLength;
+                
+                
                 log.Info("Simulation Time " + currentTime);
                 // if accesses are pregenerated, look up the access information and update assetTaskList
                 if (canPregenAccess)
@@ -159,6 +170,9 @@ namespace HSFScheduler
 
                 // Print completion percentage in command window
                 Console.WriteLine("Scheduler Status: {0:F}% done; {1} schedules generated.", 100 * currentTime / _endTime, systemSchedules.Count);
+                
+                // Print schedule summary for current time step
+                SystemScheduleInfo.PrintAllSchedulesSummary(systemSchedules);
             }
             return this.systemSchedules;
         }
@@ -203,6 +217,9 @@ namespace HSFScheduler
                 Scheduler.CropSchedules(systemSchedules, scheduleEvaluator, emptySchedule, SchedParameters.NumSchedCropTo);
                 systemSchedules.Add(emptySchedule);
             }
+            // Update all existing schedule visualizations to reflect new current step
+            foreach (var schedule in systemSchedules) { schedule.ScheduleInfo.UpdateForCurrentTimeStep(); schedule.UpdateInfoStrings(); }
+
             return systemSchedules; 
         }
 
