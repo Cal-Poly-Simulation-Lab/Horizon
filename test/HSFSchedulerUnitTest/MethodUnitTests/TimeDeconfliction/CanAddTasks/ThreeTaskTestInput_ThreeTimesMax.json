@@ -7,7 +7,7 @@
       "target": {
         "name": "Target1",
         "type": "None",
-        "value": 10.0,
+        "value": 1,
         "dynamicState": {
           "type": "NULL_STATE",
           "integratorType": "None",
@@ -25,7 +25,7 @@
       "target": {
         "name": "Target2",
         "type": "None",
-        "value": 20.0,
+        "value": 0.1,
         "dynamicState": {
           "type": "NULL_STATE",
           "integratorType": "None",
@@ -43,7 +43,7 @@
       "target": {
         "name": "Target3",
         "type": "None",
-        "value": 30.0,
+        "value": 0.01,
         "dynamicState": {
           "type": "NULL_STATE",
           "integratorType": "None",

@@ -45,6 +45,40 @@ namespace HSFSchedulerUnitTest
             // BuildProgram();
         }
 
+        [TearDown]
+        public void ResetSchedulerAttributes()
+        {
+            // Reset static Scheduler attributes that mirror the Scheduler class
+            SchedulerStep = -1;
+            CurrentTime = SimParameters.SimStartSeconds;
+            NextTime = SimParameters.SimStartSeconds + SimParameters.SimStepSeconds;
+            _schedID = 0;
+            _SchedulesGenerated = 0;
+            _SchedulesCarriedOver = 0;
+            _SchedulesCropped = 0;
+            _emptySchedule = null;
+
+            // Reset instance attributes
+            _systemSchedules.Clear();
+            _canPregenAccess = false;
+            _scheduleCombos.Clear();
+            _preGeneratedAccesses = null;
+            _potentialSystemSchedules.Clear();
+            _systemCanPerformList.Clear();
+            _ScheduleEvaluator = null;
+
+            // Reset program attributes
+            program = new Horizon.Program();
+            _testSimSystem = null;
+            _testSystemTasks.Clear();
+            _testInitialSysState = new SystemState();
+
+            // Reset local test attributes
+            currentTime = SimParameters.SimStartSeconds;
+            endTime = SimParameters.SimEndSeconds;
+            nextTime = SimParameters.SimStartSeconds + SimParameters.SimStepSeconds;
+        }
+
         private void BuildProgram()
         {
             // Load the program to get the system and tasks
@@ -56,13 +90,14 @@ namespace HSFSchedulerUnitTest
             double simStart = SimParameters.SimStartSeconds;
 
             // GenerateSchedules() Method Flow Stop #1: Initialize Empty Shchedule
-            Scheduler.InitializeEmptySchedule(_systemSchedules, program.InitialSysState); // Create the empty schedule and add it to the systemSchedules list
+            Scheduler.InitializeEmptySchedule(_systemSchedules, _testInitialSysState); // Create the empty schedule and add it to the systemSchedules list
+            SchedulerUnitTest._emptySchedule = Scheduler.emptySchedule;
             //Sccheduler.InitializeEmptySchedule(_systemSchedules, program.InitialSysState); // Create the empty schedule and add it to the systemSchedules list
 
             // Make sure the Test Attributes and Program Attributes are loaded together
             // GenerateSchedules() Method Flow Stop #2: Generate all default schedule combos
-            // program.scheduler.scheduleCombos = _scheduleCombos; //bump
-            _scheduleCombos = Scheduler.GenerateExhaustiveSystemSchedules(program.SimSystem, program.SystemTasks, _scheduleCombos, simStart, simEnd);
+            //program.scheduler.scheduleCombos = Scheduler.GenerateExhaustiveSystemSchedules(program.SimSystem, program.SystemTasks, program.scheduler.scheduleCombos, simStart, simEnd);
+            _scheduleCombos = Scheduler.GenerateExhaustiveSystemSchedules(_testSimSystem, _testSystemTasks, _scheduleCombos, simStart, simEnd);
 
         }
 
@@ -73,10 +108,7 @@ namespace HSFSchedulerUnitTest
             BuildProgram();
             //Now that we have generated the exhaustive system schedules, we can be at the CURRENT TIME: SIM START, and execute the first CropToMaxSchedules call.:
             _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, Scheduler.emptySchedule, program.SchedEvaluator); //bump
-
-
-            // Define the empty Schedule. It is the first one in Scheduler.systemSchedules after InitializeEmptyShecule() has been called. 
-            var _emptySchedule = _systemSchedules[0];
+            var _emptySchedule = _systemSchedules[0]; // Define the empty Schedule. It is the first one in Scheduler.systemSchedules after InitializeEmptyShecule() has been called. 
 
             Assert.Multiple(() =>
             {
@@ -112,7 +144,7 @@ namespace HSFSchedulerUnitTest
             // Set Inputs and call the build program
             ModelInputFile = Path.Combine(CurrentTestDir, "OneAssetTestModel_CanAddTasks.json");
             TaskInputFile = Path.Combine(CurrentTestDir, "OneTaskTestFile_CanAddTasks.json");
-            BuildProgram(); 
+            BuildProgram();
             //Now that we have generated the exhaustive system schedules, we can be at the CURRENT TIME: SIM START, and execute the first CropToMaxSchedules call.:
             _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, Scheduler.emptySchedule, program.SchedEvaluator); //bump
 
@@ -130,10 +162,10 @@ namespace HSFSchedulerUnitTest
                 Assert.IsTrue(_newAccessStack.First().Task.MaxTimesToPerform == 1, "The task should have a MaxTimesToPerform of 1");
 
                 // The first call should return true
-                Assert.IsTrue(_sched.CanAddTasks(_newAccessStack, currentTime), "The empty schedule should always allow task addition; given the MaxTimesToPerform == 1 .... INFO: AccessStack {k},"); 
+                Assert.IsTrue(_sched.CanAddTasks(_newAccessStack, currentTime), "The empty schedule should always allow task addition; given the MaxTimesToPerform == 1 .... INFO: AccessStack {k},");
                 Assert.That(_sched.AllStates.timesCompletedTask(_newAccessStack.First().Task), Is.EqualTo(0), "The timesCompletedTask should return 0 since it has not been added to an Event yet, and would not yet exist in this potential schedule's StateHistory."); // failing
             });
-            }
+        }
 
         [Test, Order(3)]
         public void OneAssetOneTask_SecondIterationReturnsFalse()
@@ -141,14 +173,97 @@ namespace HSFSchedulerUnitTest
             // Set Inputs and call the build program
             ModelInputFile = Path.Combine(CurrentTestDir, "OneAssetTestModel_CanAddTasks.json");
             TaskInputFile = Path.Combine(CurrentTestDir, "OneTaskTestFile_CanAddTasks.json");
-            BuildProgram(); 
+            BuildProgram();
+
+            double currentTime = 0.0;
+            double timeStep = 12.0;
+            int iterations = 1;
+            // Main Scheduling Loop Helper: Make sure to use all the mirrored attributes for the SchedulerUnitTest class. 
+            this._systemSchedules = SchedulerUnitTest.MainSchedulingLoopHelper(_systemSchedules, _scheduleCombos, _testSimSystem,
+                                                        _ScheduleEvaluator, SchedulerUnitTest._emptySchedule,
+                                                        currentTime, timeStep, iterations);
+
+            // Start the second iteration before CanAddTasks: 
+            _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, SchedulerUnitTest._emptySchedule, _ScheduleEvaluator);
+
+            // Now we would enter Time Deconfliction Step:
+            Assert.Multiple(() =>
+            {
+                // Ensure that the schedule Parameters are correct here:
+                Assert.That(SchedParameters.MaxNumScheds, Is.EqualTo(100), "The max number of schedules should be 100 per the input file.");
+                Assert.That(_scheduleCombos.Count(), Is.EqualTo(1), "The schedule combos should have only one access stack given it is only one asset and one task.");
+                Assert.That(_systemSchedules.Count(), Is.EqualTo(2), $"The total system schedules after {iterations} should be {2 ^ iterations}.");
+
+                // int i = 0; 
+                foreach (var _oldSystemSchedule in _systemSchedules)
+                {
+                    foreach (var _newAccessStack in _scheduleCombos)
+                    {
+                        Assert.IsTrue(_newAccessStack.Count() == 1, "The access stack should have one access given it is only one asset."); //falining
+                        Assert.IsTrue(_newAccessStack.First().Asset.Name.ToLower() == "testasset1", "The asset should be TestAsset1 (case in-sensitive).");
+                        Assert.IsTrue(_newAccessStack.First().Task.Name.ToLower() == "task1", "The task should be Task1 (case in-sensitive).");
+                        Assert.IsTrue(_newAccessStack.First().Task.MaxTimesToPerform == 1, "The task should have a MaxTimesToPerform of 1");
+
+                        if (_oldSystemSchedule.Name.ToLower().Contains("empty"))
+                        {
+                            // This is the empty schedule:
+                            Assert.That(_oldSystemSchedule.AllStates.Events.Count(), Is.EqualTo(0), "The empty schedule should have no events.");
+                            Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, currentTime), "The empty schedule should always allow task addition; given the MaxTimesToPerform > 1. (This is because there are no matching Tasks in the StateHistory as there is no StateHistory for the EmptySchedule).,");
+                        }
+                        else
+                        {
+                            // This is all other schedules (with StateHistory):
+                            Assert.That(_oldSystemSchedule.AllStates.Events.Count(), Is.EqualTo(1), "The schedule should have one event (asset1-->target1).");
+                            Assert.That(_oldSystemSchedule.AllStates.timesCompletedTask(_newAccessStack.First().Task), Is.EqualTo(1), "The task should have been completed once.");
+                            Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, currentTime), "The schedule should not allow task addition; given the MaxTimesToPerform = 1. (This is because there is a matching Task in the StateHistory as there is a StateHistory for the Non-EmptySchedule).,");
+                        }
+                    }
+                }
+            });
+
+
+        } // End Test
+
+        [Test, Order(4)]
+        public void OneAssetThreeTask_ThreeMaxTimes_ThirdIterationAlwaysTrue()
+        {
+            // Set Inputs and call the build program
+            ModelInputFile = Path.Combine(CurrentTestDir, "OneAssetTestModel_CanAddTasks.json");
+            TaskInputFile = Path.Combine(CurrentTestDir, "ThreeTaskTestInput_ThreeTimesMax.json");
+            BuildProgram();     
+
+            double currentTime = SimParameters.SimStartSeconds; // 0.0s
+            double timeStep = SimParameters.SimStepSeconds; // 12.0s
+            int iterations = 2;
+            // Main Scheduling Loop Helper: Make sure to use all the mirrored attributes for the SchedulerUnitTest class. 
+            this._systemSchedules = SchedulerUnitTest.MainSchedulingLoopHelper(_systemSchedules, _scheduleCombos, _testSimSystem,
+                                                        _ScheduleEvaluator, SchedulerUnitTest._emptySchedule,
+                                                        currentTime, timeStep, iterations);
+      
+            // Start the second iteration before CanAddTasks: 
+            _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, SchedulerUnitTest._emptySchedule, _ScheduleEvaluator);
+            double thirdStepTime = currentTime + (timeStep*iterations+1); // This is the current Time
+            
+            // Now Time Deconfliction is Stepped into... 
+            Assert.Multiple(()=>
+            {
+                // Ensure things are loaded in correctly, and sched parametr and schedule combos are as expected:
+                Assert.That(SchedParameters.MaxNumScheds, Is.EqualTo(100), "The max number of schedules should be 100 per the input file.");
+                Assert.That(_testSimSystem.Assets.Count(), Is.EqualTo(1), "There should be one (1) asset loaded in this test simulation.");
+                Assert.That(_testSystemTasks.Count(), Is.EqualTo(3), "There should be three (3) tasks loaded in this test simulation.");
+                Assert.That(_scheduleCombos.Count(), Is.EqualTo(_testSystemTasks.Count()^_testSimSystem.Assets.Count()), "The schedule combo is three given 1 task and 3 asset");
+                foreach (var task in _testSystemTasks)
+                { Assert.That(task.MaxTimesToPerform, Is.EqualTo(3), "It should be three (3) times max to perform for each Task."); }
+                
+                foreach (var _oldSystemSchedule in _systemSchedules)
+                {
+                    foreach (var _newAccessStack in _scheduleCombos)
+                    {
+                        Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack,thirdStepTime));
+                    }
+                }
+            });
         }
-    
+    } // End Class
 
-        // [TestCase("OneAssetTestModel.json", "ThreeTaskTestInput_ThreeTimesMax.json")]
-        // public void MaxTimesToPerform_TestFalse(string _modelFile, string _taskFile){
-
-        // }
-
-    }    
-}
+}    // End Namespace
