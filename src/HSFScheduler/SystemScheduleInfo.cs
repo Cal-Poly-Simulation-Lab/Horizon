@@ -247,7 +247,11 @@ namespace HSFScheduler
             Console.WriteLine($"SCHEDULE SUMMARY - Current Scheduler Step: {Scheduler.SchedulerStep} | Total Schedules: {schedules.Count}");
             Console.WriteLine($"{statusMessage}");
             Console.WriteLine(new string('=', 80));
+
+            if (!SchedParameters.ConsoleLogging)
+            { return; } // return eraly if verbose is not set. }
             
+            // Otherwise continue printing:
             if (schedules.Count == 0)
             {
                 Console.WriteLine("No schedules to display.");

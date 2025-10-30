@@ -143,6 +143,36 @@
       "cwd": "${workspaceFolder}/test/HSFSchedulerUnitTest",
       "console": "internalConsole",
       "stopAtEntry": false
+    },
+    {
+      "name": "Run Selected Tests (Cursor)",
+      "type": "node-terminal",
+      "request": "launch",
+      "preLaunchTask": "build-scheduler-tests",
+      "command": "cd ${workspaceFolder} && WORKSPACE_FOLDER=${workspaceFolder} /bin/zsh .vscode/select-tests.zsh && WORKSPACE_FOLDER=${workspaceFolder} /bin/zsh .vscode/run-selected-tests.zsh",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Debug All Scheduler Tests (Cursor)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-scheduler-tests",
+      "program": "dotnet",
+      "args": [
+        "test",
+        "${workspaceFolder}/test/HSFSchedulerUnitTest/HSFSchedulerUnitTest.csproj",
+        "--logger:console;verbosity=detailed",
+        "--configuration",
+        "Debug",
+        "--blame-hang-timeout",
+        "30s"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "stopAtEntry": false,
+      "justMyCode": false,
+      "enableStepFiltering": false,
+      "suppressJITOptimizations": true
     }
   ]
 }

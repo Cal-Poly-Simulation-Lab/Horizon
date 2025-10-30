@@ -22,14 +22,12 @@ namespace HSFScheduler
     public class Scheduler
     {
         #region Static Accesible Attributes
-        public static int SchedulerStep {get; private set;} = -1;
+        public static int SchedulerStep {get; set;} = -1;
         public static double CurrentTime {get; private set;} = SimParameters.SimStartSeconds;
         public static double NextTime {get; private set;} = SimParameters.SimStartSeconds + SimParameters.SimStepSeconds;
 
         // Console logging control
         public static int _schedID { get; set; } = 0;
-        public static bool _EnableDetailedLogging { get; set; } = true;
-        public static string _StatusMessage { get; set; } = "";
         public static int _SchedulesGenerated { get; private set; } = 0;
         public static int _SchedulesCarriedOver { get; private set; } = 0;
         public static int _SchedulesCropped { get; private set; } = 0;
@@ -182,13 +180,13 @@ namespace HSFScheduler
 
                 UpdateScheduleIDs(systemSchedules);
 
-                if (_EnableDetailedLogging) // Print detailed schedule summary with status as subheader
-                { SystemScheduleInfo.PrintAllSchedulesSummary(systemSchedules, showAssetTaskDetails: false); }
-                else // Print simple completion percentage with tracking metrics
-                {
-                    Console.WriteLine("Scheduler Status: {0:F}% done; Generated: {1} | Carried Over: {2} | Cropped: {3} | Total: {4}",
-                        100 * currentTime / _endTime, _SchedulesGenerated, _SchedulesCarriedOver, _SchedulesCropped, systemSchedules.Count);
-                }
+                // if (_EnableDetailedLogging) // Print detailed schedule summary with status as subheader
+                SystemScheduleInfo.PrintAllSchedulesSummary(systemSchedules, showAssetTaskDetails: false);
+                // else // Print simple completion percentage with tracking metrics
+                // {
+                //     Console.WriteLine("Scheduler Status: {0:F}% done; Generated: {1} | Carried Over: {2} | Cropped: {3} | Total: {4}",
+                //         100 * currentTime / _endTime, _SchedulesGenerated, _SchedulesCarriedOver, _SchedulesCropped, systemSchedules.Count);
+                // }
 
             }
             return this.systemSchedules;

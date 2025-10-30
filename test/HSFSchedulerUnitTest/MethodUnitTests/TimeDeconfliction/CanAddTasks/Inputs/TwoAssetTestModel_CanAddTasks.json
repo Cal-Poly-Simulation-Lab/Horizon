@@ -1,0 +1,61 @@
+{
+  "model": {
+    "assets": [
+      {
+        "name": "TestAsset1",
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "stateData": [ 7378.137, 0, 0, 0, 6.02088, 4.215866 ],
+          "Eoms": {
+            "type": "None"
+          },
+          "integratorOptions": {},
+          "integratorParameters": []
+        },
+        "subsystems": [
+          {
+            "type": "scriptedcs",
+            "name": "SchedulerSubTest",
+            "src": "test\\HSFSchedulerUnitTest\\Subsystems\\SchedulerSubTest.cs",
+            "className": "SubTest",
+            "parameters": [],
+            "states": []
+          }
+        ],
+        "constraints": []
+      },
+      {
+        "name": "TestAsset2",
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "stateData": [ 7378.137, 0, 0, 0, 6.02088, 4.215866 ],
+          "Eoms": {
+            "type": "None"
+          },
+          "integratorOptions": {},
+          "integratorParameters": []
+        },
+        "subsystems": [
+          {
+            "type": "scriptedcs",
+            "name": "SchedulerSubTest",
+            "src": "test\\HSFSchedulerUnitTest\\Subsystems\\SchedulerSubTest.cs",
+            "className": "SubTest",
+            "parameters": [],
+            "states": []
+          }
+        ],
+        "constraints": []
+      }        
+    ],
+
+    "dependencies": [],
+
+    "evaluator": {
+      "type": "TargetValueEvaluator",
+      "className": "EVAL",
+      "states": []
+    }
+    
+  }
+}

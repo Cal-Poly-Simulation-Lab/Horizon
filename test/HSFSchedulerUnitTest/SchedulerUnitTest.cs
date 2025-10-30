@@ -104,7 +104,7 @@ namespace HSFSchedulerUnitTest
         {
             for (double currentTime = startTime; currentTime < startTime + iterations * timeStep; currentTime += timeStep)
             {
-                //Scheduler.SchedulerStep += 1;
+                Scheduler.SchedulerStep += 1; // Im pretty sure its static and called in the ScheduleInfo class to make it easy; so screw it-- its public set now to make it smooth for visualization sake. Doesnt impact the algorithm main logic. 
                 SchedulerUnitTest.CurrentTime = currentTime;
                 SchedulerUnitTest.NextTime = currentTime + timeStep;
                 systemSchedules = Scheduler.CropToMaxSchedules(systemSchedules, emptySchedule, evaluator);

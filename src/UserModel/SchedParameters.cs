@@ -16,6 +16,7 @@ namespace UserModel
         //public static double SimStepSeconds { get; private set; }
         public static int MaxNumScheds { get; private set; }
         public static int NumSchedCropTo { get; private set; }
+        public static bool ConsoleLogging { get; private set; }
         #endregion
 
         public static bool LoadScheduleJson(JObject scheduleJson)
@@ -46,6 +47,20 @@ namespace UserModel
                     string msg = $"Scheduler Crop To is not found and is required in scenario {SimParameters.ScenarioName}";
                     Console.WriteLine(msg);
                     throw new ArgumentException(msg);
+                }
+                if (JsonLoader<string>.TryGetValue("ConsoleLog", scheduleJson, out string ConsoleLog))
+                {
+                    if (ConsoleLog.ToLower().Contains("on") || ConsoleLog.ToLower().Contains("true") || ConsoleLog.ToLower().Contains("verbose"))
+                    {
+                        SchedParameters.ConsoleLogging = true;
+                        Console.WriteLine("\tConsole Logging of Scheduler set to true (verbose).");
+                    }
+                    else { SchedParameters.ConsoleLogging = false; Console.WriteLine("\tConsole Logging of Scheduler set to false (non-verbose).");}
+                }
+                else
+                {
+                    SchedParameters.ConsoleLogging = false;
+                    Console.WriteLine("\t No \"ConsoleLog\" setting specified; Console Logging of Scheduler set to default: false (non-verbose).");
                 }
 
                 return true;
