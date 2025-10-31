@@ -151,17 +151,23 @@ namespace HSFScheduler
         }
 
         /// <summary>
-        /// Returns the number of times the specified task has been completed in this schedule for a specific asset
+        /// Returns the total number of times a task has been completed in the schedule
+        /// across ALL events and ALL assets. This counts the actual occurrences of the task,
+        /// not just the number of events containing the task.
         /// </summary>
         /// <param name="task"></param>
-        /// <returns></returns>
+        /// <returns>Total count of task occurrences across all assets and events</returns>
         public int timesCompletedTask(Task task)
         {
             int count = 0;
-            foreach (Event eit in Events)
+            foreach (Event evt in Events)
             {
-               if (eit.Tasks.ContainsValue(task))
-                    count++;
+                // Count each occurrence of the task across all assets in this event
+                foreach (var taskInEvent in evt.Tasks.Values)
+                {
+                    if (taskInEvent == task)
+                        count++;
+                }
             }
             return count;
         }

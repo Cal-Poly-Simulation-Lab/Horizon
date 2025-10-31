@@ -31,9 +31,9 @@ namespace HSFSchedulerUnitTest
         // private SystemSchedule? testSchedule;
         // private Asset? testAsset;
         // private MissionElements.Task? testTask;
-        private double currentTime = SimParameters.SimStartSeconds;
-        private double endTime = SimParameters.SimEndSeconds;
-        private double nextTime = SimParameters.SimStartSeconds + SimParameters.SimStepSeconds;
+        // private double currentTime = SimParameters.SimStartSeconds;
+        // private double endTime = SimParameters.SimEndSeconds;
+        // private double nextTime = SimParameters.SimStartSeconds + SimParameters.SimStepSeconds;
 
         [SetUp]
         public void SetupDefaults()
@@ -76,9 +76,9 @@ namespace HSFSchedulerUnitTest
             _testInitialSysState = new SystemState();
 
             // Reset local test attributes
-            currentTime = SimParameters.SimStartSeconds;
-            endTime = SimParameters.SimEndSeconds;
-            nextTime = SimParameters.SimStartSeconds + SimParameters.SimStepSeconds;
+            // currentTime = SimParameters.SimStartSeconds;
+            // endTime = SimParameters.SimEndSeconds;
+            // nextTime = SimParameters.SimStartSeconds + SimParameters.SimStepSeconds;
         }
 
         private void BuildProgram()
@@ -103,6 +103,31 @@ namespace HSFSchedulerUnitTest
 
         }
 
+        private List<SystemSchedule> CanAddTasks_MainSchedulingLoop(
+            List<SystemSchedule> systemSchedules,
+            Stack<Stack<Access>> scheduleCombos,
+            SystemClass system,
+            Evaluator evaluator,
+            SystemSchedule emptySchedule,
+            double startTime, 
+            double timeStep, 
+            int iterations)
+        {
+            // Main Scheduling Loop Helper: Make sure to use all the mirrored attributes for the SchedulerUnitTest class. 
+            this._systemSchedules = SchedulerUnitTest.MainSchedulingLoopHelper(systemSchedules, scheduleCombos, system,
+                                                        evaluator, emptySchedule,
+                                                        startTime, timeStep, iterations);
+
+            // Start the beginning of the next iteration before CanAddTasks is called (within TimeDeconfliction): 
+            Scheduler.SchedulerStep += 1;
+            SchedulerUnitTest.CurrentTime += SchedulerUnitTest.NextTime;
+            SchedulerUnitTest.NextTime = SchedulerUnitTest.CurrentTime + timeStep;
+            this._systemSchedules = Scheduler.CropToMaxSchedules(this._systemSchedules, emptySchedule, evaluator);
+
+            // Now we are moments before stepping into TimeDeconfliction() method (return out):
+            return _systemSchedules; 
+
+        }
         private string PrintAttemptedTaskAdditionInfo(SystemSchedule _oldSystemSchedule, Stack<Access> _newAccessStack) // Stack<Access> _scheduleComboToAdd)
         {
             string output = "";
@@ -172,6 +197,11 @@ namespace HSFSchedulerUnitTest
             // Have to call the build manually
             BuildProgram();
             //Now that we have generated the exhaustive system schedules, we can be at the CURRENT TIME: SIM START, and execute the first CropToMaxSchedules call.:
+            //Now that we have generated the exhaustive system schedules, we can be at the CURRENT TIME: SIM START, and execute the first CropToMaxSchedules call.:
+            // Start the beginning of the next iteration before CanAddTasks is called (within TimeDeconfliction): 
+            Scheduler.SchedulerStep += 1;
+            SchedulerUnitTest.CurrentTime = 0; 
+            SchedulerUnitTest.NextTime = 0 + SimParameters.SimStepSeconds;
             _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, Scheduler.emptySchedule, program.SchedEvaluator); //bump
             var _emptySchedule = _systemSchedules[0]; // Define the empty Schedule. It is the first one in Scheduler.systemSchedules after InitializeEmptyShecule() has been called. 
 
@@ -197,7 +227,7 @@ namespace HSFSchedulerUnitTest
                         a++;
                     }
                     // Call CanAddTasks() forn the empty schedule across all schedule combos. 
-                    Assert.IsTrue(_emptySchedule.CanAddTasks(_newAccessStack, currentTime), $"The empty schedule should always allow task addition, given the MaxTimesToPerform > 0 .... INFO: AccessStack {k},");
+                    Assert.IsTrue(_emptySchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), $"The empty schedule should always allow task addition, given the MaxTimesToPerform > 0 .... INFO: AccessStack {k},");
                     k++;
                 }
             });
@@ -211,7 +241,11 @@ namespace HSFSchedulerUnitTest
             TaskInputFile = Path.Combine(CurrentTestDir, "Inputs", "OneTaskTestFile_OneTimeMax_CanAddTasks.json");
             BuildProgram();
             //Now that we have generated the exhaustive system schedules, we can be at the CURRENT TIME: SIM START, and execute the first CropToMaxSchedules call.:
-            _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, Scheduler.emptySchedule, program.SchedEvaluator); //bump
+            // Start the beginning of the next iteration before CanAddTasks is called (within TimeDeconfliction): 
+            Scheduler.SchedulerStep += 1;
+            SchedulerUnitTest.CurrentTime = 0; 
+            SchedulerUnitTest.NextTime = 0 + SimParameters.SimStepSeconds;
+            this._systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, Scheduler.emptySchedule, program.SchedEvaluator); //bump
 
 
             var _sched = _systemSchedules[0]; // This is the empty schedule here
@@ -227,7 +261,7 @@ namespace HSFSchedulerUnitTest
                 Assert.IsTrue(_newAccessStack.First().Task.MaxTimesToPerform == 1, "The task should have a MaxTimesToPerform of 1");
 
                 // The first call should return true
-                Assert.IsTrue(_sched.CanAddTasks(_newAccessStack, currentTime), "The empty schedule should always allow task addition; given the MaxTimesToPerform == 1 .... INFO: AccessStack {k},");
+                Assert.IsTrue(_sched.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), "The empty schedule should always allow task addition; given the MaxTimesToPerform == 1 .... INFO: AccessStack {k},");
                 Assert.That(_sched.AllStates.timesCompletedTask(_newAccessStack.First().Task), Is.EqualTo(0), "The timesCompletedTask should return 0 since it has not been added to an Event yet, and would not yet exist in this potential schedule's StateHistory."); // failing
             });
         }
@@ -244,12 +278,9 @@ namespace HSFSchedulerUnitTest
             double timeStep = 12.0;
             int iterations = 1;
             // Main Scheduling Loop Helper: Make sure to use all the mirrored attributes for the SchedulerUnitTest class. 
-            this._systemSchedules = SchedulerUnitTest.MainSchedulingLoopHelper(_systemSchedules, _scheduleCombos, _testSimSystem,
+            this._systemSchedules = CanAddTasks_MainSchedulingLoop(_systemSchedules, _scheduleCombos, _testSimSystem,
                                                         _ScheduleEvaluator, SchedulerUnitTest._emptySchedule,
                                                         currentTime, timeStep, iterations);
-
-            // Start the second iteration before CanAddTasks: 
-            _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, SchedulerUnitTest._emptySchedule, _ScheduleEvaluator);
 
             // Now we would enter Time Deconfliction Step:
             Assert.Multiple(() =>
@@ -273,14 +304,14 @@ namespace HSFSchedulerUnitTest
                         {
                             // This is the empty schedule:
                             Assert.That(_oldSystemSchedule.AllStates.Events.Count(), Is.EqualTo(0), "The empty schedule should have no events.");
-                            Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, currentTime), "The empty schedule should always allow task addition; given the MaxTimesToPerform > 1. (This is because there are no matching Tasks in the StateHistory as there is no StateHistory for the EmptySchedule).,");
+                            Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), "The empty schedule should always allow task addition; given the MaxTimesToPerform > 1. (This is because there are no matching Tasks in the StateHistory as there is no StateHistory for the EmptySchedule).,");
                         }
                         else
                         {
                             // This is all other schedules (with StateHistory):
                             Assert.That(_oldSystemSchedule.AllStates.Events.Count(), Is.EqualTo(1), "The schedule should have one event (asset1-->target1).");
                             Assert.That(_oldSystemSchedule.AllStates.timesCompletedTask(_newAccessStack.First().Task), Is.EqualTo(1), "The task should have been completed once.");
-                            Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, currentTime), "The schedule should not allow task addition; given the MaxTimesToPerform = 1. (This is because there is a matching Task in the StateHistory as there is a StateHistory for the Non-EmptySchedule).,");
+                            Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), "The schedule should not allow task addition; given the MaxTimesToPerform = 1. (This is because there is a matching Task in the StateHistory as there is a StateHistory for the Non-EmptySchedule).,");
                         }
                     }
                 }
@@ -299,13 +330,13 @@ namespace HSFSchedulerUnitTest
             double timeStep = SimParameters.SimStepSeconds; // 12.0s
             int iterations = 2;
             // Main Scheduling Loop Helper: Make sure to use all the mirrored attributes for the SchedulerUnitTest class. 
-            this._systemSchedules = SchedulerUnitTest.MainSchedulingLoopHelper(_systemSchedules, _scheduleCombos, _testSimSystem,
+            this._systemSchedules = CanAddTasks_MainSchedulingLoop(_systemSchedules, _scheduleCombos, _testSimSystem,
                                                         _ScheduleEvaluator, SchedulerUnitTest._emptySchedule,
                                                         currentTime, timeStep, iterations);
       
-            // Start the second iteration before CanAddTasks: 
-            _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, SchedulerUnitTest._emptySchedule, _ScheduleEvaluator);
-            double thirdStepTime = currentTime + (timeStep*iterations+1); // This is the current Time
+            // // Start the second iteration before CanAddTasks: 
+            // _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, SchedulerUnitTest._emptySchedule, _ScheduleEvaluator);
+            // double thirdStepTime = currentTime + (timeStep*(iterations+1)); // This is the current Time
             
             // Now Time Deconfliction is Stepped into... 
             Assert.Multiple(()=>
@@ -322,7 +353,7 @@ namespace HSFSchedulerUnitTest
                 {
                     foreach (var _newAccessStack in _scheduleCombos)
                     {
-                        Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack,thirdStepTime));
+                        Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack,SchedulerUnitTest.CurrentTime));
                     }
                 }
             });
@@ -336,19 +367,15 @@ namespace HSFSchedulerUnitTest
             TaskInputFile = Path.Combine(CurrentTestDir, "Inputs", "ThreeTaskTestInput_OneTimeMax.json");
             BuildProgram();
 
-            double currentTime = 0.0;
+            double startTime = 0.0;
             double timeStep = 12.0;
             int iterations = 1;
             // Main Scheduling Loop Helper: Make sure to use all the mirrored attributes for the SchedulerUnitTest class. 
-            this._systemSchedules = SchedulerUnitTest.MainSchedulingLoopHelper(_systemSchedules, _scheduleCombos, _testSimSystem,
+            this._systemSchedules = CanAddTasks_MainSchedulingLoop(_systemSchedules, _scheduleCombos, _testSimSystem,
                                                         _ScheduleEvaluator, SchedulerUnitTest._emptySchedule,
-                                                        currentTime, timeStep, iterations);
+                                                        startTime, timeStep, iterations);
 
-            // Start the second iteration before CanAddTasks: 
-            Scheduler.SchedulerStep += 1;
-            _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, SchedulerUnitTest._emptySchedule, _ScheduleEvaluator);
 
-            
             // Now we would enter Time Deconfliction Step:
             Assert.Multiple(() =>
             {
@@ -378,12 +405,12 @@ namespace HSFSchedulerUnitTest
                             if (sameTask)
                             {
                                 // Both assets doing the same task with MaxTimesToPerform=1 should fail
-                                Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, currentTime), $"SchedID_{_schedule_name}: Empty schedule should NOT allow both assets to add the same task when MaxTimesToPerform=1.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
+                                Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), $"SchedID_{_schedule_name}: Empty schedule should NOT allow both assets to add the same task when MaxTimesToPerform=1.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
                             }
                             else
                             {
                                 // Different tasks should be allowed
-                                Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, currentTime), $"SchedID_{_schedule_name}: Empty schedule should allow different tasks to be added.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
+                                Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), $"SchedID_{_schedule_name}: Empty schedule should allow different tasks to be added.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
                             }
                         }
                         else
@@ -400,7 +427,7 @@ namespace HSFSchedulerUnitTest
                             if (sameTask || taskAlreadyCompleted)
                             {
                                 // Can't add if both assets try same task OR if the task was already completed
-                                Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, currentTime), $"SchedID_{_schedule_name}: Schedule should NOT allow task addition due to MaxTimesToPerform=1.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
+                                Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), $"SchedID_{_schedule_name}: Schedule should NOT allow task addition due to MaxTimesToPerform=1.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
                                 
                                 if (sameTask)
                                 {
@@ -422,7 +449,7 @@ namespace HSFSchedulerUnitTest
                             else
                             {
                                 // Different tasks that weren't completed should fail because they would exceed the limit
-                                Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, currentTime), $"SchedID_{_schedule_name}: Can't add any tasks because MaxTimesToPerform=1 already reached.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
+                                Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), $"SchedID_{_schedule_name}: Can't add any tasks because MaxTimesToPerform=1 already reached.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
                             }
                         }
                     }
@@ -442,15 +469,13 @@ namespace HSFSchedulerUnitTest
             double timeStep = SimParameters.SimStepSeconds; // 12.0s
             int iterations = 2;
             // Main Scheduling Loop Helper: Make sure to use all the mirrored attributes for the SchedulerUnitTest class. 
-            this._systemSchedules = SchedulerUnitTest.MainSchedulingLoopHelper(_systemSchedules, _scheduleCombos, _testSimSystem,
+            this._systemSchedules = CanAddTasks_MainSchedulingLoop(_systemSchedules, _scheduleCombos, _testSimSystem,
                                                         _ScheduleEvaluator, SchedulerUnitTest._emptySchedule,
                                                         currentTime, timeStep, iterations);
         
             // Start the third iteration before CanAddTasks: 
-            Scheduler.SchedulerStep += 1;
-            _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, SchedulerUnitTest._emptySchedule, _ScheduleEvaluator);
-
-            double thirdStepTime = currentTime + (timeStep*iterations+1); // This is the current Time
+            // Scheduler.SchedulerStep += 1;
+            //double thirdStepTime = currentTime + (timeStep*(iterations+1)); // This is the current Time
             
             // Now Time Deconfliction is Stepped into... 
             Assert.Multiple(()=>
@@ -494,12 +519,12 @@ namespace HSFSchedulerUnitTest
                             if (sameTask)
                             {
                                 // Both assets doing same task: 0 history + 2 new = 2 <= 3, should pass
-                                Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, thirdStepTime), 
+                                Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), 
                                     $"SchedID_{_schedule_name}: Empty schedule should allow same task (0+2=2<=3).\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
                             }
                             else
                             {
-                                Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, thirdStepTime), 
+                                Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), 
                                     $"SchedID_{_schedule_name}: Empty schedule should allow different tasks.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
                             }
                         }
@@ -552,12 +577,12 @@ namespace HSFSchedulerUnitTest
                             
                             if (wouldExceedLimit)
                             {
-                                Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, thirdStepTime), 
+                                Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), 
                                     $"SchedID_{_schedule_name}: CanAddTasks should be False - {failingTask} would exceed limit.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
                             }
                             else
                             {
-                                Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, thirdStepTime), 
+                                Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), 
                                     $"SchedID_{_schedule_name}: CanAddTasks should be True (all tasks within limit).\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
                             }
                         }

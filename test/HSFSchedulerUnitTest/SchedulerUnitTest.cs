@@ -15,6 +15,7 @@ using System.Text;
 using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UserModel;
 
 namespace HSFSchedulerUnitTest
 {
@@ -39,8 +40,8 @@ namespace HSFSchedulerUnitTest
         #region Private/Intneral Scheduler Attributes
         // Scheduler static class attributes neded to be mirrored for testing:
         protected static int SchedulerStep {get; set;} = -1;
-        protected static double? CurrentTime {get; set;} 
-        protected static double? NextTime {get; set;} 
+        protected static double CurrentTime { get; set; } = SimParameters.SimStartSeconds;
+        protected static double NextTime { get; set; } = SimParameters.SimStepSeconds;
         protected static int _schedID { get; set; } = 0;
         protected static int? _SchedulesGenerated { get; set; } = 0;
         protected static int? _SchedulesCarriedOver { get; set; } = 0;

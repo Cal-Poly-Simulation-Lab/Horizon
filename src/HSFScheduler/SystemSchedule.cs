@@ -10,7 +10,8 @@ using MissionElements;
 using UserModel;
 using Task = MissionElements.Task;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.Scripting.Interpreter; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
+using Microsoft.Scripting.Interpreter;
+using Microsoft.CodeAnalysis; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
 
 namespace HSFScheduler
 {
@@ -204,8 +205,7 @@ namespace HSFScheduler
         /// <returns></returns>
         public bool CanAddTasks(Stack<Access> newAccessList, double currentTime)
         {
-            // Track which tasks we've already checked to avoid double-counting
-            HashSet<Task> checkedTasks = new HashSet<Task>();
+
 
 	        foreach(var access in newAccessList)
             {
@@ -215,39 +215,37 @@ namespace HSFScheduler
                     if (AllStates.GetLastEvent().GetEventEnd(access.Asset) > currentTime)
                         return false;
                 }
+            } // Otherwise continue on to check if any tasks have been performed too many times...
                 
-                // Check Access times here?  
-
-                // This is where the task count gets enforced. 
-                if (access.Task != null && !checkedTasks.Contains(access.Task))
+            // Task Completion Counting Logic:
+            HashSet<Task> checkedTasks = new HashSet<Task>(); //  Used to track which tasks we've already checked to avoid double-counting
+            Dictionary<Task, int> taskCountDict = new Dictionary<Task, int>(); // Used to track the total number of times each task has been performed (across all assets and events).
+            foreach(var access in newAccessList)
+            {
+                if (!checkedTasks.Contains(access.Task)) // This prevents double-counting the same task (as we count across all events and assets therewithin.)
                 {
+                    // This is the first time we've seen this task, so add it to the checked tasks set.
                     checkedTasks.Add(access.Task);
-                    
-                    // Count TOTAL occurrences of this task historically (across ALL events and ALL assets)
-                    int historicalCount = 0;
-                    foreach (Event evt in AllStates.Events)
-                    {
-                        foreach (var task in evt.Tasks.Values)
-                        {
-                            if (task == access.Task)
-                                historicalCount++;
-                        }
-                    }
-                    
-                    // Count how many times we're adding it in the new access list
-                    int newCount = 0;
-                    foreach(var a in newAccessList)
-                    {
-                        if (a.Task == access.Task)
-                            newCount++;
-                    }
-                    
-                    // Reject if adding these new instances would exceed the limit
-                    if (historicalCount + newCount > access.Task.MaxTimesToPerform)
-                        return false; // Return false (cant add tasks) if the task has been performed too many times. 
+                    int historicalCount = AllStates.timesCompletedTask(access.Task); // Count the number of times this task has been performed historically (across all assets and events)
+                    taskCountDict.Add(access.Task, historicalCount + 1); // Add the task to the dictionary with the total number of times it has been performed (including this event's asset).
                 }
-	        }
+                else
+                {
+                    // Another asset is performing the same task in this event, so increment the count one further.
+                    taskCountDict[access.Task] += 1;
+                }
+            }
+
+            // Task Completion Counting Logic Enforcement: Check if any task has been performed too many times.
+            foreach(var taskCount in taskCountDict)
+            {
+                // Here taskCount.Value is the total number of times the task has been performed; taskCount.Key is the task itself.
+                if (taskCount.Value > taskCount.Key.MaxTimesToPerform) // This task has been performed more times than the maximum allowed.
+                    return false; // If the task has been performed more times than the maximum allowed, return false.
+            }
+
 	        return true; // otherwise return true! 
+
         }
 
         #region Accessors
