@@ -8,7 +8,7 @@
     "stepSeconds": 12
   },
   "schedulerParameters": {
-    "maxSchedules": 100,
+    "maxSchedules": 1000,
     "cropTo": 10,
     "ConsoleLog": "on"
   },

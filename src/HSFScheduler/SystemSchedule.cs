@@ -223,10 +223,18 @@ namespace HSFScheduler
                 {
                     checkedTasks.Add(access.Task);
                     
-                    // Count how many times this task has been completed historically (across all assets -- All Events)
-                    int historicalCount = AllStates.timesCompletedTask(access.Task);
+                    // Count TOTAL occurrences of this task historically (across ALL events and ALL assets)
+                    int historicalCount = 0;
+                    foreach (Event evt in AllStates.Events)
+                    {
+                        foreach (var task in evt.Tasks.Values)
+                        {
+                            if (task == access.Task)
+                                historicalCount++;
+                        }
+                    }
                     
-                    // Count how many times we're adding it in this newAccessList (across all assets -- newAccessList)
+                    // Count how many times we're adding it in the new access list
                     int newCount = 0;
                     foreach(var a in newAccessList)
                     {
