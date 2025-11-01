@@ -154,10 +154,77 @@ namespace HSFSchedulerUnitTest
             }
             accToAddSrt = accToAddSrt[..^1]; // Trim off final comma
             accToAddSrt += ")\n";
-            output += accToAddSrt; 
+            output += accToAddSrt;
             return output;
 
         }
+        
+        #region Time Tests + Combinatorics
+        [Test]
+        public void TestCanAddTasks_EventTime_OneAsset_ThreeTask_100TimesMax()
+        {
+         // Set Inputs and call the build program
+            ModelInputFile = Path.Combine(CurrentTestDir, "Inputs", "OneAssetTestModel_CanAddTasks.json");
+            TaskInputFile = Path.Combine(CurrentTestDir, "Inputs", "ThreeTaskTestFile_100TimeMax_CanAddTasks.json");
+            BuildProgram();
+
+            double currentTime = 0.0;
+            double timeStep = 12.0;
+            int iterations = 1;
+            // Main Scheduling Loop Helper: Make sure to use all the mirrored attributes for the SchedulerUnitTest class. 
+            this._systemSchedules = CanAddTasks_MainSchedulingLoop(_systemSchedules, _scheduleCombos, _testSimSystem,
+                                                        _ScheduleEvaluator, SchedulerUnitTest._emptySchedule,
+                                                        currentTime, timeStep, iterations);
+
+            // Now we would enter Time Deconfliction Step:
+            Assert.Multiple(() =>
+            {
+                // Ensure that the schedule Parameters are correct here:
+                Assert.That(SchedParameters.MaxNumScheds, Is.EqualTo(1000), "The max number of schedules should be 100 per the input file.");
+                Assert.That(_scheduleCombos.Count(), Is.EqualTo(3), "The schedule combos should have three (3) accesses stack given it is only one asset and three (3) tasks.");
+                Assert.That(_systemSchedules.Count(), Is.EqualTo(4), $"The total system schedules after {iterations} iterations should be {Math.Pow(3, iterations)+1}.");
+
+                // int i = 0; 
+                foreach (var _oldSystemSchedule in _systemSchedules)
+                {
+                    foreach (var _newAccessStack in _scheduleCombos)
+                    {
+                        Assert.IsTrue(_newAccessStack.Count() == 1, "The access stack should have one access given it is only one asset."); //
+                        Assert.IsTrue(_newAccessStack.First().Asset.Name.ToLower() == "testasset1", "The asset should be TestAsset1 (case in-sensitive).");
+                        Assert.IsTrue(_newAccessStack.First().Task.MaxTimesToPerform == 100, "The task should have a MaxTimesToPerform of 100");
+
+                        if (_oldSystemSchedule.Name.ToLower().Contains("empty"))
+                        {
+                            // This is the empty schedule:
+                            Assert.That(_oldSystemSchedule.AllStates.Events.Count(), Is.EqualTo(0), "The empty schedule should have no events.");
+                            Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), "The empty schedule should always allow task addition; given the MaxTimesToPerform >= 2. (This is because there are no matching Tasks in the StateHistory as there is no StateHistory for the EmptySchedule).,");
+                        }
+                        else
+                        {
+                            var asset = _newAccessStack.Peek().Asset;
+                            double eventStarts = _oldSystemSchedule.AllStates.GetLastEvent().EventStarts[asset];
+                            double eventEnds = _oldSystemSchedule.AllStates.GetLastEvent().EventEnds[asset];
+                            Assert.IsTrue(eventEnds <= SchedulerUnitTest.CurrentTime, $"SchedID: {_oldSystemSchedule._scheduleID}\n Ensure that system is running fine to begin with (Event End <= currentTime)...\n Scheduler.CurentTime={SchedulerUnitTest.CurrentTime}s; eventStarts={eventStarts}s, eventEnds={eventEnds}s...\n" +
+                            $"{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule, _newAccessStack)}");
+
+                            Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), $"Esnuring CanAddTasks passes... Scheduler.CurentTime={SchedulerUnitTest.CurrentTime}s; eventStarts={eventStarts}s, eventEnds={eventEnds}s...{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule, _newAccessStack)}");
+
+                            //Manipulate Old system schedule event End time:
+                            double newEventEnd = SchedulerUnitTest.CurrentTime + 1.7;
+                            _oldSystemSchedule.AllStates.GetLastEvent().EventEnds[asset] = newEventEnd;
+                            Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), $"CanAddTasks should fail its tmeporal check after event time was changed from {eventEnds} to {newEventEnd} (when Scheduler.CurrentTime = {SchedulerUnitTest.CurrentTime}.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule, _newAccessStack)}");
+                            // double eventStarts = _oldSystemSchedule.AllStates.GetLastEvent().EventStart
+
+                            // Change it back and verify its working again:
+                            _oldSystemSchedule.AllStates.GetLastEvent().EventEnds[asset] = eventEnds;
+                            Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), $"Esnuring CanAddTasks passes after it is changed back... Scheduler.CurentTime={SchedulerUnitTest.CurrentTime}s; eventStarts={eventStarts}s, eventEnds={eventEnds}s...{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule, _newAccessStack)}");
+
+                        }
+                    }
+                }
+            });
+        }
+        
         [Test, Order(0)]
         public void Create_Combinatorics_TwoAssetThreeTask()
         {
@@ -191,59 +258,25 @@ namespace HSFSchedulerUnitTest
             // Console.WriteLine("Total Schedule Permutations: " + TotalSchedulePermutaitons.Count());
             
         }
+        #endregion
+
+        #region SimpleTests: One Asset
         [Test, Order(1)]
-        public void EmptySchedule_CanAddTasks_ReturnsTrue_TwoAssetThreeTask()
-        {
-            // Have to call the build manually
-            BuildProgram();
-            //Now that we have generated the exhaustive system schedules, we can be at the CURRENT TIME: SIM START, and execute the first CropToMaxSchedules call.:
-            //Now that we have generated the exhaustive system schedules, we can be at the CURRENT TIME: SIM START, and execute the first CropToMaxSchedules call.:
-            // Start the beginning of the next iteration before CanAddTasks is called (within TimeDeconfliction): 
-            Scheduler.SchedulerStep += 1;
-            SchedulerUnitTest.CurrentTime = 0; 
-            SchedulerUnitTest.NextTime = 0 + SimParameters.SimStepSeconds;
-            _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, Scheduler.emptySchedule, program.SchedEvaluator); //bump
-            var _emptySchedule = _systemSchedules[0]; // Define the empty Schedule. It is the first one in Scheduler.systemSchedules after InitializeEmptyShecule() has been called. 
-
-            Assert.Multiple(() =>
-            {
-                // Just a copy of the empty schedule test... But Oh well, we can test it here too.
-                Assert.IsTrue(_systemSchedules.Count() == 1, "Assert 0a: The system schedules list should have one schedule after the empty schedule is initialized.");
-                Assert.IsTrue(_systemSchedules[0].Name == "Empty Schedule", "Assert 0b: The empty schedule should be named 'Empty Schedule'.");
-                Assert.IsTrue(_systemSchedules[0].AllStates.Events.Count() == 0, "Assert 0c: The empty schedule should have no events.");
-
-                //
-                // CurrentTime here is the Start Time of the Simulation, 0.0, as set in the initialziation of the attributes of this class. 
-                int k = 0;
-                foreach (var _newAccessStack in _scheduleCombos)
-                {
-                    // Ensure that EVERY Task has MaxTimesToPerform > 0. 
-                    int a = 0; // Iterator to track asset
-                    foreach (var access in _newAccessStack)
-                    {
-                        Assert.IsTrue(access.Task.MaxTimesToPerform > 0,
-                            $"AccessStack {k}, Access {a}: Task {access.Task.Name}: MaxTimesToPerform, {access.Task.MaxTimesToPerform} must be greater than 0 .... " +
-                            $"INFO: {access.Asset.Name}_to_{access.Task.Target.Name}. ");
-                        a++;
-                    }
-                    // Call CanAddTasks() forn the empty schedule across all schedule combos. 
-                    Assert.IsTrue(_emptySchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), $"The empty schedule should always allow task addition, given the MaxTimesToPerform > 0 .... INFO: AccessStack {k},");
-                    k++;
-                }
-            });
-
-        }
-        [Test, Order(2)]
         public void OneAssetOneTask_OneTimeMax_FirstIterationReturnsTrue()
         {
+            /*
+            Given there is one asset here this function should ALWAYS return true when calling CanAddTasks on the empty schedule
+            (assuming event times are correct, which are checked by the SystemSchedule Contructor test).
+            */
+
             // Set Inputs and call the build program
-            ModelInputFile = Path.Combine(CurrentTestDir,"Inputs", "OneAssetTestModel_CanAddTasks.json");
+            ModelInputFile = Path.Combine(CurrentTestDir, "Inputs", "OneAssetTestModel_CanAddTasks.json");
             TaskInputFile = Path.Combine(CurrentTestDir, "Inputs", "OneTaskTestFile_OneTimeMax_CanAddTasks.json");
             BuildProgram();
             //Now that we have generated the exhaustive system schedules, we can be at the CURRENT TIME: SIM START, and execute the first CropToMaxSchedules call.:
             // Start the beginning of the next iteration before CanAddTasks is called (within TimeDeconfliction): 
             Scheduler.SchedulerStep += 1;
-            SchedulerUnitTest.CurrentTime = 0; 
+            SchedulerUnitTest.CurrentTime = 0;
             SchedulerUnitTest.NextTime = 0 + SimParameters.SimStepSeconds;
             this._systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, Scheduler.emptySchedule, program.SchedEvaluator); //bump
 
@@ -266,9 +299,14 @@ namespace HSFSchedulerUnitTest
             });
         }
 
-        [Test, Order(3)]
+        
+        [Test, Order(2)]
         public void OneAssetOneTask_OneTimeMax_SecondIterationReturnsFalse()
         {
+            /* Similarly, this function should always pass given the presence of one asset (as long as Task.MaxTimesToPerform ==1)
+            This is because after the first iteration, the task has been performed and cannot be performed again, no matter on which schedule.
+            */
+
             // Set Inputs and call the build program
             ModelInputFile = Path.Combine(CurrentTestDir, "Inputs", "OneAssetTestModel_CanAddTasks.json");
             TaskInputFile = Path.Combine(CurrentTestDir, "Inputs", "OneTaskTestFile_OneTimeMax_CanAddTasks.json");
@@ -288,7 +326,7 @@ namespace HSFSchedulerUnitTest
                 // Ensure that the schedule Parameters are correct here:
                 Assert.That(SchedParameters.MaxNumScheds, Is.EqualTo(1000), "The max number of schedules should be 100 per the input file.");
                 Assert.That(_scheduleCombos.Count(), Is.EqualTo(1), "The schedule combos should have only one access stack given it is only one asset and one task.");
-                Assert.That(_systemSchedules.Count(), Is.EqualTo(2), $"The total system schedules after {iterations} should be {Math.Pow(2,iterations)}.");
+                Assert.That(_systemSchedules.Count(), Is.EqualTo(2), $"The total system schedules after {iterations} should be {Math.Pow(1, iterations)+1}.");
 
                 // int i = 0; 
                 foreach (var _oldSystemSchedule in _systemSchedules)
@@ -318,13 +356,18 @@ namespace HSFSchedulerUnitTest
             });
         } // End Test
 
-        [Test, Order(4)]
+        [Test, Order(3)]
         public void OneAssetThreeTask_ThreeMaxTimes_ThirdIterationAlwaysTrue()
         {
+            /* This test should always pass given the presence of one Asset. If there were more (like 2) then edge cases where in one schedule combo
+            two assets performed the task, the it would not encessarily be true that the Thirs Iteration would always return true. Because there is only
+            one asset (one thing doing any one thing at one time on any given schedule branch) the third iteration should always return false.
+            */
+
             // Set Inputs and call the build program
             ModelInputFile = Path.Combine(CurrentTestDir, "Inputs", "OneAssetTestModel_CanAddTasks.json");
             TaskInputFile = Path.Combine(CurrentTestDir, "Inputs", "ThreeTaskTestInput_ThreeTimesMax.json");
-            BuildProgram();     
+            BuildProgram();
 
             double currentTime = SimParameters.SimStartSeconds; // 0.0s
             double timeStep = SimParameters.SimStepSeconds; // 12.0s
@@ -333,35 +376,162 @@ namespace HSFSchedulerUnitTest
             this._systemSchedules = CanAddTasks_MainSchedulingLoop(_systemSchedules, _scheduleCombos, _testSimSystem,
                                                         _ScheduleEvaluator, SchedulerUnitTest._emptySchedule,
                                                         currentTime, timeStep, iterations);
-      
+
             // // Start the second iteration before CanAddTasks: 
             // _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, SchedulerUnitTest._emptySchedule, _ScheduleEvaluator);
             // double thirdStepTime = currentTime + (timeStep*(iterations+1)); // This is the current Time
-            
+
             // Now Time Deconfliction is Stepped into... 
-            Assert.Multiple(()=>
+            Assert.Multiple(() =>
             {
                 // Ensure things are loaded in correctly, and sched parametr and schedule combos are as expected:
                 Assert.That(SchedParameters.MaxNumScheds, Is.EqualTo(1000), "The max number of schedules should be 100 per the input file.");
                 Assert.That(_testSimSystem.Assets.Count(), Is.EqualTo(1), "There should be one (1) asset loaded in this test simulation.");
                 Assert.That(_testSystemTasks.Count(), Is.EqualTo(3), "There should be three (3) tasks loaded in this test simulation.");
-                Assert.That(_scheduleCombos.Count(), Is.EqualTo(Math.Pow(_testSystemTasks.Count(),_testSimSystem.Assets.Count())), "The schedule combo is three given 1 asset and 3 tasks");
+                Assert.That(_scheduleCombos.Count(), Is.EqualTo(Math.Pow(_testSystemTasks.Count(), _testSimSystem.Assets.Count())), "The schedule combo is three given 1 asset and 3 tasks");
                 foreach (var task in _testSystemTasks)
                 { Assert.That(task.MaxTimesToPerform, Is.EqualTo(3), "It should be three (3) times max to perform for each Task."); }
-                
+
                 foreach (var _oldSystemSchedule in _systemSchedules)
                 {
                     foreach (var _newAccessStack in _scheduleCombos)
                     {
-                        Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack,SchedulerUnitTest.CurrentTime));
+                        Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime));
                     }
                 }
             });
         }
+        #endregion
         
-        [Test, Order(5)]
-        public void TwoAssetThreeTask_OneTimeMax_SecondIterationReturnsFalse()
+        #region AdvancedTests: Two Assets, MultipleTasks
+        [Test, Order(4)]
+        public void EmptySchedule_CanAddTasks_ReturnsTrue_TwoAssetThreeTask_2TimesMax()
         {
+            /* This test is only valid given the idea that an entire schedule fails if one asset cannot add the task...
+            Specifically, in the case that the both assets have the same Task T, and T.MaxTimesToPerform < 2 (eg. = 1) then it would fail the whole schedule, 
+            even though one Asset could have added it and the other do nothing. 
+
+            This would have to be refactored if that functionality is ever added in future verisons.  
+            */
+            TaskInputFile = Path.Combine(CurrentTestDir, "Inputs", "ThreeTaskTestInput_TwoTimesMax.json");
+            // Have to call the build manually
+            BuildProgram();
+            //Now that we have generated the exhaustive system schedules, we can be at the CURRENT TIME: SIM START, and execute the first CropToMaxSchedules call.:
+            //Now that we have generated the exhaustive system schedules, we can be at the CURRENT TIME: SIM START, and execute the first CropToMaxSchedules call.:
+            // Start the beginning of the next iteration before CanAddTasks is called (within TimeDeconfliction): 
+            Scheduler.SchedulerStep += 1;
+            SchedulerUnitTest.CurrentTime = 0;
+            SchedulerUnitTest.NextTime = 0 + SimParameters.SimStepSeconds;
+            _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, Scheduler.emptySchedule, program.SchedEvaluator); //bump
+            var _emptySchedule = _systemSchedules[0]; // Define the empty Schedule. It is the first one in Scheduler.systemSchedules after InitializeEmptyShecule() has been called. 
+
+            Assert.Multiple(() =>
+            {
+                // Just a copy of the empty schedule test... But Oh well, we can test it here too.
+                Assert.IsTrue(_systemSchedules.Count() == 1, "Assert 0a: The system schedules list should have one schedule after the empty schedule is initialized.");
+                Assert.IsTrue(_systemSchedules[0].Name == "Empty Schedule", "Assert 0b: The empty schedule should be named 'Empty Schedule'.");
+                Assert.IsTrue(_systemSchedules[0].AllStates.Events.Count() == 0, "Assert 0c: The empty schedule should have no events.");
+
+                //
+                // CurrentTime here is the Start Time of the Simulation, 0.0, as set in the initialziation of the attributes of this class. 
+                int k = 0;
+                foreach (var _newAccessStack in _scheduleCombos)
+                {
+                    // Ensure that EVERY Task has MaxTimesToPerform > 0. 
+                    int a = 0; // Iterator to track asset
+                    foreach (var access in _newAccessStack)
+                    {
+                        Assert.IsTrue(access.Task.MaxTimesToPerform >= 2,
+                            $"AccessStack {k}, Access {a}: Task {access.Task.Name}: MaxTimesToPerform, {access.Task.MaxTimesToPerform} must be greater than or equal to 2 to always return true .... " +
+                            $"INFO: {access.Asset.Name}_to_{access.Task.Target.Name}. ");
+                        a++;
+                    }
+                    // Call CanAddTasks() forn the empty schedule across all schedule combos. 
+                    Assert.IsTrue(_emptySchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), $"The empty schedule should always allow task addition, given the MaxTimesToPerform >= 2 for all tasks .... INFO: AccessStack {k}\n{PrintAttemptedTaskAdditionInfo(_emptySchedule, _newAccessStack)}");
+                    k++;
+                }
+            });
+
+        }
+
+        [Test, Order(5)]
+        public void TwoAssetThreeTask_OneTimeMax_FirstIterationReturnsCorrectCombinations()
+        {
+            /*
+            This test is only valid given the idea that an entire schedule fails if one asset cannot add the task...
+            Specifically, in the case that the both assets have the same Task T, and T.MaxTimesToPerform < 2 (eg. = 1) then it would fail the whole schedule, 
+            even though one Asset could have added it and the other do nothing. 
+
+            This would have to be refactored if that functionality is ever added in future verisons.  
+            i.e. if it is ever allowed for one asset to add a task and the other to do nothing there would be a few more scheudles available;
+            specifically the schedules that have combos with double up tasks... One could do something and the other do nothing. 
+            That would have its own set of combinatorics and is not implemented here.
+            */
+
+            // Set Inputs and call the build program
+            ModelInputFile = Path.Combine(CurrentTestDir, "Inputs", "TwoAssetTestModel_CanAddTasks.json");
+            TaskInputFile = Path.Combine(CurrentTestDir, "Inputs", "ThreeTaskTestInput_OneTimeMax.json");
+            BuildProgram();
+
+            // Start the beginning of the next iteration before CanAddTasks is called (within TimeDeconfliction): 
+            Scheduler.SchedulerStep += 1;
+            SchedulerUnitTest.CurrentTime = 0;
+            SchedulerUnitTest.NextTime = 0 + SimParameters.SimStepSeconds;
+            this._systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, Scheduler.emptySchedule, program.SchedEvaluator); //bump
+
+
+            // Now we would enter Time Deconfliction Step:
+            Assert.Multiple(() =>
+            {
+                // Ensure things are loaded in correctly, and sched parametr and schedule combos are as expected:
+                Assert.That(SchedParameters.MaxNumScheds, Is.EqualTo(1000), "The max number of schedules should be 100 per the input file.");
+                Assert.That(_testSimSystem.Assets.Count(), Is.EqualTo(2), "There should be two (2) assets loaded in this test simulation.");
+                Assert.That(_testSystemTasks.Count(), Is.EqualTo(3), "There should be three (3) tasks loaded in this test simulation.");
+                Assert.That(_scheduleCombos.Count(), Is.EqualTo(Math.Pow(_testSystemTasks.Count(), _testSimSystem.Assets.Count())), "The schedule combo is nine (9) given 2 asset and 3 tasks");
+                // int i = 0; 
+
+                foreach (var _oldSystemSchedule in _systemSchedules)
+                {
+                    string _schedule_name = _oldSystemSchedule._scheduleID; // Name the schedule by its ID for debugging. The 0 ID is the empty schedule. 
+                    foreach (var _newAccessStack in _scheduleCombos)
+                    {
+                        Assert.IsTrue(_newAccessStack.Count() == 2, "The access stack should have two (2) given it has two (2) assets."); //
+                        foreach (var _newAccess in _newAccessStack) { Assert.That(_newAccess.Task.MaxTimesToPerform, Is.EqualTo(1), "All tasks should have a MaxTimesToPreform of one (1)."); }
+
+                        Assert.That(_oldSystemSchedule.AllStates.Events.Count(), Is.EqualTo(0), $"SchedID_{_schedule_name}: The empty schedule should have no events.");
+                        Assert.IsTrue(_oldSystemSchedule.Name.ToLower().Contains("empty"), "The only schedule present here at the start of the first iteration is the empty schedule.");
+
+
+                        // Check if both assets are trying to do the same task
+                        bool sameTask = _newAccessStack.First().Task == _newAccessStack.Last().Task;
+
+                        if (sameTask)
+                        {
+                            // Both assets doing the same task with MaxTimesToPerform=1 should fail
+                            Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), $"SchedID_{_schedule_name}: Empty schedule should NOT allow both assets to add the same task when MaxTimesToPerform=1.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule, _newAccessStack)}");
+                        }
+                        else
+                        {
+                            // Different tasks should be allowed
+                            Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), $"SchedID_{_schedule_name}: Empty schedule should allow different tasks to be added.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule, _newAccessStack)}");
+                        }
+                    }
+                }
+            }); // End Assertion Multiple
+        } // End test
+        
+        [Test, Order(6)]
+        public void TwoAssetThreeTask_OneTimeMax_SecondIterationReturnsFalse_ExceptForSelectEmptyCombos()
+        {
+            /*
+            This test is only valid given the idea that an entire schedule fails if one asset cannot add the task...
+            Specifically, in the case that the both assets have the same Task T, and T.MaxTimesToPerform < 2 (eg. = 1) then it would fail the whole schedule, 
+            even though one Asset could have added it and the other do nothing. 
+
+            This would have to be refactored if that functionality is ever added in future verisons.  
+            Specifcally, if some tasks were not added in the previous iteration, one of them could be added in the current where one asset does it and the other nothing.
+            */
+
             // Set Inputs and call the build program
             ModelInputFile = Path.Combine(CurrentTestDir, "Inputs", "TwoAssetTestModel_CanAddTasks.json");
             TaskInputFile = Path.Combine(CurrentTestDir, "Inputs", "ThreeTaskTestInput_OneTimeMax.json");
@@ -380,7 +550,7 @@ namespace HSFSchedulerUnitTest
             Assert.Multiple(() =>
             {
                 // Ensure things are loaded in correctly, and sched parametr and schedule combos are as expected:
-                Assert.That(SchedParameters.MaxNumScheds, Is.EqualTo(1000), "The max number of schedules should be 100 per the input file.");
+                Assert.That(SchedParameters.MaxNumScheds, Is.EqualTo(1000), "The max number of schedules should be 1000 per the input file.");
                 Assert.That(_testSimSystem.Assets.Count(), Is.EqualTo(2), "There should be two (2) assets loaded in this test simulation.");
                 Assert.That(_testSystemTasks.Count(), Is.EqualTo(3), "There should be three (3) tasks loaded in this test simulation.");
                 Assert.That(_scheduleCombos.Count(), Is.EqualTo(Math.Pow(_testSystemTasks.Count(), _testSimSystem.Assets.Count())), "The schedule combo is nine (9) given 2 asset and 3 tasks");
@@ -394,14 +564,15 @@ namespace HSFSchedulerUnitTest
                         Assert.IsTrue(_newAccessStack.Count() == 2, "The access stack should have two (2) given it has two (2) assets."); //
                         foreach (var _newAccess in _newAccessStack) { Assert.That(_newAccess.Task.MaxTimesToPerform, Is.EqualTo(1), "All tasks should have a MaxTimesToPreform of one (1)."); }
 
-                        // Check if both assets are trying to do the same task
-                        bool sameTask = _newAccessStack.First().Task == _newAccessStack.Last().Task;
-                        
+
                         if (_oldSystemSchedule.Name.ToLower().Contains("empty"))
                         {
                             // This is the empty schedule:
                             Assert.That(_oldSystemSchedule.AllStates.Events.Count(), Is.EqualTo(0), $"SchedID_{_schedule_name}: The empty schedule should have no events.");
-                            
+                                                    
+                            // Check if both assets are trying to do the same task
+                            bool sameTask = _newAccessStack.First().Task == _newAccessStack.Last().Task;
+                        
                             if (sameTask)
                             {
                                 // Both assets doing the same task with MaxTimesToPerform=1 should fail
@@ -410,60 +581,37 @@ namespace HSFSchedulerUnitTest
                             else
                             {
                                 // Different tasks should be allowed
-                                Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), $"SchedID_{_schedule_name}: Empty schedule should allow different tasks to be added.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
+                                Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), $"SchedID_{_schedule_name}: Empty schedule should allow different tasks to be added to the empty schedule.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
                             }
                         }
-                        else
+                        else 
                         {
                             // This is all other schedules (with StateHistory):
                             Assert.That(_oldSystemSchedule.AllStates.Events.Count(), Is.EqualTo(1), $"SchedID_{_schedule_name}: All other schedules should have one event after the first step (if not the empty schedule).\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
-                            
-                            // Get the tasks from the previous event
-                            var previousEventTasks = _oldSystemSchedule.AllStates.GetLastTasks().Values.ToList();
-                            
-                            // Check if any of the new tasks were already performed
-                            bool taskAlreadyCompleted = previousEventTasks.Any(t => _newAccessStack.Any(a => a.Task == t));
-                            
-                            if (sameTask || taskAlreadyCompleted)
-                            {
-                                // Can't add if both assets try same task OR if the task was already completed
-                                Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), $"SchedID_{_schedule_name}: Schedule should NOT allow task addition due to MaxTimesToPerform=1.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
-                                
-                                if (sameTask)
-                                {
-                                    // Both assets trying same task - check if either task was already done
-                                    // timesCompleted is per-task across all assets, not per-asset
-                                    int timesCompleted = _oldSystemSchedule.AllStates.timesCompletedTask(_newAccessStack.First().Task);
-                                    Assert.That(timesCompleted, Is.GreaterThanOrEqualTo(0).And.LessThanOrEqualTo(1), 
-                                        $"SchedID_{_schedule_name}: timesCompleted for same task should be 0 (not done) or 1 (already done once).\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
-                                }
-                                else if (taskAlreadyCompleted)
-                                {
-                                    // Find which task was already completed
-                                    var completedTask = previousEventTasks.First(t => _newAccessStack.Any(a => a.Task == t));
-                                    int timesCompleted = _oldSystemSchedule.AllStates.timesCompletedTask(completedTask);
-                                    Assert.That(timesCompleted, Is.EqualTo(1), 
-                                        $"SchedID_{_schedule_name}: Task {completedTask.Name} already completed once (timesCompleted=1).\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
-                                }
-                            }
-                            else
-                            {
-                                // Different tasks that weren't completed should fail because they would exceed the limit
-                                Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), $"SchedID_{_schedule_name}: Can't add any tasks because MaxTimesToPerform=1 already reached.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
-                            }
+                            Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime),
+                                $"All other (non-empty) schedule branches should not be able to add tasks given MaxTimesToPerform=1 (for all tasks).\n" +
+                                $"{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule, _newAccessStack)}");
                         }
                     }
                 }
             });
         } // End Test
 
-        [Test, Order(6)]
+        [Test, Order(7)]
         public void TwoAssetThreeTask_ThreeMaxTimes_ThirdIterationAlwaysTrue()
         {
+            /* this is most complicated test in the CanAddTasks unit tests.
+            It tests the ability of the scheduler to add tasks to a schedule that has already been through two iterations.
+            If the CanAddTasks method were allowing one asset to do something while the other not, the combinatorics would be completely differnet.
+            I would recommend writing another new test in place of that if this is the case (because this is the third, complicated iteration). 
+            The other two above this could be used as a jumping off point for that future case and be feactored. This one would just be dropped and restarted since there
+            are chains of dependents events leading to the combinatorics.
+            */
+            
             // Set Inputs and call the build program
             ModelInputFile = Path.Combine(CurrentTestDir, "Inputs", "TwoAssetTestModel_CanAddTasks.json");
             TaskInputFile = Path.Combine(CurrentTestDir, "Inputs", "ThreeTaskTestInput_ThreeTimesMax.json");
-            BuildProgram();     
+            BuildProgram();
 
             double currentTime = SimParameters.SimStartSeconds; // 0.0s
             double timeStep = SimParameters.SimStepSeconds; // 12.0s
@@ -472,13 +620,13 @@ namespace HSFSchedulerUnitTest
             this._systemSchedules = CanAddTasks_MainSchedulingLoop(_systemSchedules, _scheduleCombos, _testSimSystem,
                                                         _ScheduleEvaluator, SchedulerUnitTest._emptySchedule,
                                                         currentTime, timeStep, iterations);
-        
+
             // Start the third iteration before CanAddTasks: 
             // Scheduler.SchedulerStep += 1;
             //double thirdStepTime = currentTime + (timeStep*(iterations+1)); // This is the current Time
-            
+
             // Now Time Deconfliction is Stepped into... 
-            Assert.Multiple(()=>
+            Assert.Multiple(() =>
             {
                 // Ensure things are loaded in correctly, and sched parametr and schedule combos are as expected:
                 Assert.That(SchedParameters.MaxNumScheds, Is.GreaterThanOrEqualTo(1000), "Max schedules should be at least 1000 to avoid cropping permutations.");
@@ -487,7 +635,7 @@ namespace HSFSchedulerUnitTest
                 Assert.That(_scheduleCombos.Count(), Is.EqualTo(Math.Pow(_testSystemTasks.Count(), _testSimSystem.Assets.Count())), "The schedule combo is nine (9) given 2 assets and 3 tasks");
                 foreach (var task in _testSystemTasks)
                 { Assert.That(task.MaxTimesToPerform, Is.EqualTo(3), "It should be three (3) times max to perform for each Task."); }
-                
+
                 string _schedule_name = "";
                 foreach (var _oldSystemSchedule in _systemSchedules)
                 {
@@ -495,58 +643,58 @@ namespace HSFSchedulerUnitTest
                     foreach (var _newAccessStack in _scheduleCombos)
                     {
                         Assert.IsTrue(_newAccessStack.Count() == 2, "The access stack should have two (2) given it has two (2) assets.");
-                        foreach (var _newAccess in _newAccessStack) 
+                        foreach (var _newAccess in _newAccessStack)
                         { Assert.That(_newAccess.Task.MaxTimesToPerform, Is.EqualTo(3), "All tasks should have a MaxTimesToPerform of three (3)."); }
-                        
+
                         // Check if both assets are trying to do the same task
                         bool sameTask = _newAccessStack.First().Task == _newAccessStack.Last().Task;
-                        
+
                         // Collect all tasks from all events in this schedule
                         var allTasksInSchedule = new List<MissionElements.Task>();
                         foreach (var ev in _oldSystemSchedule.AllStates.Events)
                         {
                             allTasksInSchedule.AddRange(ev.Tasks.Values);
                         }
-                        
+
                         // Count how many times each task appears in the schedule
                         var taskCounts = allTasksInSchedule.GroupBy(t => t).ToDictionary(g => g.Key, g => g.Count());
-                        
+
                         if (_oldSystemSchedule.Name.ToLower().Contains("empty"))
                         {
                             // Empty schedule should have no events
                             Assert.That(_oldSystemSchedule.AllStates.Events.Count(), Is.EqualTo(0), $"SchedID_{_schedule_name}: Empty schedule should have no events.");
-                            
+
                             if (sameTask)
                             {
                                 // Both assets doing same task: 0 history + 2 new = 2 <= 3, should pass
-                                Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), 
-                                    $"SchedID_{_schedule_name}: Empty schedule should allow same task (0+2=2<=3).\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
+                                Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime),
+                                    $"SchedID_{_schedule_name}: Empty schedule should allow same task (0+2=2<=3).\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule, _newAccessStack)}");
                             }
                             else
                             {
-                                Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), 
-                                    $"SchedID_{_schedule_name}: Empty schedule should allow different tasks.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
+                                Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime),
+                                    $"SchedID_{_schedule_name}: Empty schedule should allow different tasks.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule, _newAccessStack)}");
                             }
                         }
                         else
                         {
                             // Non-empty schedules - check what's been completed (could be 1 or 2 events depending on cropping)
                             int eventCount = _oldSystemSchedule.AllStates.Events.Count();
-                            Assert.That(eventCount, Is.GreaterThanOrEqualTo(1).And.LessThanOrEqualTo(2), 
-                                $"SchedID_{_schedule_name}: Should have 1 or 2 events after 2 iterations.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
-                            
+                            Assert.That(eventCount, Is.GreaterThanOrEqualTo(1).And.LessThanOrEqualTo(2),
+                                $"SchedID_{_schedule_name}: Should have 1 or 2 events after 2 iterations.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule, _newAccessStack)}");
+
                             // Check if this newAccessStack would exceed any task's limit
                             // Use the same logic as CanAddTasks: count unique tasks in newAccessStack
                             bool wouldExceedLimit = false;
                             string failingTask = "";
                             HashSet<MissionElements.Task> checkedTasks = new HashSet<MissionElements.Task>();
-                            
+
                             foreach (var access in _newAccessStack)
                             {
                                 if (access.Task != null && !checkedTasks.Contains(access.Task))
                                 {
                                     checkedTasks.Add(access.Task);
-                                    
+
                                     // Count TOTAL occurrences of this task historically (across ALL events and ALL assets)
                                     int historicalCount = 0;
                                     foreach (var ev in _oldSystemSchedule.AllStates.Events)
@@ -557,7 +705,7 @@ namespace HSFSchedulerUnitTest
                                                 historicalCount++;
                                         }
                                     }
-                                    
+
                                     // Count how many times we're adding it in the new access stack
                                     int newCount = 0;
                                     foreach (var a in _newAccessStack)
@@ -565,7 +713,7 @@ namespace HSFSchedulerUnitTest
                                         if (a.Task == access.Task)
                                             newCount++;
                                     }
-                                    
+
                                     if (historicalCount + newCount > access.Task.MaxTimesToPerform)
                                     {
                                         wouldExceedLimit = true;
@@ -574,264 +722,23 @@ namespace HSFSchedulerUnitTest
                                     }
                                 }
                             }
-                            
+
                             if (wouldExceedLimit)
                             {
-                                Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), 
-                                    $"SchedID_{_schedule_name}: CanAddTasks should be False - {failingTask} would exceed limit.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
+                                Assert.IsFalse(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime),
+                                    $"SchedID_{_schedule_name}: CanAddTasks should be False - {failingTask} would exceed limit.\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule, _newAccessStack)}");
                             }
                             else
                             {
-                                Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime), 
-                                    $"SchedID_{_schedule_name}: CanAddTasks should be True (all tasks within limit).\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule,_newAccessStack)}");
+                                Assert.IsTrue(_oldSystemSchedule.CanAddTasks(_newAccessStack, SchedulerUnitTest.CurrentTime),
+                                    $"SchedID_{_schedule_name}: CanAddTasks should be True (all tasks within limit).\n{PrintAttemptedTaskAdditionInfo(_oldSystemSchedule, _newAccessStack)}");
                             }
                         }
                     }
                 }
             });
         } // End Test 6
-
-        // [Test, Order(7)]
-        // public void Comprehensive_CanAddTasks_CountsTotalOccurrencesAcrossAllAssets()
-        // {
-        //     // Set Inputs: Two assets, mixed MaxTimesToPerform constraints
-        //     ModelInputFile = Path.Combine(CurrentTestDir, "Inputs", "TwoAssetTestModel_CanAddTasks.json");
-        //     TaskInputFile = Path.Combine(CurrentTestDir, "Inputs", "ThreeTaskTestInput_OneTimeMax.json");
-        //     BuildProgram();
-
-        //     double currentTime = 0.0;
-        //     double timeStep = 12.0;
-            
-        //     // Simple test: After one iteration, verify that CanAddTasks correctly rejects when limits are hit
-        //     this._systemSchedules = SchedulerUnitTest.MainSchedulingLoopHelper(_systemSchedules, _scheduleCombos, _testSimSystem,
-        //                                                 _ScheduleEvaluator, SchedulerUnitTest._emptySchedule,
-        //                                                 currentTime, timeStep, iterations: 1);
-
-        //     // Start the second iteration before CanAddTasks: 
-        //     Scheduler.SchedulerStep += 1;
-        //     _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, SchedulerUnitTest._emptySchedule, _ScheduleEvaluator);
-
-        //     Assert.Multiple(() =>
-        //     {
-        //         // Basic setup verification
-        //         Assert.That(_testSimSystem.Assets.Count(), Is.EqualTo(2), "Should have two assets.");
-        //         Assert.That(_testSystemTasks.Count(), Is.EqualTo(3), "Should have three tasks.");
-        //         Assert.That(_scheduleCombos.Count(), Is.EqualTo(Math.Pow(3, 2)), "Should have 9 schedule combos (3^2).");
-                
-        //         // Verify all tasks have MaxTimesToPerform = 1
-        //         foreach (var task in _testSystemTasks)
-        //         { 
-        //             Assert.That(task.MaxTimesToPerform, Is.EqualTo(1), $"Task {task.Name} should have MaxTimesToPerform=1."); 
-        //         }
-                
-        //         // The key test: After one iteration, check that CanAddTasks correctly enforces limits
-        //         foreach (var schedule in _systemSchedules)
-        //         {
-        //             // Skip empty schedule
-        //             if (schedule.Name.ToLower().Contains("empty")) continue;
-                    
-        //             Assert.That(schedule.AllStates.Events.Count(), Is.EqualTo(1), 
-        //                 $"Schedule {schedule._scheduleID} should have exactly 1 event after 1 iteration.");
-                    
-        //             // Get the task that was completed in this schedule
-        //             var completedTasks = schedule.AllStates.Events.First().Tasks.Values.ToList();
-                    
-        //             foreach (var newAccessStack in _scheduleCombos)
-        //             {
-        //                 // Check for "doubled up" scenario (both assets do same task)
-        //                 bool sameTask = newAccessStack.First().Task == newAccessStack.Last().Task;
-        //                 var taskToCheck = sameTask ? newAccessStack.First().Task : null;
-                        
-        //                 // Count how many times each task in newAccessStack appears in completed tasks
-        //                 int timesCompleted = 0;
-        //                 foreach (var completedTask in completedTasks)
-        //                 {
-        //                     foreach (var access in newAccessStack)
-        //                     {
-        //                         if (completedTask == access.Task)
-        //                             timesCompleted++;
-        //                     }
-        //                 }
-                        
-        //                 // With MaxTimesToPerform=1, any schedule that already has a task cannot add that task again
-        //                 bool shouldReject = timesCompleted > 0;
-                        
-        //                 // Special case: if trying to double-up on a task, should always reject (2 instances > 1 max)
-        //                 if (sameTask)
-        //                 {
-        //                     shouldReject = true;
-        //                 }
-                        
-        //                 Assert.That(schedule.CanAddTasks(newAccessStack, currentTime), Is.EqualTo(!shouldReject),
-        //                     $"Schedule {schedule._scheduleID}: CanAddTasks should be {!shouldReject}. " +
-        //                     $"Completed tasks: [{string.Join(",", completedTasks.Select(t => t.Name))}], " +
-        //                     $"Trying to add: [{string.Join(",", newAccessStack.Select(a => a.Task.Name))}], " +
-        //                     $"Times completed: {timesCompleted}");
-        //             }
-        //         }
-        //     });
-        // } // End Test 7
-
-        // [Test, Order(8)]
-        // public void OneAsset_MixedMaxTimes123_AfterOneIteration()
-        // {
-        //     // Set Inputs: One asset, three tasks with MaxTimes: 1, 2, 3
-        //     ModelInputFile = Path.Combine(CurrentTestDir, "Inputs", "OneAssetTestModel_CanAddTasks.json");
-        //     TaskInputFile = Path.Combine(CurrentTestDir, "Inputs", "ThreeTaskTestInput_1_2_3_TimesMax.json");
-        //     BuildProgram();
-
-        //     double currentTime = 0.0;
-        //     double timeStep = 12.0;
-            
-        //     // Run one iteration
-        //     this._systemSchedules = SchedulerUnitTest.MainSchedulingLoopHelper(_systemSchedules, _scheduleCombos, _testSimSystem,
-        //                                                 _ScheduleEvaluator, SchedulerUnitTest._emptySchedule,
-        //                                                 currentTime, timeStep, iterations: 1);
-
-        //     // Prepare for second iteration check (advance step and use next time)
-        //     Scheduler.SchedulerStep += 1;
-        //     _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, SchedulerUnitTest._emptySchedule, _ScheduleEvaluator);
-        //     double secondStepTime = currentTime + timeStep + 1; // Time for second iteration
-
-        //     Assert.Multiple(() =>
-        //     {
-        //         // Basic setup verification
-        //         Assert.That(_testSimSystem.Assets.Count(), Is.EqualTo(1), "Should have one asset.");
-        //         Assert.That(_testSystemTasks.Count(), Is.EqualTo(3), "Should have three tasks.");
-        //         Assert.That(_scheduleCombos.Count(), Is.EqualTo(3), "Should have 3 schedule combos (3^1).");
-                
-        //         // Verify tasks have correct MaxTimesToPerform
-        //         var task1 = _testSystemTasks.FirstOrDefault(t => t.Name == "Task1");
-        //         var task2 = _testSystemTasks.FirstOrDefault(t => t.Name == "Task2");
-        //         var task3 = _testSystemTasks.FirstOrDefault(t => t.Name == "Task3");
-                
-        //         Assert.That(task1?.MaxTimesToPerform, Is.EqualTo(1), "Task1 should have MaxTimesToPerform=1.");
-        //         Assert.That(task2?.MaxTimesToPerform, Is.EqualTo(2), "Task2 should have MaxTimesToPerform=2.");
-        //         Assert.That(task3?.MaxTimesToPerform, Is.EqualTo(3), "Task3 should have MaxTimesToPerform=3.");
-                
-        //         // After one iteration, each non-empty schedule has done one task
-        //         foreach (var schedule in _systemSchedules)
-        //         {
-        //             if (schedule.Name.ToLower().Contains("empty")) continue;
-                    
-        //             Assert.That(schedule.AllStates.Events.Count(), Is.EqualTo(1), 
-        //                 $"Schedule {schedule._scheduleID} should have exactly 1 event after 1 iteration.");
-                    
-        //             // Get what was completed
-        //             var completedTasks = schedule.AllStates.Events.First().Tasks.Values.ToList();
-        //             Assert.That(completedTasks.Count(), Is.EqualTo(1), "Should have completed exactly one task.");
-        //             var completedTask = completedTasks.First();
-                    
-        //             foreach (var newAccessStack in _scheduleCombos)
-        //             {
-        //                 var taskToAdd = newAccessStack.First().Task; // Only one asset
-                        
-        //                 // Count historical occurrences
-        //                 int historicalCount = 0;
-        //                 foreach (var ev in schedule.AllStates.Events)
-        //                 {
-        //                     foreach (var task in ev.Tasks.Values)
-        //                     {
-        //                         if (task == taskToAdd)
-        //                             historicalCount++;
-        //                     }
-        //                 }
-                        
-        //                 // Determine if should reject based on MaxTimesToPerform
-        //                 bool shouldReject = false;
-        //                 if (taskToAdd == task1 && historicalCount + 1 > 1) shouldReject = true;
-        //                 else if (taskToAdd == task2 && historicalCount + 1 > 2) shouldReject = true;
-        //                 else if (taskToAdd == task3 && historicalCount + 1 > 3) shouldReject = true;
-                        
-        //                 Assert.That(schedule.CanAddTasks(newAccessStack, secondStepTime), Is.EqualTo(!shouldReject),
-        //                     $"Schedule {schedule._scheduleID}: CanAddTasks should be {!shouldReject}. " +
-        //                     $"Completed: {completedTask.Name}, Trying to add: {taskToAdd.Name}, " +
-        //                     $"Historical count: {historicalCount}, MaxTimes: {taskToAdd.MaxTimesToPerform}");
-        //             }
-        //         }
-        //     });
-        // } // End Test 8
-
-        // [Test, Order(9)]
-        // public void OneAsset_MixedMaxTimes123_AfterTwoIterations()
-        // {
-        //     // Set Inputs: Same as Test 8 - One asset, three tasks with MaxTimes: 1, 2, 3
-        //     ModelInputFile = Path.Combine(CurrentTestDir, "Inputs", "OneAssetTestModel_CanAddTasks.json");
-        //     TaskInputFile = Path.Combine(CurrentTestDir, "Inputs", "ThreeTaskTestInput_1_2_3_TimesMax.json");
-        //     BuildProgram();
-
-        //     double currentTime = 0.0;
-        //     double timeStep = 12.0;
-            
-        //     // Run two iterations
-        //     this._systemSchedules = SchedulerUnitTest.MainSchedulingLoopHelper(_systemSchedules, _scheduleCombos, _testSimSystem,
-        //                                                 _ScheduleEvaluator, SchedulerUnitTest._emptySchedule,
-        //                                                 currentTime, timeStep, iterations: 2);
-
-        //     // Prepare for third iteration check
-        //     Scheduler.SchedulerStep += 1;
-        //     _systemSchedules = Scheduler.CropToMaxSchedules(_systemSchedules, SchedulerUnitTest._emptySchedule, _ScheduleEvaluator);
-        //     double thirdStepTime = currentTime + (timeStep * 2 + 1);
-
-        //     Assert.Multiple(() =>
-        //     {
-        //         // Basic setup verification
-        //         Assert.That(_testSimSystem.Assets.Count(), Is.EqualTo(1), "Should have one asset.");
-        //         Assert.That(_testSystemTasks.Count(), Is.EqualTo(3), "Should have three tasks.");
-        //         Assert.That(_scheduleCombos.Count(), Is.EqualTo(3), "Should have 3 schedule combos (3^1).");
-                
-        //         // Verify tasks have correct MaxTimesToPerform
-        //         var task1 = _testSystemTasks.FirstOrDefault(t => t.Name == "Task1");
-        //         var task2 = _testSystemTasks.FirstOrDefault(t => t.Name == "Task2");
-        //         var task3 = _testSystemTasks.FirstOrDefault(t => t.Name == "Task3");
-                
-        //         Assert.That(task1?.MaxTimesToPerform, Is.EqualTo(1), "Task1 should have MaxTimesToPerform=1.");
-        //         Assert.That(task2?.MaxTimesToPerform, Is.EqualTo(2), "Task2 should have MaxTimesToPerform=2.");
-        //         Assert.That(task3?.MaxTimesToPerform, Is.EqualTo(3), "Task3 should have MaxTimesToPerform=3.");
-                
-        //         // After two iterations, check that CanAddTasks correctly enforces mixed limits
-        //         foreach (var schedule in _systemSchedules)
-        //         {
-        //             if (schedule.Name.ToLower().Contains("empty")) continue;
-                    
-        //             int eventCount = schedule.AllStates.Events.Count();
-        //             Assert.That(eventCount, Is.GreaterThanOrEqualTo(1).And.LessThanOrEqualTo(2), 
-        //                 $"Schedule {schedule._scheduleID} should have 1 or 2 events after 2 iterations.");
-                    
-        //             // Count historical occurrences of each task
-        //             var taskCounts = new Dictionary<MissionElements.Task, int>();
-        //             foreach (var ev in schedule.AllStates.Events)
-        //             {
-        //                 foreach (var task in ev.Tasks.Values)
-        //                 {
-        //                     taskCounts[task] = taskCounts.GetValueOrDefault(task, 0) + 1;
-        //                 }
-        //             }
-                    
-        //             foreach (var newAccessStack in _scheduleCombos)
-        //             {
-        //                 var taskToAdd = newAccessStack.First().Task; // Only one asset
-                        
-        //                 // Count historical occurrences
-        //                 int historicalCount = taskCounts.GetValueOrDefault(taskToAdd, 0);
-                        
-        //                 // Determine if should reject based on MaxTimesToPerform
-        //                 bool shouldReject = false;
-        //                 if (taskToAdd == task1 && historicalCount + 1 > 1) shouldReject = true;
-        //                 else if (taskToAdd == task2 && historicalCount + 1 > 2) shouldReject = true;
-        //                 else if (taskToAdd == task3 && historicalCount + 1 > 3) shouldReject = true;
-                        
-        //                 Assert.That(schedule.CanAddTasks(newAccessStack, thirdStepTime), Is.EqualTo(!shouldReject),
-        //                     $"Schedule {schedule._scheduleID}: CanAddTasks should be {!shouldReject}. " +
-        //                     $"Trying to add: {taskToAdd.Name}, Historical count: {historicalCount}, " +
-        //                     $"MaxTimes: {taskToAdd.MaxTimesToPerform}, All counts: " +
-        //                     $"Task1={taskCounts.GetValueOrDefault(task1!, 0)}, " +
-        //                     $"Task2={taskCounts.GetValueOrDefault(task2!, 0)}, " +
-        //                     $"Task3={taskCounts.GetValueOrDefault(task3!, 0)}");
-        //             }
-        //         }
-        //     });
-        // } // End Test 9
+        #endregion
 
 
     } // End Class

@@ -207,7 +207,7 @@ namespace HSFScheduler
         {
 
 
-	        foreach(var access in newAccessList)
+            foreach (var access in newAccessList)
             {
                 // This is where event timing gets enforced. 
                 if (!AllStates.isEmpty(access.Asset)) // Ensure there is an event with the accessible asset. Otherwise skip
@@ -216,7 +216,10 @@ namespace HSFScheduler
                         return false;
                 }
             } // Otherwise continue on to check if any tasks have been performed too many times...
-                
+
+            if (Scheduler.SchedulerStep >= 1) {
+                int a =4; // breakpoint for Debugging
+            }
             // Task Completion Counting Logic:
             HashSet<Task> checkedTasks = new HashSet<Task>(); //  Used to track which tasks we've already checked to avoid double-counting
             Dictionary<Task, int> taskCountDict = new Dictionary<Task, int>(); // Used to track the total number of times each task has been performed (across all assets and events).

@@ -21,13 +21,11 @@ namespace HSFSchedulerUnitTest
 {
     /// <summary>
     /// Unit tests for StateHistory.timesCompletedTask() method.
-    /// This method should count how many EVENTS contain the specified task,
-    /// NOT the total number of times the task appears across all assets.
+    /// This method counts the TOTAL number of times a task appears across ALL events and ALL assets.
+    /// This is the correct counting method for enforcing MaxTimesToPerform constraints.
     /// 
-    /// NOTE: There's a semantic mismatch between what timesCompletedTask counts
-    /// (events containing the task) and what MaxTimesToPerform actually means
-    /// (total occurrences across all assets). This is why CanAddTasks had to
-    /// implement its own counting logic instead of using timesCompletedTask.
+    /// The method was refactored to count occurrences (not just events containing the task)
+    /// so that CanAddTasks can use it directly for MaxTimesToPerform enforcement.
     /// </summary>
     [TestFixture]
     public class TimesCompletedTaskUnitTest : SchedulerUnitTest
@@ -140,27 +138,38 @@ namespace HSFSchedulerUnitTest
                 var task2 = _testSystemTasks.First(t => t.Name == "Task2");
                 var task3 = _testSystemTasks.First(t => t.Name == "Task3");
 
-                // Find the schedule that did Task1
-                var schedWithTask1 = _systemSchedules.FirstOrDefault(s => 
-                    !s.Name.ToLower().Contains("empty") && 
-                    s.AllStates.Events.Any(e => e.Tasks.ContainsValue(task1)));
+                List<MissionElements.Task> taskList = [task1, task2, task3]; 
 
-                Assert.IsNotNull(schedWithTask1, "Should find a schedule that completed Task1");
-                Assert.That(schedWithTask1.AllStates.timesCompletedTask(task1), Is.EqualTo(1), 
-                    "Schedule with Task1 should return 1 for Task1");
-                Assert.That(schedWithTask1.AllStates.timesCompletedTask(task2), Is.EqualTo(0), 
-                    "Schedule with Task1 should return 0 for Task2 (not completed)");
-                Assert.That(schedWithTask1.AllStates.timesCompletedTask(task3), Is.EqualTo(0), 
-                    "Schedule with Task1 should return 0 for Task3 (not completed)");
+                int j = 1;
+                int k = 2;
+                for (int i=0 ; i < taskList.Count(); i++)
+                {
+                
+                // Find the schedule that did Task{i}
+                var schedWithTask = _systemSchedules.FirstOrDefault(s => 
+                    !s.Name.ToLower().Contains("empty") && 
+                    s.AllStates.Events.Any(e => e.Tasks.ContainsValue(taskList[i])));
+
+                Assert.IsNotNull(schedWithTask, "Should find a schedule that completed Task1");
+                Assert.That(schedWithTask.AllStates.timesCompletedTask(taskList[i]), Is.EqualTo(1), 
+                    $"Schedule with Task{i} should return 1 for Task{i}");
+                Assert.That(schedWithTask.AllStates.timesCompletedTask(taskList[j]), Is.EqualTo(0), 
+                    $"Schedule with Task{i} should return 0 for Task{j} (not completed)");
+                    Assert.That(schedWithTask.AllStates.timesCompletedTask(taskList[k]), Is.EqualTo(0),
+                        $"Schedule with Task{i} should return 0 for Task{k} (not completed)");
+
+                    if (i == 0) { j -= 1; }
+                    else if (i ==1) { k -= 1;  }
+                }
             });
         }
 
         [Test, Order(3)]
-        public void TwoAssets_OneEvent_SameTask_ReturnsOne_NotTwo()
+        public void TwoAssets_OneEvent_SameTask_ReturnsTwo()
         {
-            // This is THE CRITICAL TEST that shows the semantic issue with timesCompletedTask.
-            // When both assets do the same task in one event, timesCompletedTask returns 1
-            // (one event containing the task), but the ACTUAL count of task occurrences is 2.
+            // This is THE CRITICAL TEST that verifies the refactored timesCompletedTask.
+            // When both assets do the same task in one event, timesCompletedTask should return 2
+            // (counting actual occurrences across all assets), not 1 (counting events).
             
             // Arrange
             ModelInputFile = Path.Combine(CurrentTestDir, "../Inputs", "TwoAssetTestModel_CanAddTasks.json");
@@ -194,14 +203,13 @@ namespace HSFSchedulerUnitTest
 
                 if (schedWithDoubledTask != null)
                 {
-                    // The key assertion: timesCompletedTask returns 1 (one event)
-                    // even though the task was actually performed twice (by both assets)
-                    Assert.That(schedWithDoubledTask.AllStates.timesCompletedTask(task1), Is.EqualTo(1), 
-                        "timesCompletedTask returns 1 for an event where both assets did Task1. " +
-                        "This is CORRECT behavior for this method (counts events, not occurrences), " +
-                        "but it's why CanAddTasks can't use this method for MaxTimesToPerform enforcement.");
+                    // The key assertion: timesCompletedTask should now return 2
+                    // (counting actual occurrences, not just events)
+                    Assert.That(schedWithDoubledTask.AllStates.timesCompletedTask(task1), Is.EqualTo(2), 
+                        "timesCompletedTask should return 2 for a task performed by both assets in one event. " +
+                        "This correctly counts occurrences across all assets, making it suitable for MaxTimesToPerform enforcement.");
 
-                    // Manual count to verify the actual occurrences
+                    // Verify consistency: manual count should match
                     int actualOccurrences = 0;
                     foreach (var evt in schedWithDoubledTask.AllStates.Events)
                     {
@@ -212,7 +220,9 @@ namespace HSFSchedulerUnitTest
                         }
                     }
                     Assert.That(actualOccurrences, Is.EqualTo(2), 
-                        "The ACTUAL number of Task1 occurrences across all assets should be 2.");
+                        "Manual count should match timesCompletedTask result.");
+                    Assert.That(schedWithDoubledTask.AllStates.timesCompletedTask(task1), Is.EqualTo(actualOccurrences),
+                        "timesCompletedTask should match manual occurrence count.");
                 }
                 else
                 {
@@ -270,9 +280,9 @@ namespace HSFSchedulerUnitTest
         }
 
         [Test, Order(5)]
-        public void TwoAssets_TwoEvents_MixedTasks_CountsCorrectly()
+        public void TwoAssets_TwoEvents_MixedTasks_CountsOccurrencesCorrectly()
         {
-            // Test that timesCompletedTask correctly counts events across multiple events
+            // Test that timesCompletedTask correctly counts task occurrences across multiple events
             // with different task combinations.
             
             // Arrange
@@ -302,28 +312,37 @@ namespace HSFSchedulerUnitTest
                     if (schedule.Name.ToLower().Contains("empty"))
                         continue;
 
-                    // Count events containing each task
-                    int task1EventCount = schedule.AllStates.Events.Count(e => e.Tasks.ContainsValue(task1));
-                    int task2EventCount = schedule.AllStates.Events.Count(e => e.Tasks.ContainsValue(task2));
-                    int task3EventCount = schedule.AllStates.Events.Count(e => e.Tasks.ContainsValue(task3));
+                    // Manually count occurrences (not events) for each task
+                    int task1OccurrenceCount = 0;
+                    int task2OccurrenceCount = 0;
+                    int task3OccurrenceCount = 0;
+                    
+                    foreach (var evt in schedule.AllStates.Events)
+                    {
+                        foreach (var task in evt.Tasks.Values)
+                        {
+                            if (task == task1) task1OccurrenceCount++;
+                            if (task == task2) task2OccurrenceCount++;
+                            if (task == task3) task3OccurrenceCount++;
+                        }
+                    }
 
-                    // Verify timesCompletedTask matches our manual count
-                    Assert.That(schedule.AllStates.timesCompletedTask(task1), Is.EqualTo(task1EventCount), 
-                        $"Schedule {schedule._scheduleID}: Task1 event count mismatch");
-                    Assert.That(schedule.AllStates.timesCompletedTask(task2), Is.EqualTo(task2EventCount), 
-                        $"Schedule {schedule._scheduleID}: Task2 event count mismatch");
-                    Assert.That(schedule.AllStates.timesCompletedTask(task3), Is.EqualTo(task3EventCount), 
-                        $"Schedule {schedule._scheduleID}: Task3 event count mismatch");
+                    // Verify timesCompletedTask matches our manual occurrence count
+                    Assert.That(schedule.AllStates.timesCompletedTask(task1), Is.EqualTo(task1OccurrenceCount), 
+                        $"Schedule {schedule._scheduleID}: Task1 occurrence count mismatch");
+                    Assert.That(schedule.AllStates.timesCompletedTask(task2), Is.EqualTo(task2OccurrenceCount), 
+                        $"Schedule {schedule._scheduleID}: Task2 occurrence count mismatch");
+                    Assert.That(schedule.AllStates.timesCompletedTask(task3), Is.EqualTo(task3OccurrenceCount), 
+                        $"Schedule {schedule._scheduleID}: Task3 occurrence count mismatch");
                 }
             });
         }
 
         [Test, Order(6)]
-        public void CompareEventCountVsOccurrenceCount()
+        public void VerifyConsistency_timesCompletedTask_MatchesManualCount()
         {
-            // This test demonstrates the difference between:
-            // 1. timesCompletedTask (counts events containing the task)
-            // 2. Actual occurrence count (counts total times task appears across all assets)
+            // This test verifies that timesCompletedTask produces the same result
+            // as manually counting task occurrences across all events and assets.
             
             // Arrange
             ModelInputFile = Path.Combine(CurrentTestDir, "../Inputs", "TwoAssetTestModel_CanAddTasks.json");
@@ -349,31 +368,24 @@ namespace HSFSchedulerUnitTest
                     if (schedule.Name.ToLower().Contains("empty"))
                         continue;
 
-                    // Method 1: timesCompletedTask (counts events)
-                    int eventCount = schedule.AllStates.timesCompletedTask(task1);
+                    // Method 1: timesCompletedTask (should now count occurrences)
+                    int methodCount = schedule.AllStates.timesCompletedTask(task1);
 
                     // Method 2: Manual count of actual occurrences
-                    int occurrenceCount = 0;
+                    int manualCount = 0;
                     foreach (var evt in schedule.AllStates.Events)
                     {
                         foreach (var task in evt.Tasks.Values)
                         {
                             if (task == task1)
-                                occurrenceCount++;
+                                manualCount++;
                         }
                     }
 
-                    // The occurrence count should always be >= event count
-                    Assert.That(occurrenceCount, Is.GreaterThanOrEqualTo(eventCount), 
-                        $"Schedule {schedule._scheduleID}: Occurrence count should be >= event count. " +
-                        $"EventCount={eventCount}, OccurrenceCount={occurrenceCount}");
-
-                    // If they're different, it means at least one event had Task1 performed by multiple assets
-                    if (occurrenceCount > eventCount)
-                    {
-                        Console.WriteLine($"Schedule {schedule._scheduleID}: Task1 was 'doubled up' " +
-                            $"(EventCount={eventCount}, OccurrenceCount={occurrenceCount})");
-                    }
+                    // They should always match exactly
+                    Assert.That(methodCount, Is.EqualTo(manualCount), 
+                        $"Schedule {schedule._scheduleID}: timesCompletedTask should exactly match manual occurrence count. " +
+                        $"timesCompletedTask={methodCount}, ManualCount={manualCount}");
                 }
             });
         }
