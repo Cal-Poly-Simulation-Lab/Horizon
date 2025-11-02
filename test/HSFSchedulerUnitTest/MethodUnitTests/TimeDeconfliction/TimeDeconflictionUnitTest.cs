@@ -630,7 +630,7 @@ namespace HSFSchedulerUnitTest
             });
         } // End Test
 
-        [TestCase(1,2,10), TestCase(2,2,10), TestCase(2,5,10), TestCase(2,5,10)]
+        [TestCase(1,2,10), TestCase(2,2,10), TestCase(2,5,10), TestCase(2,6,10)]
         public void CorrectPotentialScheduleCombosTest_TwoAssetThreeTask_X_Y_ZTimesMax_AllIterations_ExactValues(int maxTimesToPerformInputX, int maxTimesToPerformInputY, int maxTimesToPerformInputZ)
         {
             TaskInputFile = Path.Combine(CurrentTestDir, "Inputs", "XTimesMaxTaskFiles", $"ThreeTaskTestFile_{maxTimesToPerformInputX}_{maxTimesToPerformInputY}_{maxTimesToPerformInputZ}TimesMax.json");
@@ -709,6 +709,15 @@ namespace HSFSchedulerUnitTest
                             else if (i == 4) { pot = 29352; scheds = 34744; }
                             break;
                             
+                        case "2,6,10":
+                            // Task1=2, Task2=6, Task3=10
+                            if (i == 0) { pot = 9; scheds = 10; }
+                            else if (i == 1) { pot = 81; scheds = 91; }
+                            else if (i == 2) { pot = 649; scheds = 740; }
+                            else if (i == 3) { pot = 4768; scheds = 5508; }
+                            else if (i == 4) { pot = 32116; scheds = 37624; }
+                            break;
+                            
                         default:
                             Assert.Fail($"Unexpected test case: {caseKey}");
                             break;
@@ -729,157 +738,6 @@ namespace HSFSchedulerUnitTest
             });
             
         } // End Test
-
-        // [Test, Order(1)]
-        // public void OneAssetOneTask_FirstTimeDeconflictionCall_GeneratesOneSchedule()
-        // {
-        //     // Setup: 1 Asset, 1 Task, MaxTimesToPerform=1
-        //     ModelInputFile = Path.Combine(CurrentTestDir, "CanAddTasks", "Inputs", "OneAssetTestModel_CanAddTasks.json");
-        //     TaskInputFile = Path.Combine(CurrentTestDir, "CanAddTasks", "Inputs", "OneTaskTestFile_OneTimeMax_CanAddTasks.json");
-        //     BuildProgram();
-
-        //     double startTime = 0.0;
-        //     double timeStep = 12.0;
-        //     int iterations = 0; // Start from empty schedule
-
-        //     // Position system right before first TimeDeconfliction call
-        //     this._systemSchedules = TimeDeconfliction_LoopHelper(
-        //         _systemSchedules, _scheduleCombos, _testSimSystem,
-        //         _ScheduleEvaluator, SchedulerUnitTest._emptySchedule,
-        //         startTime, timeStep, iterations);
-
-        //     // Act: Call TimeDeconfliction
-        //     var potentialSchedules = Scheduler.TimeDeconfliction(_systemSchedules, _scheduleCombos, SchedulerUnitTest.CurrentTime);
-
-        //     // Assert
-        //     Assert.Multiple(() =>
-        //     {
-        //         // Verify input setup
-        //         Assert.That(SchedParameters.MaxNumScheds, Is.EqualTo(1000), "MaxNumScheds should be 1000 per input file.");
-        //         Assert.That(_testSimSystem.Assets.Count, Is.EqualTo(1), "Should have 1 asset.");
-        //         Assert.That(_testSystemTasks.Count, Is.EqualTo(1), "Should have 1 task.");
-        //         Assert.That(_scheduleCombos.Count, Is.EqualTo(1), "Should have 1 schedule combo (1^1).");
-                
-        //         // Verify asset and task names
-        //         var asset = _testSimSystem.Assets.First();
-        //         var task = _testSystemTasks.First();
-        //         Assert.That(asset.Name.ToLower(), Is.EqualTo("testasset1"), "Asset name should be testasset1.");
-        //         Assert.That(task.Name.ToLower(), Is.EqualTo("task1"), "Task name should be Task1.");
-        //         Assert.That(task.MaxTimesToPerform, Is.EqualTo(1), "Task should have MaxTimesToPerform=1.");
-
-        //         // Verify TimeDeconfliction output
-        //         Assert.That(potentialSchedules.Count, Is.EqualTo(1), 
-        //             "First TimeDeconfliction call should generate 1 schedule (empty schedule + 1 task combo).");
-        //         Assert.That(potentialSchedules[0].AllStates.Events.Count, Is.EqualTo(1), 
-        //             "Generated schedule should have 1 event.");
-                
-        //         // Verify the generated schedule contains the correct task
-        //         var firstEvent = potentialSchedules[0].AllStates.Events.First();
-        //         Assert.That(firstEvent.Tasks.ContainsKey(asset), Is.True, "Event should contain the asset.");
-        //         Assert.That(firstEvent.Tasks[asset], Is.EqualTo(task), "Event should map asset to correct task.");
-        //     });
-        // }
-
-        // [Test, Order(2)]
-        // public void OneAssetOneTask_SecondTimeDeconflictionCall_GeneratesZeroSchedules()
-        // {
-        //     // Setup: 1 Asset, 1 Task, MaxTimesToPerform=1
-        //     ModelInputFile = Path.Combine(CurrentTestDir, "CanAddTasks", "Inputs", "OneAssetTestModel_CanAddTasks.json");
-        //     TaskInputFile = Path.Combine(CurrentTestDir, "CanAddTasks", "Inputs", "OneTaskTestFile_OneTimeMax_CanAddTasks.json");
-        //     BuildProgram();
-
-        //     double startTime = 0.0;
-        //     double timeStep = 12.0;
-        //     int iterations = 1; // After first iteration
-
-        //     // Position system right before second TimeDeconfliction call
-        //     this._systemSchedules = TimeDeconfliction_LoopHelper(
-        //         _systemSchedules, _scheduleCombos, _testSimSystem,
-        //         _ScheduleEvaluator, SchedulerUnitTest._emptySchedule,
-        //         startTime, timeStep, iterations);
-
-        //     // Act: Call TimeDeconfliction
-        //     var potentialSchedules = Scheduler.TimeDeconfliction(_systemSchedules, _scheduleCombos, SchedulerUnitTest.CurrentTime);
-
-        //     // Assert
-        //     Assert.Multiple(() =>
-        //     {
-        //         // Verify input setup
-        //         Assert.That(SchedParameters.MaxNumScheds, Is.EqualTo(1000), "MaxNumScheds should be 1000 per input file.");
-        //         Assert.That(_testSimSystem.Assets.Count, Is.EqualTo(1), "Should have 1 asset.");
-        //         Assert.That(_testSystemTasks.Count, Is.EqualTo(1), "Should have 1 task.");
-        //         Assert.That(_scheduleCombos.Count, Is.EqualTo(1), "Should have 1 schedule combo (1^1).");
-                
-        //         // Verify asset and task names
-        //         var asset = _testSimSystem.Assets.First();
-        //         var task = _testSystemTasks.First();
-        //         Assert.That(asset.Name.ToLower(), Is.EqualTo("testasset1"), "Asset name should be testasset1.");
-        //         Assert.That(task.Name.ToLower(), Is.EqualTo("task1"), "Task name should be Task1.");
-        //         Assert.That(task.MaxTimesToPerform, Is.EqualTo(1), "Task should have MaxTimesToPerform=1.");
-
-        //         // Verify existing schedules have 1 event with task already completed
-        //         Assert.That(_systemSchedules.Count, Is.EqualTo(2), "Should have 2 schedules: empty + 1 with history.");
-        //         var schedWithHistory = _systemSchedules.FirstOrDefault(s => !s.Name.ToLower().Contains("empty"));
-        //         Assert.IsNotNull(schedWithHistory, "Should have a schedule with history.");
-        //         Assert.That(schedWithHistory.AllStates.Events.Count, Is.EqualTo(1), "Schedule should have 1 event from previous iteration.");
-        //         Assert.That(schedWithHistory.AllStates.timesCompletedTask(task), Is.EqualTo(1), "Task should have been completed once.");
-
-        //         // Verify TimeDeconfliction output
-        //         Assert.That(potentialSchedules.Count, Is.EqualTo(0), 
-        //             "Second TimeDeconfliction call should generate 0 schedules (MaxTimesToPerform=1 already met).");
-        //     });
-        // }
-
-        // [Test, Order(3)]
-        // public void OneAssetOneTask_ThirdTimeDeconflictionCall_GeneratesZeroSchedules()
-        // {
-        //     // Setup: 1 Asset, 1 Task, MaxTimesToPerform=1
-        //     ModelInputFile = Path.Combine(CurrentTestDir, "CanAddTasks", "Inputs", "OneAssetTestModel_CanAddTasks.json");
-        //     TaskInputFile = Path.Combine(CurrentTestDir, "CanAddTasks", "Inputs", "OneTaskTestFile_OneTimeMax_CanAddTasks.json");
-        //     BuildProgram();
-
-        //     double startTime = 0.0;
-        //     double timeStep = 12.0;
-        //     int iterations = 2; // After two iterations
-
-        //     // Position system right before third TimeDeconfliction call
-        //     this._systemSchedules = TimeDeconfliction_LoopHelper(
-        //         _systemSchedules, _scheduleCombos, _testSimSystem,
-        //         _ScheduleEvaluator, SchedulerUnitTest._emptySchedule,
-        //         startTime, timeStep, iterations);
-
-        //     // Act: Call TimeDeconfliction
-        //     var potentialSchedules = Scheduler.TimeDeconfliction(_systemSchedules, _scheduleCombos, SchedulerUnitTest.CurrentTime);
-
-        //     // Assert
-        //     Assert.Multiple(() =>
-        //     {
-        //         // Verify input setup
-        //         Assert.That(SchedParameters.MaxNumScheds, Is.EqualTo(1000), "MaxNumScheds should be 1000 per input file.");
-        //         Assert.That(_testSimSystem.Assets.Count, Is.EqualTo(1), "Should have 1 asset.");
-        //         Assert.That(_testSystemTasks.Count, Is.EqualTo(1), "Should have 1 task.");
-        //         Assert.That(_scheduleCombos.Count, Is.EqualTo(1), "Should have 1 schedule combo (1^1).");
-                
-        //         // Verify asset and task names
-        //         var asset = _testSimSystem.Assets.First();
-        //         var task = _testSystemTasks.First();
-        //         Assert.That(asset.Name.ToLower(), Is.EqualTo("testasset1"), "Asset name should be testasset1.");
-        //         Assert.That(task.Name.ToLower(), Is.EqualTo("task1"), "Task name should be Task1.");
-        //         Assert.That(task.MaxTimesToPerform, Is.EqualTo(1), "Task should have MaxTimesToPerform=1.");
-
-        //         // Verify existing schedules still have 1 event (no new schedules added in iteration 2)
-        //         Assert.That(_systemSchedules.Count, Is.EqualTo(2), "Should have 2 schedules: empty + 1 with history.");
-        //         var schedWithHistory = _systemSchedules.FirstOrDefault(s => !s.Name.ToLower().Contains("empty"));
-        //         Assert.IsNotNull(schedWithHistory, "Should have a schedule with history.");
-        //         Assert.That(schedWithHistory.AllStates.Events.Count, Is.EqualTo(1), "Schedule should still have 1 event (no new events added).");
-        //         Assert.That(schedWithHistory.AllStates.timesCompletedTask(task), Is.EqualTo(1), "Task should have been completed once.");
-
-        //         // Verify TimeDeconfliction output
-        //         Assert.That(potentialSchedules.Count, Is.EqualTo(0), 
-        //             "Third TimeDeconfliction call should generate 0 schedules (MaxTimesToPerform=1 already met).");
-        //     });
-        // }
-
         
     }
 }
