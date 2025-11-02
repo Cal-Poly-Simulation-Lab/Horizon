@@ -189,6 +189,7 @@ namespace HSFScheduler
                 // }
 
             }
+            systemSchedules = CropToMaxSchedules(systemSchedules, Scheduler.emptySchedule, ScheduleEvaluator);
             return this.systemSchedules;
         }
 

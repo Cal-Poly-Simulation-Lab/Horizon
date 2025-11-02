@@ -264,4 +264,5 @@ _Pvt_Extensions
 user-compiled-subsystems.txt
 
 ################# END VISUAL STUDIO ITEMS ########################
-
+test/HSFSchedulerUnitTest/thesis_notes.md
+test/HSFSchedulerUnitTest/ParallelizationStrategy.md
