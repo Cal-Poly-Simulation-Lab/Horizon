@@ -17,6 +17,7 @@ namespace UserModel
         public static int MaxNumScheds { get; private set; }
         public static int NumSchedCropTo { get; private set; }
         public static bool ConsoleLogging { get; private set; }
+        public static string ConsoleLogMode { get; private set; } = "off"; // "off", "all", "kept"
         #endregion
 
         public static bool LoadScheduleJson(JObject scheduleJson)
@@ -50,17 +51,32 @@ namespace UserModel
                 }
                 if (JsonLoader<string>.TryGetValue("ConsoleLog", scheduleJson, out string ConsoleLog))
                 {
-                    if (ConsoleLog.ToLower().Contains("on") || ConsoleLog.ToLower().Contains("true") || ConsoleLog.ToLower().Contains("verbose"))
+                    string logMode = ConsoleLog.ToLower();
+                    
+                    if (logMode.Contains("kept"))
                     {
                         SchedParameters.ConsoleLogging = true;
-                        Console.WriteLine("\tConsole Logging of Scheduler set to true (verbose).");
+                        SchedParameters.ConsoleLogMode = "kept";
+                        Console.WriteLine("\tConsole Logging: 'kept' mode (only schedules that survive cropping).");
                     }
-                    else { SchedParameters.ConsoleLogging = false; Console.WriteLine("\tConsole Logging of Scheduler set to false (non-verbose).");}
+                    else if (logMode.Contains("on") || logMode.Contains("true") || logMode.Contains("verbose") || logMode.Contains("all"))
+                    {
+                        SchedParameters.ConsoleLogging = true;
+                        SchedParameters.ConsoleLogMode = "all";
+                        Console.WriteLine("\tConsole Logging: 'all' mode (all schedules every iteration).");
+                    }
+                    else
+                    {
+                        SchedParameters.ConsoleLogging = false;
+                        SchedParameters.ConsoleLogMode = "off";
+                        Console.WriteLine("\tConsole Logging: 'off' (non-verbose).");
+                    }
                 }
                 else
                 {
                     SchedParameters.ConsoleLogging = false;
-                    Console.WriteLine("\t No \"ConsoleLog\" setting specified; Console Logging of Scheduler set to default: false (non-verbose).");
+                    SchedParameters.ConsoleLogMode = "off";
+                    Console.WriteLine("\tNo 'ConsoleLog' setting; default: 'off' (non-verbose).");
                 }
 
                 return true;

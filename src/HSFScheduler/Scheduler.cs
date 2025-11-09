@@ -142,6 +142,12 @@ namespace HSFScheduler
 
                 // First, crop schedules to maxNumchedules: 
                 systemSchedules = CropToMaxSchedules(systemSchedules, Scheduler.emptySchedule, ScheduleEvaluator);
+                
+                // If "kept" mode, print schedules AFTER cropping (only those that survived)
+                if (SchedParameters.ConsoleLogMode == "kept")
+                {
+                    SystemScheduleInfo.PrintAllSchedulesSummary(systemSchedules, showAssetTaskDetails: false); 
+                }
 
                 // Generate an exhaustive list of new tasks possible from the combinations of Assets and Tasks
                 //TODO: Parallelize this.
@@ -180,16 +186,25 @@ namespace HSFScheduler
 
                 UpdateScheduleIDs(systemSchedules);
 
-                // if (_EnableDetailedLogging) // Print detailed schedule summary with status as subheader
-                SystemScheduleInfo.PrintAllSchedulesSummary(systemSchedules, showAssetTaskDetails: false);
-                // else // Print simple completion percentage with tracking metrics
-                // {
-                //     Console.WriteLine("Scheduler Status: {0:F}% done; Generated: {1} | Carried Over: {2} | Cropped: {3} | Total: {4}",
-                //         100 * currentTime / _endTime, _SchedulesGenerated, _SchedulesCarriedOver, _SchedulesCropped, systemSchedules.Count);
-                // }
+                // Print status summary and schedules based on ConsoleLogMode
+                if (SchedParameters.ConsoleLogMode != "kept")
+                {
+                    SystemScheduleInfo.PrintAllSchedulesSummary(systemSchedules, showAssetTaskDetails: false); 
+                }
+
+                // Note: "kept" mode prints full details AFTER cropping (see above in loop, line 146-150)
 
             }
+            
+            // Final crop
             systemSchedules = CropToMaxSchedules(systemSchedules, Scheduler.emptySchedule, ScheduleEvaluator, logging: false);
+            
+            // Print final schedules in both "all" and "kept" modes
+            Console.WriteLine("\n" + new string('█', 80));
+            Console.WriteLine("FINAL SCHEDULES (after final crop)");
+            Console.WriteLine(new string('█', 80));
+            SystemScheduleInfo.PrintAllSchedulesSummary(systemSchedules, showAssetTaskDetails: false, overRideConsoleLogging: true);
+
             return this.systemSchedules;
         }
 

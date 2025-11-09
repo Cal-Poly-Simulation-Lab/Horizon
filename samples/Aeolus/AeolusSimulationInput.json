@@ -16,6 +16,7 @@
   },
   "schedulerParameters": {
     "maxSchedules": 10,
-    "cropTo": 5
+    "cropTo": 5,
+    "ConsoleLog": "off"
   }
 }

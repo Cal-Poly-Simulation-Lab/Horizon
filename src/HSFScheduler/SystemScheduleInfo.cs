@@ -239,7 +239,7 @@ namespace HSFScheduler
         /// <summary>
         /// Generate a comprehensive schedule summary for all schedules
         /// </summary>
-        public static void PrintAllSchedulesSummary(List<SystemSchedule> schedules, bool showAssetTaskDetails = false)
+        public static void PrintAllSchedulesSummary(List<SystemSchedule> schedules, bool showAssetTaskDetails = false, bool overRideConsoleLogging = false)
         {
             string statusMessage = $"Scheduler Status: {100 * Scheduler.CurrentTime / SimParameters.SimEndSeconds:F}% done; Generated: {Scheduler._SchedulesGenerated} " +
                                 $"| Carried Over: {Scheduler._SchedulesCarriedOver} | Cropped: {Scheduler._SchedulesCropped} | Total: {schedules.Count}";
@@ -247,8 +247,8 @@ namespace HSFScheduler
             Console.WriteLine($"SCHEDULE SUMMARY - Current Scheduler Step: {Scheduler.SchedulerStep} | Total Schedules: {schedules.Count}");
             Console.WriteLine($"{statusMessage}");
             Console.WriteLine(new string('=', 80));
-
-            if (!SchedParameters.ConsoleLogging)
+            
+            if (!SchedParameters.ConsoleLogging && !overRideConsoleLogging)
             { return; } // return eraly if verbose is not set. }
             
             // Otherwise continue printing:
