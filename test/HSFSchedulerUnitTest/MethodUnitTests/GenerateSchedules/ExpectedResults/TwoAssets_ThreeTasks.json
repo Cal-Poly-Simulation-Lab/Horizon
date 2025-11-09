@@ -1,0 +1,2297 @@
+{
+  "Name": "TwoAssets_ThreeTasks",
+  "SimInputFile": "/Users/jason/source/Horizon/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateSchedules/Inputs/SimInput_MaxSched100_CropTo50.json",
+  "TaskInputFile": "/Users/jason/source/Horizon/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateSchedules/Inputs/ThreeTaskTestFile.json",
+  "ModelInputFile": "/Users/jason/source/Horizon/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateSchedules/Inputs/TwoAssetTestModel_AlwaysTrue.json",
+  "MaxNumScheds": 10,
+  "NumSchedCropTo": 5,
+  "Iterations": [
+    {
+      "Iteration": 0,
+      "CountBefore": 1,
+      "CountAfter": 10,
+      "CropOccurred": false,
+      "Schedules": [
+        {
+          "ID": "1",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "4",
+          "Value": 1010,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2",
+          "Value": 1010,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "7",
+          "Value": 1001,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "3",
+          "Value": 1001,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "5",
+          "Value": 20,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "8",
+          "Value": 11,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "6",
+          "Value": 11,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "9",
+          "Value": 2,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "0",
+          "Value": 0,
+          "Events": 0,
+          "AssetTaskPairs": []
+        }
+      ]
+    },
+    {
+      "Iteration": 1,
+      "CountBefore": 10,
+      "CountAfter": 91,
+      "CropOccurred": false,
+      "Schedules": [
+        {
+          "ID": "1.1",
+          "Value": 2020,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "4.3",
+          "Value": 2020,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "5.1",
+          "Value": 2020,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "2.3",
+          "Value": 2020,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2.1",
+          "Value": 2020,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "4.1",
+          "Value": 2020,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "7.3",
+          "Value": 2011,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "3.1",
+          "Value": 2011,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "3.3",
+          "Value": 2011,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2.6",
+          "Value": 2011,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "8.1",
+          "Value": 2011,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "6.1",
+          "Value": 2011,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "4.6",
+          "Value": 2011,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "2.2",
+          "Value": 2011,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "7.1",
+          "Value": 2011,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "4.2",
+          "Value": 2011,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "1.2",
+          "Value": 2011,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "1.3",
+          "Value": 2011,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "7.6",
+          "Value": 2002,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "9.1",
+          "Value": 2002,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "7.2",
+          "Value": 2002,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "3.2",
+          "Value": 2002,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "3.6",
+          "Value": 2002,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "1.4",
+          "Value": 2002,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "0.1",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "4.4",
+          "Value": 1030,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2.4",
+          "Value": 1030,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "5.2",
+          "Value": 1030,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "5.4",
+          "Value": 1030,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "7.4",
+          "Value": 1021,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "3.4",
+          "Value": 1021,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "5.3",
+          "Value": 1021,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "2.7",
+          "Value": 1021,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "5.7",
+          "Value": 1021,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "2.5",
+          "Value": 1021,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "8.2",
+          "Value": 1021,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "4.5",
+          "Value": 1021,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "8.4",
+          "Value": 1021,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "4.7",
+          "Value": 1021,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "6.4",
+          "Value": 1021,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "6.2",
+          "Value": 1021,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "9.4",
+          "Value": 1012,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "9.2",
+          "Value": 1012,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "7.5",
+          "Value": 1012,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "6.7",
+          "Value": 1012,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "7.7",
+          "Value": 1012,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "6.3",
+          "Value": 1012,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "3.5",
+          "Value": 1012,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "3.7",
+          "Value": 1012,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "4.8",
+          "Value": 1012,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "8.7",
+          "Value": 1012,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "2.8",
+          "Value": 1012,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "8.3",
+          "Value": 1012,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.4",
+          "Value": 1010,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "0.2",
+          "Value": 1010,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "9.7",
+          "Value": 1003,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "3.8",
+          "Value": 1003,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "7.8",
+          "Value": 1003,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "9.3",
+          "Value": 1003,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.3",
+          "Value": 1001,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.7",
+          "Value": 1001,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "5.5",
+          "Value": 40,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "5.8",
+          "Value": 31,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "8.5",
+          "Value": 31,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "6.5",
+          "Value": 31,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "5.6",
+          "Value": 31,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "6.6",
+          "Value": 22,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "5.9",
+          "Value": 22,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "8.6",
+          "Value": 22,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "8.8",
+          "Value": 22,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "6.8",
+          "Value": 22,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "9.5",
+          "Value": 22,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "0.5",
+          "Value": 20,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "8.9",
+          "Value": 13,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "6.9",
+          "Value": 13,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "9.6",
+          "Value": 13,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "9.8",
+          "Value": 13,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "0.6",
+          "Value": 11,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "0.8",
+          "Value": 11,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "9.9",
+          "Value": 4,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "0.9",
+          "Value": 2,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "1.0",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "4.0",
+          "Value": 1010,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2.0",
+          "Value": 1010,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "7.0",
+          "Value": 1001,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "3.0",
+          "Value": 1001,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "5.0",
+          "Value": 20,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "8.0",
+          "Value": 11,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "6.0",
+          "Value": 11,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "9.0",
+          "Value": 2,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "0.0",
+          "Value": 0,
+          "Events": 0,
+          "AssetTaskPairs": []
+        }
+      ]
+    },
+    {
+      "Iteration": 2,
+      "CountBefore": 91,
+      "CountAfter": 35,
+      "CropOccurred": true,
+      "Schedules": [
+        {
+          "ID": "2.1.1",
+          "Value": 2040,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "1.1.1",
+          "Value": 2040,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2.3.1",
+          "Value": 2040,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "5.1.1",
+          "Value": 2040,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "4.3.1",
+          "Value": 2040,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2.1.2",
+          "Value": 2031,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2.1.3",
+          "Value": 2031,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "2.3.2",
+          "Value": 2031,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2.3.3",
+          "Value": 2031,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "5.1.2",
+          "Value": 2031,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "5.1.3",
+          "Value": 2031,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "4.3.2",
+          "Value": 2031,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "4.3.3",
+          "Value": 2031,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "1.1.2",
+          "Value": 2031,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "1.1.3",
+          "Value": 2031,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "4.3.4",
+          "Value": 2022,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "5.1.4",
+          "Value": 2022,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "1.1.4",
+          "Value": 2022,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "2.3.4",
+          "Value": 2022,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "2.1.4",
+          "Value": 2022,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "0.0.1",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.0.2",
+          "Value": 1010,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.0.4",
+          "Value": 1010,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "0.0.3",
+          "Value": 1001,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.0.7",
+          "Value": 1001,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "0.0.5",
+          "Value": 20,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "0.0.8",
+          "Value": 11,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "0.0.6",
+          "Value": 11,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "0.0.9",
+          "Value": 2,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "2.1.0",
+          "Value": 2020,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "2.3.0",
+          "Value": 2020,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "5.1.0",
+          "Value": 2020,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "4.3.0",
+          "Value": 2020,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "1.1.0",
+          "Value": 2020,
+          "Events": 2,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "0.0.0",
+          "Value": 0,
+          "Events": 0,
+          "AssetTaskPairs": []
+        }
+      ]
+    },
+    {
+      "Iteration": 3,
+      "CountBefore": 35,
+      "CountAfter": 35,
+      "CropOccurred": true,
+      "Schedules": [
+        {
+          "ID": "4.3.1.1",
+          "Value": 2060,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2.1.1.1",
+          "Value": 2060,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "5.1.1.1",
+          "Value": 2060,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2.3.1.1",
+          "Value": 2060,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "1.1.1.1",
+          "Value": 2060,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "4.3.1.2",
+          "Value": 2051,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "4.3.1.3",
+          "Value": 2051,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "5.1.1.2",
+          "Value": 2051,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "5.1.1.3",
+          "Value": 2051,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "2.3.1.2",
+          "Value": 2051,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2.3.1.3",
+          "Value": 2051,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "1.1.1.2",
+          "Value": 2051,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "1.1.1.3",
+          "Value": 2051,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "2.1.1.2",
+          "Value": 2051,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2.1.1.3",
+          "Value": 2051,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "1.1.1.4",
+          "Value": 2042,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "2.3.1.4",
+          "Value": 2042,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "2.1.1.4",
+          "Value": 2042,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "5.1.1.4",
+          "Value": 2042,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "4.3.1.4",
+          "Value": 2042,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "0.0.0.1",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.0.0.2",
+          "Value": 1010,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.0.0.4",
+          "Value": 1010,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "0.0.0.3",
+          "Value": 1001,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.0.0.7",
+          "Value": 1001,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "0.0.0.5",
+          "Value": 20,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "0.0.0.8",
+          "Value": 11,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "0.0.0.6",
+          "Value": 11,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "0.0.0.9",
+          "Value": 2,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "4.3.1.0",
+          "Value": 2040,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "5.1.1.0",
+          "Value": 2040,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2.3.1.0",
+          "Value": 2040,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "1.1.1.0",
+          "Value": 2040,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2.1.1.0",
+          "Value": 2040,
+          "Events": 3,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "0.0.0.0",
+          "Value": 0,
+          "Events": 0,
+          "AssetTaskPairs": []
+        }
+      ]
+    },
+    {
+      "Iteration": 4,
+      "CountBefore": 35,
+      "CountAfter": 20,
+      "CropOccurred": true,
+      "Schedules": [
+        {
+          "ID": "4.3.1.1.1",
+          "Value": 2062,
+          "Events": 5,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "2.1.1.1.1",
+          "Value": 2062,
+          "Events": 5,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "5.1.1.1.1",
+          "Value": 2062,
+          "Events": 5,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "2.3.1.1.1",
+          "Value": 2062,
+          "Events": 5,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "1.1.1.1.1",
+          "Value": 2062,
+          "Events": 5,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "0.0.0.0.1",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.0.0.0.4",
+          "Value": 1010,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "0.0.0.0.2",
+          "Value": 1010,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.0.0.0.7",
+          "Value": 1001,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "0.0.0.0.3",
+          "Value": 1001,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.0.0.0.5",
+          "Value": 20,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "0.0.0.0.8",
+          "Value": 11,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "0.0.0.0.6",
+          "Value": 11,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "0.0.0.0.9",
+          "Value": 2,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task3",
+            "testasset2\u2192Task3"
+          ]
+        },
+        {
+          "ID": "1.1.1.1.0",
+          "Value": 2060,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2.3.1.1.0",
+          "Value": 2060,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "5.1.1.1.0",
+          "Value": 2060,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "2.1.1.1.0",
+          "Value": 2060,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task1",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "4.3.1.1.0",
+          "Value": 2060,
+          "Events": 4,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2",
+            "testasset1\u2192Task2",
+            "testasset2\u2192Task2"
+          ]
+        },
+        {
+          "ID": "0.0.0.0.0",
+          "Value": 0,
+          "Events": 0,
+          "AssetTaskPairs": []
+        }
+      ]
+    }
+  ],
+  "FinalCrop": {
+    "Iteration": -1,
+    "CountBefore": 20,
+    "CountAfter": 6,
+    "CropOccurred": true,
+    "Schedules": [
+      {
+        "ID": "1.1.1.1.1",
+        "Value": 2062,
+        "Events": 5,
+        "AssetTaskPairs": [
+          "testasset1\u2192Task1",
+          "testasset2\u2192Task1",
+          "testasset1\u2192Task2",
+          "testasset2\u2192Task2",
+          "testasset1\u2192Task2",
+          "testasset2\u2192Task2",
+          "testasset1\u2192Task2",
+          "testasset2\u2192Task2",
+          "testasset1\u2192Task3",
+          "testasset2\u2192Task3"
+        ]
+      },
+      {
+        "ID": "2.3.1.1.1",
+        "Value": 2062,
+        "Events": 5,
+        "AssetTaskPairs": [
+          "testasset1\u2192Task2",
+          "testasset2\u2192Task1",
+          "testasset1\u2192Task1",
+          "testasset2\u2192Task2",
+          "testasset1\u2192Task2",
+          "testasset2\u2192Task2",
+          "testasset1\u2192Task2",
+          "testasset2\u2192Task2",
+          "testasset1\u2192Task3",
+          "testasset2\u2192Task3"
+        ]
+      },
+      {
+        "ID": "5.1.1.1.1",
+        "Value": 2062,
+        "Events": 5,
+        "AssetTaskPairs": [
+          "testasset1\u2192Task2",
+          "testasset2\u2192Task2",
+          "testasset1\u2192Task1",
+          "testasset2\u2192Task1",
+          "testasset1\u2192Task2",
+          "testasset2\u2192Task2",
+          "testasset1\u2192Task2",
+          "testasset2\u2192Task2",
+          "testasset1\u2192Task3",
+          "testasset2\u2192Task3"
+        ]
+      },
+      {
+        "ID": "2.1.1.1.1",
+        "Value": 2062,
+        "Events": 5,
+        "AssetTaskPairs": [
+          "testasset1\u2192Task2",
+          "testasset2\u2192Task1",
+          "testasset1\u2192Task2",
+          "testasset2\u2192Task1",
+          "testasset1\u2192Task2",
+          "testasset2\u2192Task2",
+          "testasset1\u2192Task2",
+          "testasset2\u2192Task2",
+          "testasset1\u2192Task3",
+          "testasset2\u2192Task3"
+        ]
+      },
+      {
+        "ID": "4.3.1.1.1",
+        "Value": 2062,
+        "Events": 5,
+        "AssetTaskPairs": [
+          "testasset1\u2192Task1",
+          "testasset2\u2192Task2",
+          "testasset1\u2192Task1",
+          "testasset2\u2192Task2",
+          "testasset1\u2192Task2",
+          "testasset2\u2192Task2",
+          "testasset1\u2192Task2",
+          "testasset2\u2192Task2",
+          "testasset1\u2192Task3",
+          "testasset2\u2192Task3"
+        ]
+      },
+      {
+        "ID": "0.0.0.0.0",
+        "Value": 0,
+        "Events": 0,
+        "AssetTaskPairs": []
+      }
+    ]
+  }
+}

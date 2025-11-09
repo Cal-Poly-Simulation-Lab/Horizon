@@ -189,7 +189,7 @@ namespace HSFScheduler
                 // }
 
             }
-            systemSchedules = CropToMaxSchedules(systemSchedules, Scheduler.emptySchedule, ScheduleEvaluator);
+            systemSchedules = CropToMaxSchedules(systemSchedules, Scheduler.emptySchedule, ScheduleEvaluator, logging: false);
             return this.systemSchedules;
         }
 
@@ -226,7 +226,7 @@ namespace HSFScheduler
             return canPregenAccess; 
         }
 
-        public static List<SystemSchedule> CropToMaxSchedules(List<SystemSchedule> systemSchedules, SystemSchedule emptySchedule, Evaluator scheduleEvaluator)
+        public static List<SystemSchedule> CropToMaxSchedules(List<SystemSchedule> systemSchedules, SystemSchedule emptySchedule, Evaluator scheduleEvaluator, bool logging = true)
         {
             var _oldScheduleCount = systemSchedules.Count();
             Scheduler._SchedulesCropped = 0;
@@ -238,7 +238,7 @@ namespace HSFScheduler
             }
             Scheduler._SchedulesCropped = _oldScheduleCount - systemSchedules.Count();
             // Update all existing schedule visualizations to reflect new current step
-            foreach (var schedule in systemSchedules) { schedule.ScheduleInfo.UpdateForCurrentTimeStep(); schedule.UpdateInfoStrings(); }
+            if (logging) { foreach (var schedule in systemSchedules) { schedule.ScheduleInfo.UpdateForCurrentTimeStep(); schedule.UpdateInfoStrings(); } } 
 
             return systemSchedules; 
         }

@@ -1,0 +1,82 @@
+OneAsset_OneTask - Observation Data
+Generated: 2025-11-09 01:08:49
+Branch: jebeals-scheduler-merge
+Commit: a73f331
+
+Input Files:
+  Sim:   /Users/jason/source/Horizon/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateSchedules/Inputs/SimInput_MaxSched100_CropTo50.json
+  Task:  /Users/jason/source/Horizon/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateSchedules/Inputs/OneTaskTestFile.json
+  Model: /Users/jason/source/Horizon/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateSchedules/Inputs/OneAssetTestModel_AlwaysTrue.json
+
+═════════════════════════════════════════════
+SUMMARY: MaxScheds=10 | CropTo=5
+═════════════════════════════════════════════
+
+Assets:
+  testasset1: [AlwaysTrueSubsystem]
+
+Tasks:
+  Task1: Value = 1000         MaxTimes = 2
+═════════════════════════════════════════════
+
+─────────────────────────────────────────────
+Iteration 0: 1 → 2 | Crop: NO
+─────────────────────────────────────────────
+  1                              |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  0                              |     0.0000 | Events: 0 ..... 
+
+─────────────────────────────────────────────
+Iteration 1: 2 → 4 | Crop: NO
+─────────────────────────────────────────────
+  1.1                            |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  0.1                            |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  1.0                            |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  0.0                            |     0.0000 | Events: 0 ..... 
+
+─────────────────────────────────────────────
+Iteration 2: 4 → 7 | Crop: NO
+─────────────────────────────────────────────
+  0.1.1                          |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  1.0.1                          |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  1.1.0                          |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  0.0.1                          |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  0.1.0                          |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  1.0.0                          |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  0.0.0                          |     0.0000 | Events: 0 ..... 
+
+─────────────────────────────────────────────
+Iteration 3: 7 → 11 | Crop: NO
+─────────────────────────────────────────────
+  0.0.1.1                        |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  0.1.0.1                        |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  0.1.1.0                        |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  1.0.0.1                        |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  1.0.1.0                        |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  1.1.0.0                        |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  0.0.0.1                        |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  0.0.1.0                        |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  0.1.0.0                        |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  1.0.0.0                        |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  0.0.0.0                        |     0.0000 | Events: 0 ..... 
+
+─────────────────────────────────────────────
+Iteration 4: 11 → 7 | Crop: YES
+─────────────────────────────────────────────
+  0.0.1.1.0                      |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  0.1.0.1.0                      |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  0.1.1.0.0                      |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  1.0.1.0.0                      |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  1.1.0.0.0                      |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  0.0.0.0.1                      |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  0.0.0.0.0                      |     0.0000 | Events: 0 ..... 
+
+═════════════════════════════════════════════
+FINAL: 7 → 7
+═════════════════════════════════════════════
+  0.0.1.1.0                      |  2000.0000 .....  (A1→Task1 x2)
+  0.1.0.1.0                      |  2000.0000 .....  (A1→Task1 x2)
+  0.1.1.0.0                      |  2000.0000 .....  (A1→Task1 x2)
+  1.0.1.0.0                      |  2000.0000 .....  (A1→Task1 x2)
+  1.1.0.0.0                      |  2000.0000 .....  (A1→Task1 x2)
+  0.0.0.0.1                      |  1000.0000 .....  (A1→Task1 x1)
+  0.0.0.0.0                      |     0.0000 ..... 
