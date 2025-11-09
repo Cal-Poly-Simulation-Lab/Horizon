@@ -360,24 +360,16 @@ namespace HSFSystem
 
         //Type[] constructorArgs = [typeof(JObject)];
         ConstructorInfo constructor = type.GetConstructor(constructorArgTypes);
-        // ConstructorInfo constructor = type.GetConstructors()
-        //                                   .FirstOrDefault(ctor =>
-        //                                   {
-        //                                       var parameters = ctor.GetParameters();
-        //                                       return parameters.Length == (constructorArgs?.Length ?? 0) &&
-        //                                              parameters.Zip(constructorArgs, (p, a) => p.ParameterType.IsAssignableFrom(a.GetType())).All(b => b);
-        //                                   });
-            // Find the appropriate constructor
-            // ConstructorInfo constructor = type.GetConstructors()
-            //                                   .FirstOrDefault(ctor =>
-            //                                   {
-            //                                       var parameters = ctor.GetParameters();
-            //                                       return parameters.Length == constructorArgs.Length &&
-            //                                              parameters.Select(p => p.ParameterType).SequenceEqual(constructorArgs.Select(a => a.GetType()));
-            //                                   });
-
+        
             if (constructor == null)
             {
+                Console.WriteLine($"[ERROR] Looking for constructor with args: {string.Join(", ", constructorArgTypes.Select(t => t.Name))}");
+                Console.WriteLine($"[ERROR] Available constructors in {type.Name}:");
+                foreach (var ctor in type.GetConstructors())
+                {
+                    var paramList = string.Join(", ", ctor.GetParameters().Select(p => $"{p.ParameterType.Name} {p.Name}"));
+                    Console.WriteLine($"  - {type.Name}({paramList})");
+                }
                 throw new InvalidOperationException("Matching constructor not found.");
             }
 
