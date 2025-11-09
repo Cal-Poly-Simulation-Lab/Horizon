@@ -152,7 +152,8 @@ namespace HSFSystem
                 else // If depFn lives in C# subsystem
                 {
                     // Find method that matches name via reflection & add to sub's dep fns
-                    var TypeIn = Type.GetType("HSFSystem." + depSubName).GetMethod(depFncName);
+                    // Use the actual subsystem's type (works for both hardcoded and dynamically compiled)
+                    var TypeIn = depSub.GetType().GetMethod(depFncName);
                     Delegate fnc = Delegate.CreateDelegate(typeof(Func<Event, HSFProfile<double>>), depSub, TypeIn);
                     sub.SubsystemDependencyFunctions.Add(depFncName, fnc);
                 }

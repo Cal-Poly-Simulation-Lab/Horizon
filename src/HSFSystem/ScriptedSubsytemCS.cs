@@ -25,13 +25,15 @@ namespace HSFSystem
         private readonly string dll = ""; 
         private readonly string className = ""; 
         private readonly string dlldir = ""; 
-        private readonly Type[] constructorArgTypes = [typeof(JObject)]; 
+        private readonly Type[] constructorArgTypes = [typeof(JObject), typeof(Asset)]; 
         private readonly object[] constructorArgs = [];
+        private readonly Asset asset;
 
         private static readonly string CompiledFilesListPath = Path.Combine(Utilities.DevEnvironment.RepoDirectory, "user-compiled-subsystems.txt");
 
         public ScriptedSubsystemCS(JObject scriptedSubsystemJson, Asset asset)//string dllPath, string typeName, string subsystemJson)
         {
+            this.asset = asset;
            StringComparison stringCompare = StringComparison.CurrentCultureIgnoreCase;
 
             // Before we can set any subsytem parameters, we must first load in the file...
@@ -80,38 +82,25 @@ namespace HSFSystem
                 Console.WriteLine("Loading subsytem of type {this.Type}, constructorArgTypes not yet functional...");
                 
                 // For now: 
-                this.constructorArgs = [scriptedSubsystemJson]; // Use the JObject json by default.  Using default JObject tpye..."); 
+                this.constructorArgs = [scriptedSubsystemJson, this.asset]; // Use the JObject json and Asset by default.  Using default JObject tpye..."); 
             }
             else
             {
-                this.constructorArgs = [scriptedSubsystemJson]; // Use the JObject json by default. 
+                this.constructorArgs = [scriptedSubsystemJson, this.asset]; // Use the JObject json and Asset by default. 
                 Console.WriteLine($"Loading subsytem of type {this.Type}, using deafault {this.constructorArgTypes}...");
                 
-                //Optional so do not throw an error (assume that there is a JObject constructor); Error caught later...
+                //Optional so do not throw an error (assume that there is a JObject, Asset constructor); Error caught later...
             }
 
             // Now load the subsytem from the file and other (optional) arguments
             this.LoadedSubsystem = LoadSubsystemFromDll();
             
-            // Set all necessary subsystem attributes...
-            LoadedSubsystem.Asset = asset; 
-            LoadedSubsystem.Type = Type;
-
-            // Load in the (optional) subsystem name:
-            if (scriptedSubsystemJson.TryGetValue("name", stringCompare, out JToken nameJason))
-            {
-                LoadedSubsystem.Name = nameJason.ToString();
-            }
-            else
-            {
-                // Fish fore the name of the subsystem using the filename (by default) 
-                string fp = ""; 
-                if (!dll.Equals("")) { fp = dll; }
-                else { fp = src; }
-
-                // Assign the subsystem the name of the file by default. 
-                LoadedSubsystem.Name = Path.GetFileName(fp);
-            }
+            // Override the Type to match the actual loaded class (not "scriptedcs")
+            // The base Subsystem constructor set Type from JSON (which says "scriptedcs"), 
+            // but the actual subsystem type should be the class name (e.g., "ADCS", "Power")
+            LoadedSubsystem.Type = LoadedSubsystem.GetType().Name.ToLower();
+            
+            Console.WriteLine($"  Loaded subsystem: Name={LoadedSubsystem.Name}, Type={LoadedSubsystem.Type}, Asset={LoadedSubsystem.Asset?.Name ?? "null"}");
             
             LoadedSubsystem.Loader = this; // Could create an infinite loop? idk..
             
@@ -141,39 +130,91 @@ namespace HSFSystem
             // Create a syntax tree from the source code with encoding
             SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(sourceCode, path: absoluteSourcePath, encoding: System.Text.Encoding.UTF8);
 
-            // Define references
-            List<MetadataReference> references = new List<MetadataReference>
+            // Algorithmic reference discovery using Basic.Reference.Assemblies
+            // This provides the standard .NET reference assemblies needed for compilation
+            var references = Basic.Reference.Assemblies.Net80.References.All.ToList();
+            
+            // Parse the source file for 'using' directives and add corresponding assemblies
+            var root = syntaxTree.GetRoot();
+            var usingDirectives = root.DescendantNodes()
+                .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax>()
+                .Select(u => u.Name?.ToString())
+                .Where(n => n != null)
+                .Distinct()
+                .ToList();
+            
+            Console.WriteLine($"  Found {usingDirectives.Count} using directives in source file");
+            
+            // Map common using directives to their assembly locations
+            var namespaceToAssemblyMap = new Dictionary<string, string[]>
             {
-                    MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(Dictionary<,>).Assembly.Location), // Added reference for Dictionary
-                    MetadataReference.CreateFromFile(Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location), "System.Collections.dll")), // Added System.Collections.dll
-                    MetadataReference.CreateFromFile(Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location), "System.Runtime.dll")), // Added System.Runtime.dll
-                    MetadataReference.CreateFromFile(Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location), "netstandard.dll")) // Added netstandard.dll
+                { "System", new[] { "System.Runtime.dll", "System.Console.dll" } },
+                { "System.Collections.Generic", new[] { "System.Collections.dll" } },
+                { "System.Linq", new[] { "System.Linq.dll" } },
+                { "System.IO", new[] { "System.IO.FileSystem.dll" } },
+                { "System.Xml", new[] { "System.Xml.ReaderWriter.dll" } },
+                { "Newtonsoft.Json.Linq", new[] { "Newtonsoft.Json.dll" } },
+                { "log4net", new[] { "log4net.dll" } },
+                { "Microsoft.CSharp", new[] { "Microsoft.CSharp.dll" } }
             };
-
-            // Add necessary references
-            references.Add(MetadataReference.CreateFromFile(typeof(System.Collections.Generic.List<>).Assembly.Location));
-            references.Add(MetadataReference.CreateFromFile(typeof(System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute).Assembly.Location));
-            references.Add(MetadataReference.CreateFromFile(typeof(Newtonsoft.Json.Linq.JObject).Assembly.Location));
-            references.Add(MetadataReference.CreateFromFile(typeof(System.Xml.XmlDocument).Assembly.Location));
-            references.Add(MetadataReference.CreateFromFile(typeof(System.Runtime.CompilerServices.DynamicAttribute).Assembly.Location));
-            // Add project references
-            string relBuildDir = "src/HSFSystem/bin/Debug/net8.0"; // Currently hardcoded
-            string buildDir = Path.Combine(Utilities.DevEnvironment.RepoDirectory, relBuildDir);
-            string[] dllFiles = Directory.GetFiles(buildDir, "*.dll");
-            foreach (var dllfp in dllFiles)
+            
+            // Add references for each using directive found
+            string horizonBuildDir = Path.Combine(Utilities.DevEnvironment.RepoDirectory, "src/Horizon/bin/Debug/net8.0");
+            foreach (var usingDirective in usingDirectives)
             {
-                references.Add(MetadataReference.CreateFromFile(dllfp));
+                if (namespaceToAssemblyMap.TryGetValue(usingDirective, out var assemblyNames))
+                {
+                    foreach (var assemblyName in assemblyNames)
+                    {
+                        string assemblyPath = Path.Combine(horizonBuildDir, assemblyName);
+                        if (File.Exists(assemblyPath))
+                        {
+                            try
+                            {
+                                references.Add(MetadataReference.CreateFromFile(assemblyPath));
+                                Console.WriteLine($"  Added {assemblyName} for using {usingDirective}");
+                            }
+                            catch { }
+                        }
+                    }
+                }
             }
+            
+            Console.WriteLine($"  Base references loaded: {references.Count}");
+            
+            // Add all currently loaded assemblies (includes our project DLLs)
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies()
+                .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location));
+            
+            int addedCount = 0;
+            foreach (var assembly in loadedAssemblies)
+            {
+                try
+                {
+                    references.Add(MetadataReference.CreateFromFile(assembly.Location));
+                    addedCount++;
+                }
+                catch
+                {
+                    // Skip if already added or can't be referenced
+                }
+            }
+            
+            Console.WriteLine($"  Added loaded assemblies: {addedCount}");
 
-            // Create the compilation
+            // Create the compilation with implicit usings enabled (matches .csproj setting)
+            var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
+            syntaxTree = CSharpSyntaxTree.ParseText(sourceCode, parseOptions, path: absoluteSourcePath, encoding: System.Text.Encoding.UTF8);
+            
             CSharpCompilation compilation = CSharpCompilation.Create(
                 Path.GetFileNameWithoutExtension(outputDllPath),
                 new[] { syntaxTree },
                 references,
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                    .WithOptimizationLevel(OptimizationLevel.Debug));
+                    .WithOptimizationLevel(OptimizationLevel.Debug)
+                    .WithUsings("System", "System.Collections.Generic", "System.IO", "System.Linq", "System.Net.Http", 
+                                "System.Threading", "System.Threading.Tasks") // Implicit usings from .NET 6+
+            );
 
             // Emit the compilation to a DLL
             EmitResult result;
