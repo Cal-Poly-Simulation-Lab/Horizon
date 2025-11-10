@@ -3,7 +3,7 @@
     {
       "name": "Task1",
       "type": "None",
-      "maxTimes": 1,
+      "maxTimes": 10,
       "target": {
         "name": "Target1",
         "type": "None",

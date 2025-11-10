@@ -31,10 +31,15 @@
         },
         "subsystems": [
           {
-            "type": "scriptedcs",
+            "type": "adcs",
             "name": "ADCS",
-            "src": "src/HSFSystem/ADCS.cs",
-            "className": "adcs",
+            "parameters": [
+              {
+                "name": "slewRate",
+                "type": "double",
+                "value":  5
+              }
+            ],
             "states": [
               {
                 "type": "Matrix",
@@ -45,38 +50,36 @@
             ]
           },
           {
-            "type": "scriptedcs",
+            "type": "eosensor",
             "name": "EOSensor",
-            "src": "src/HSFSystem/EOSensor.cs",
-            "className": "eosensor",
             "parameters": [
               {
-                "name": "lowQualityCaptureTime",
+                "name": "lowQualityTime",
                 "type": "double",
                 "value": 3
               },
               {
-                "name": "midQualityCaptureTime",
+                "name": "midQualityTime",
                 "type": "double",
                 "value": 5
               },
               {
-                "name": "highQualityCaptureTime",
+                "name": "highQualityTime",
                 "type": "double",
                 "value": 7
               },
               {
-                "name": "lowQualityNumPixels",
+                "name": "lowQualityPixels",
                 "type": "double",
                 "value": 5000
               },
               {
-                "name": "midQualityNumPixels",
+                "name": "midQualityPixels",
                 "type": "double",
                 "value": 10000
               },
               {
-                "name": "highQualityNumPixels",
+                "name": "highQualityPixels",
                 "type": "double",
                 "value": 15000
               }
@@ -104,9 +107,9 @@
           },
           {
             "type": "scriptedcs",
-            "name": "SSDR",
             "src": "src/HSFSystem/SSDR.cs",
             "className": "ssdr",
+            "name": "SSDR",
             "parameters": [
               {
                 "name": "bufferSize",
@@ -125,9 +128,9 @@
           },
           {
             "type": "scriptedcs",
-            "name": "Comm",
             "src": "src/HSFSystem/Comm.cs",
             "className": "comm",
+            "name": "Comm",
             "states": [
               {
                 "type": "double",
@@ -139,9 +142,9 @@
           },
           {
             "type": "scriptedcs",
-            "name": "Power",
             "src": "src/HSFSystem/Power.cs",
             "className": "power",
+            "name": "Power",
             "parameters": [
               {
                 "name": "batterySize",
@@ -210,9 +213,16 @@
         "subsystems": [
           {
             "type": "scriptedcs",
-            "name": "ADCS",
             "src": "src/HSFSystem/ADCS.cs",
             "className": "adcs",
+            "name": "ADCS",
+            "parameters": [
+              {
+                "name": "slewRate",
+                "type": "double",
+                "value": 5
+              }
+            ],
             "states": [
               {
                 "type": "Matrix",
@@ -224,37 +234,37 @@
           },
           {
             "type": "scriptedcs",
-            "name": "EOSensor",
             "src": "src/HSFSystem/EOSensor.cs",
             "className": "eosensor",
+            "name": "EOSensor",
             "parameters": [
               {
-                "name": "lowQualityCaptureTime",
+                "name": "lowQualityTime",
                 "type": "double",
                 "value": 3
               },
               {
-                "name": "midQualityCaptureTime",
+                "name": "midQualityTime",
                 "type": "double",
                 "value": 5
               },
               {
-                "name": "highQualityCaptureTime",
+                "name": "highQualityTime",
                 "type": "double",
                 "value": 7
               },
               {
-                "name": "lowQualityNumPixels",
+                "name": "lowQualityPixels",
                 "type": "double",
                 "value": 5000
               },
               {
-                "name": "midQualityNumPixels",
+                "name": "midQualityPixels",
                 "type": "double",
                 "value": 10000
               },
               {
-                "name": "highQualityNumPixels",
+                "name": "highQualityPixels",
                 "type": "double",
                 "value": 15000
               }
@@ -282,9 +292,9 @@
           },
           {
             "type": "scriptedcs",
-            "name": "SSDR",
             "src": "src/HSFSystem/SSDR.cs",
             "className": "ssdr",
+            "name": "SSDR",
             "parameters": [
               {
                 "name": "bufferSize",
@@ -303,9 +313,9 @@
           },
           {
             "type": "scriptedcs",
-            "name": "Comm",
             "src": "src/HSFSystem/Comm.cs",
             "className": "comm",
+            "name": "Comm",
             "states": [
               {
                 "type": "double",
@@ -317,9 +327,9 @@
           },
           {
             "type": "scriptedcs",
-            "name": "Power",
             "src": "src/HSFSystem/Power.cs",
             "className": "power",
+            "name": "Power",
             "parameters": [
               {
                 "name": "batterySize",
@@ -358,7 +368,7 @@
             "value": 0.25,
             "subsystemName": "Power",
             "type": "FAIL_IF_HIGHER",
-            "name": "con1",
+            "name": "con3",
             "state": {
               "type": "double",
               "key": "DepthOfDischarge"
@@ -368,7 +378,7 @@
             "value": 0.7,
             "subsystemName": "SSDR",
             "type": "FAIL_IF_HIGHER",
-            "name": "con2",
+            "name": "con4",
             "state": {
               "type": "double",
               "key": "DataBufferFillRatio"
@@ -477,27 +487,16 @@
     ],
     "evaluator": {
       "type": "TargetValueEvaluator",
-      "src": "..\\..\\..\\samples\\Aeolus\\pythonScripts\\eval.py",
       "className": "EVAL",
-      "keyRequests": [
+      "states": [
         {
           "asset": "Asset1",
-          "subsystem": "SSDR",
+          "key": "DataBufferFillRatio",
           "type": "double"
         },
         {
           "asset": "Asset2",
-          "subsystem": "SSDR",
-          "type": "double"
-        },
-        {
-          "asset": "Asset2",
-          "subsystem": "EOSensor",
-          "type": "double"
-        },
-        {
-          "asset": "Asset1",
-          "subsystem": "ADCS",
+          "key": "DataBufferFillRatio",
           "type": "double"
         }
       ]

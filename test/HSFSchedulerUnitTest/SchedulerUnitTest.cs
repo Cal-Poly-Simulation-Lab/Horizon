@@ -15,6 +15,7 @@ using System.Text;
 using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UserModel;
 
 namespace HSFSchedulerUnitTest
 {
@@ -25,26 +26,37 @@ namespace HSFSchedulerUnitTest
         protected virtual string? SimInputFile { get; set; }
         protected virtual string? TaskInputFile { get; set; }
         protected virtual string? ModelInputFile { get; set; }
-        protected Horizon.Program program { get; set; } = new Horizon.Program();
         protected int? _emptySchedIdx { get; set; }
         # endregion
 
 
         # region Private/Internal Program Attributes
+        protected Horizon.Program program { get; set; } = new Horizon.Program();
         protected SystemClass? _testSimSystem { get; set; }
-        protected Stack<MissionElements.Task>? _testSystemTasks { get; set; }
+        protected Stack<MissionElements.Task> _testSystemTasks { get; set; } = new Stack<MissionElements.Task>();
+        protected SystemState _testInitialSysState { get; set; } = new SystemState();
         #endregion
 
         #region Private/Intneral Scheduler Attributes
+        // Scheduler static class attributes neded to be mirrored for testing:
+        protected static int SchedulerStep {get; set;} = -1;
+        protected static double CurrentTime { get; set; } = SimParameters.SimStartSeconds;
+        protected static double NextTime { get; set; } = SimParameters.SimStepSeconds;
+        protected static int _schedID { get; set; } = 0;
+        protected static int? _SchedulesGenerated { get; set; } = 0;
+        protected static int? _SchedulesCarriedOver { get; set; } = 0;
+        protected static int? _SchedulesCropped { get; set; } = 0;
+
         // Attributes that are private in the Scheduler class that are needed for testing:
         // Needed for schedule evaluation and computation:
+        protected static SystemSchedule? _emptySchedule {get; set;}
         protected List<SystemSchedule> _systemSchedules = new List<SystemSchedule>();
+        protected bool _canPregenAccess { get; set; } = false;
         protected Stack<Stack<Access>> _scheduleCombos = new Stack<Stack<Access>>();
+        protected Stack<Access>? _preGeneratedAccesses { get; set; }
         protected List<SystemSchedule> _potentialSystemSchedules = new List<SystemSchedule>();
         protected List<SystemSchedule> _systemCanPerformList = new List<SystemSchedule>();
-        protected bool? _canPregenAccess { get; set; }
-        protected Stack<Access>? _preGeneratedAccesses { get; set; }
-        protected Evaluator? _schedEvaluator { get; set; }
+        protected Evaluator? _ScheduleEvaluator { get; set; }
         # endregion
 
         # region Test Class Attributes
@@ -69,6 +81,7 @@ namespace HSFSchedulerUnitTest
             CurrentTestName = TestContext.CurrentContext.Test.Name;
             CurrentClassName = TestContext.CurrentContext.Test.ClassName;
             //Console.WriteLine($"=~==~= Starting Test: {CurrentTestName} =~==~=\n");
+            
             TestContext.WriteLine($"=~==~==~= Starting Test: {CurrentClassName}.{CurrentTestName} =~==~==~=\n");
         }
 
@@ -80,6 +93,34 @@ namespace HSFSchedulerUnitTest
             TestContext.WriteLine($"=~==~==~= Test {CurrentClassName}.{CurrentTestName} Completed =~==~==~=\n");
         }
         # endregion
+        public static List<SystemSchedule> MainSchedulingLoopHelper(
+            List<SystemSchedule> systemSchedules,
+            Stack<Stack<Access>> scheduleCombos,
+            SystemClass system,
+            Evaluator evaluator,
+            SystemSchedule emptySchedule,
+            double startTime, 
+            double timeStep, 
+            int iterations)
+        {
+            for (double currentTime = startTime; currentTime < startTime + iterations * timeStep; currentTime += timeStep)
+            {
+                Scheduler.SchedulerStep += 1; // Im pretty sure its static and called in the ScheduleInfo class to make it easy; so screw it-- its public set now to make it smooth for visualization sake. Doesnt impact the algorithm main logic. 
+                SchedulerUnitTest.CurrentTime = currentTime;
+                SchedulerUnitTest.NextTime = currentTime + timeStep;
+                systemSchedules = Scheduler.CropToMaxSchedules(systemSchedules, emptySchedule, evaluator);
+                var potential = Scheduler.TimeDeconfliction(systemSchedules, scheduleCombos, currentTime);
+                var canPerform = Scheduler.CheckAllPotentialSchedules(system, potential);
+                var sorted = Scheduler.EvaluateAndSortCanPerformSchedules(evaluator, canPerform);
+                //SchedulerUnitTest._SchedulesGenerated = canPerform.Count();
+                systemSchedules = Scheduler.MergeAndClearSystemSchedules(systemSchedules, sorted);
+                //SchedulerUnitTest._SchedulesCarriedOver = systemSchedules.Count() - SchedulerUnitTest._SchedulesGenerated;
+                Scheduler.UpdateScheduleIDs(systemSchedules);
+                //SystemScheduleInfo.PrintAllSchedulesSummary(systemSchedules, showAssetTaskDetails: false);
+            }
+            return systemSchedules;
+        }
+
 
         #region Horizon Load Helper
         public virtual Horizon.Program HorizonLoadHelper(string SimInputFile, string TaskInputFile, string ModelInputFile)
@@ -132,6 +173,11 @@ namespace HSFSchedulerUnitTest
                 throw new NotFiniteNumberException("System has circular dependencies! Please correct then try again.");
             program.scheduler = new Scheduler(program.SchedEvaluator);
 
+            _testSimSystem = program.SimSystem;
+            _testSystemTasks = new Stack<MissionElements.Task>(program.SystemTasks);
+            _testInitialSysState = program.InitialSysState;
+            _ScheduleEvaluator = program.SchedEvaluator;
+            
             // And this is where we pause the setup because we are testing this method:
             //program.Schedules = program.scheduler.GenerateSchedules(program.SimSystem, program.SystemTasks, program.InitialSysState);
             // }

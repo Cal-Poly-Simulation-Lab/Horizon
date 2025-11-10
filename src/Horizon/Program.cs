@@ -37,6 +37,8 @@ namespace Horizon
         public string TaskDeckFilePath { get; set; }
         public string ModelFilePath { get; set; }
         public string OutputPath { get; set; }
+        public bool outputSet { get; set; } = false;
+        public string basePath { get; set; } = Utilities.DevEnvironment.RepoDirectory; 
 
         // Load the environment. First check if there is an ENVIRONMENT XMLNode in the input file
         public Domain SystemUniverse { get; set; }
@@ -70,6 +72,8 @@ namespace Horizon
 
         public static int Main(string[] args) //
         {
+            var programStopwatch = System.Diagnostics.Stopwatch.StartNew();
+            
             Program program = new Program();
 
             // Begin the Logger
@@ -89,6 +93,7 @@ namespace Horizon
             int i = 0;
             //Morgan's Way
             Console.WriteLine($"Publishing simulation results to {program.OutputPath}");
+
             StreamWriter sw = File.CreateText(program.OutputPath + "\\ScheduleResults.txt");
             foreach (SystemSchedule sched in program.Schedules)
             {
@@ -158,7 +163,7 @@ namespace Horizon
                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
             }
 
-            bool simulationSet = false, targetSet = false, modelSet = false; bool outputSet = false;
+            bool simulationSet = false, targetSet = false, modelSet = false; 
 
             // Get the input filenames
             int i = 0;
@@ -298,18 +303,24 @@ namespace Horizon
                 Console.WriteLine(msg);
                 throw new ArgumentException(msg);
             }
-            if (outputSet)
-            {
-                Console.WriteLine("Using output path: " + OutputPath);
-                log.Info("Using output path: " + OutputPath);
-            }
-            else
-            {
-                string msg = "No output path specified.";
-                log.Fatal(msg);
-                Console.WriteLine(msg);
-                throw new ArgumentException(msg);
-            }
+
+            // This is redundat as we have initOutput
+            // if (outputSet)
+            // {
+            //     Console.WriteLine("Using output path: " + OutputPath);
+            //     log.Info("Using output path: " + OutputPath);
+            // }
+            // else
+            // {
+            //     if (OutputPath == null) { Console.WriteLine($"Default OutputPath used: {OutputPath}"); }
+            //     else
+            //     {
+            //         string msg = "No output path specified.";
+            //         log.Fatal(msg);
+            //         Console.WriteLine(msg);
+            //         throw new ArgumentException(msg);
+            //     }
+            // }
 
         }
         public void InitOutput(List<string> argsList)
@@ -322,6 +333,11 @@ namespace Horizon
             {
                 int indx = argsList.IndexOf("-o");
                 outputPath = argsList[indx + 1];
+                outputSet = true;
+            }
+            else if (outputSet)
+            {
+                outputPath = OutputPath;
             }
             else if (this.OutputPath != null)
             {
@@ -331,6 +347,7 @@ namespace Horizon
             {
                 outputPath = Path.Combine(DevEnvironment.RepoDirectory, "output\\HorizonLog");
             }
+
 
             // Filter out other output files for naming convention
             var txt = ".txt";

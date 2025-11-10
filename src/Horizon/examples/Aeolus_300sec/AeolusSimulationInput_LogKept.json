@@ -1,0 +1,19 @@
+{
+  "name": "Aeolus_Extended_LogKept",
+  "version": 1.0,
+  "dependencies": {
+    "baseSrc": "./"
+  },
+  "simulationParameters": {
+    "startJD": 2454680.0,
+    "startSeconds": 0.0,
+    "endSeconds": 300.0,
+    "stepSeconds": 30
+  },
+  "schedulerParameters": {
+    "maxSchedules": 1000,
+    "cropTo": 20,
+    "ConsoleLog": "truncate"
+  }
+}
+

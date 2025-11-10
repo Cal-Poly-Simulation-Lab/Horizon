@@ -1,0 +1,23 @@
+{
+  "tasks": [
+    {
+      "name": "Task1",
+      "type": "None",
+      "maxTimes": 2,
+      "target": {
+        "name": "Target1",
+        "type": "None",
+        "value": 1000,
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "integratorType": "None",
+          "stateData": [0.0],
+          "eoms": {
+            "type": "None"
+          }
+        }
+      }
+    }
+  ]
+}
+

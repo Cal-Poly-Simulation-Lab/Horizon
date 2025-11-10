@@ -52,9 +52,8 @@ namespace HSFSchedulerUnitTest
             _systemCanPerformList.Clear();
             
             // Reset nullable attributes
-            _canPregenAccess = null;
             _preGeneratedAccesses = null;
-            _schedEvaluator = null;
+            _ScheduleEvaluator = null;
             _emptySchedIdx = null;
             
             // File paths can stay - they get set by [SetUp] anyway

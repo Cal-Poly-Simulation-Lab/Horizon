@@ -15,9 +15,9 @@
         "subsystems": [
           {
             "type": "scriptedcs",
-            "name": "SchedulerSubTest",
-            "src": "test\\HSFSchedulerUnitTest\\Subsystems\\SchedulerSubTest.cs",
-            "className": "SubTest",
+            "name": "AlwaysTrueSubsystem",
+            "src": "test\\HSFSchedulerUnitTest\\Subsystems\\AlwaysTrueSubsystem.cs",
+            "className": "AlwaysTrueSubsystem",
             "parameters": [],
             "states": []
           }
@@ -29,11 +29,11 @@
     "dependencies": [],
 
     "evaluator": {
-      "type": "scripted",
-      "src": "test\\HSFSchedulerUnitTest\\SchedulerTestEval.py",
-      "className": "eval",
+      "type": "TargetValueEvaluator",
+      "className": "EVAL",
       "states": []
     }
     
   }
 }
+

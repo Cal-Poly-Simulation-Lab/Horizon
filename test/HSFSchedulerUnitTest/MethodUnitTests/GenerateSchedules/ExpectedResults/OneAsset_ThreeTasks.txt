@@ -1,0 +1,133 @@
+OneAsset_ThreeTasks - Observation Data
+Generated: 2025-11-09 01:08:49
+Branch: jebeals-scheduler-merge
+Commit: a73f331
+
+Input Files:
+  Sim:   /Users/jason/source/Horizon/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateSchedules/Inputs/SimInput_MaxSched100_CropTo50.json
+  Task:  /Users/jason/source/Horizon/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateSchedules/Inputs/ThreeTaskTestFile.json
+  Model: /Users/jason/source/Horizon/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateSchedules/Inputs/OneAssetTestModel_AlwaysTrue.json
+
+═════════════════════════════════════════════
+SUMMARY: MaxScheds=10 | CropTo=5
+═════════════════════════════════════════════
+
+Assets:
+  testasset1: [AlwaysTrueSubsystem]
+
+Tasks:
+  Task1: Value = 1000         MaxTimes = 2
+  Task2: Value = 10           MaxTimes = 6
+  Task3: Value = 1            MaxTimes = 10
+═════════════════════════════════════════════
+
+─────────────────────────────────────────────
+Iteration 0: 1 → 4 | Crop: NO
+─────────────────────────────────────────────
+  1                              |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  2                              |    10.0000 | Events: 1 .....  (A1→Task2 x1)
+  3                              |     1.0000 | Events: 1 .....  (A1→Task3 x1)
+  0                              |     0.0000 | Events: 0 ..... 
+
+─────────────────────────────────────────────
+Iteration 1: 4 → 16 | Crop: NO
+─────────────────────────────────────────────
+  1.1                            |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  1.2                            |  1010.0000 | Events: 2 .....  (A1→Task1 x1, A1→Task2 x1)
+  2.1                            |  1010.0000 | Events: 2 .....  (A1→Task2 x1, A1→Task1 x1)
+  1.3                            |  1001.0000 | Events: 2 .....  (A1→Task1 x1, A1→Task3 x1)
+  3.1                            |  1001.0000 | Events: 2 .....  (A1→Task3 x1, A1→Task1 x1)
+  0.1                            |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  1.0                            |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  2.2                            |    20.0000 | Events: 2 .....  (A1→Task2 x2)
+  2.3                            |    11.0000 | Events: 2 .....  (A1→Task2 x1, A1→Task3 x1)
+  3.2                            |    11.0000 | Events: 2 .....  (A1→Task3 x1, A1→Task2 x1)
+  0.2                            |    10.0000 | Events: 1 .....  (A1→Task2 x1)
+  2.0                            |    10.0000 | Events: 1 .....  (A1→Task2 x1)
+  3.3                            |     2.0000 | Events: 2 .....  (A1→Task3 x2)
+  0.3                            |     1.0000 | Events: 1 .....  (A1→Task3 x1)
+  3.0                            |     1.0000 | Events: 1 .....  (A1→Task3 x1)
+  0.0                            |     0.0000 | Events: 0 ..... 
+
+─────────────────────────────────────────────
+Iteration 2: 16 → 23 | Crop: YES
+─────────────────────────────────────────────
+  1.1.1                          |  2010.0000 | Events: 3 .....  (A1→Task1 x2, A1→Task2 x1)
+  1.2.1                          |  2010.0000 | Events: 3 .....  (A1→Task1 x2, A1→Task2 x1)
+  2.1.1                          |  2010.0000 | Events: 3 .....  (A1→Task1 x2, A1→Task2 x1)
+  1.1.2                          |  2001.0000 | Events: 3 .....  (A1→Task1 x2, A1→Task3 x1)
+  1.3.1                          |  2001.0000 | Events: 3 .....  (A1→Task1 x2, A1→Task3 x1)
+  3.1.1                          |  2001.0000 | Events: 3 .....  (A1→Task1 x2, A1→Task3 x1)
+  1.1.0                          |  2000.0000 | Events: 2 .....  (A1→Task1 x2)
+  1.2.2                          |  1020.0000 | Events: 3 .....  (A1→Task2 x2, A1→Task1 x1)
+  2.1.2                          |  1020.0000 | Events: 3 .....  (A1→Task2 x2, A1→Task1 x1)
+  1.2.3                          |  1011.0000 | Events: 3 .....  (A1→Task1 x1, A1→Task2 x1, A1→Task3 x1)
+  1.3.2                          |  1011.0000 | Events: 3 .....  (A1→Task1 x1, A1→Task3 x1, A1→Task2 x1)
+  2.1.3                          |  1011.0000 | Events: 3 .....  (A1→Task2 x1, A1→Task1 x1, A1→Task3 x1)
+  3.1.2                          |  1011.0000 | Events: 3 .....  (A1→Task3 x1, A1→Task1 x1, A1→Task2 x1)
+  1.2.0                          |  1010.0000 | Events: 2 .....  (A1→Task1 x1, A1→Task2 x1)
+  2.1.0                          |  1010.0000 | Events: 2 .....  (A1→Task2 x1, A1→Task1 x1)
+  1.3.3                          |  1002.0000 | Events: 3 .....  (A1→Task3 x2, A1→Task1 x1)
+  3.1.3                          |  1002.0000 | Events: 3 .....  (A1→Task3 x2, A1→Task1 x1)
+  1.3.0                          |  1001.0000 | Events: 2 .....  (A1→Task1 x1, A1→Task3 x1)
+  3.1.0                          |  1001.0000 | Events: 2 .....  (A1→Task3 x1, A1→Task1 x1)
+  0.0.1                          |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  0.0.2                          |    10.0000 | Events: 1 .....  (A1→Task2 x1)
+  0.0.3                          |     1.0000 | Events: 1 .....  (A1→Task3 x1)
+  0.0.0                          |     0.0000 | Events: 0 ..... 
+
+─────────────────────────────────────────────
+Iteration 3: 23 → 19 | Crop: YES
+─────────────────────────────────────────────
+  1.1.1.1                        |  2020.0000 | Events: 4 .....  (A1→Task1 x2, A1→Task2 x2)
+  1.2.1.1                        |  2020.0000 | Events: 4 .....  (A1→Task1 x2, A1→Task2 x2)
+  2.1.1.1                        |  2020.0000 | Events: 4 .....  (A1→Task2 x2, A1→Task1 x2)
+  1.1.1.2                        |  2011.0000 | Events: 4 .....  (A1→Task1 x2, A1→Task2 x1, A1→Task3 x1)
+  1.1.2.1                        |  2011.0000 | Events: 4 .....  (A1→Task1 x2, A1→Task3 x1, A1→Task2 x1)
+  1.2.1.2                        |  2011.0000 | Events: 4 .....  (A1→Task1 x2, A1→Task2 x1, A1→Task3 x1)
+  2.1.1.2                        |  2011.0000 | Events: 4 .....  (A1→Task1 x2, A1→Task2 x1, A1→Task3 x1)
+  3.1.1.1                        |  2011.0000 | Events: 4 .....  (A1→Task1 x2, A1→Task3 x1, A1→Task2 x1)
+  1.1.1.0                        |  2010.0000 | Events: 3 .....  (A1→Task1 x2, A1→Task2 x1)
+  1.2.1.0                        |  2010.0000 | Events: 3 .....  (A1→Task1 x2, A1→Task2 x1)
+  2.1.1.0                        |  2010.0000 | Events: 3 .....  (A1→Task1 x2, A1→Task2 x1)
+  1.1.2.2                        |  2002.0000 | Events: 4 .....  (A1→Task1 x2, A1→Task3 x2)
+  3.1.1.2                        |  2002.0000 | Events: 4 .....  (A1→Task3 x2, A1→Task1 x2)
+  1.1.2.0                        |  2001.0000 | Events: 3 .....  (A1→Task1 x2, A1→Task3 x1)
+  3.1.1.0                        |  2001.0000 | Events: 3 .....  (A1→Task1 x2, A1→Task3 x1)
+  0.0.0.1                        |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  0.0.0.2                        |    10.0000 | Events: 1 .....  (A1→Task2 x1)
+  0.0.0.3                        |     1.0000 | Events: 1 .....  (A1→Task3 x1)
+  0.0.0.0                        |     0.0000 | Events: 0 ..... 
+
+─────────────────────────────────────────────
+Iteration 4: 19 → 19 | Crop: YES
+─────────────────────────────────────────────
+  1.1.1.1.1                      |  2030.0000 | Events: 5 .....  (A1→Task2 x3, A1→Task1 x2)
+  1.2.1.1.1                      |  2030.0000 | Events: 5 .....  (A1→Task2 x3, A1→Task1 x2)
+  2.1.1.1.1                      |  2030.0000 | Events: 5 .....  (A1→Task2 x3, A1→Task1 x2)
+  1.1.1.1.2                      |  2021.0000 | Events: 5 .....  (A1→Task1 x2, A1→Task2 x2, A1→Task3 x1)
+  1.1.2.1.1                      |  2021.0000 | Events: 5 .....  (A1→Task1 x2, A1→Task2 x2, A1→Task3 x1)
+  1.2.1.1.2                      |  2021.0000 | Events: 5 .....  (A1→Task1 x2, A1→Task2 x2, A1→Task3 x1)
+  2.1.1.1.2                      |  2021.0000 | Events: 5 .....  (A1→Task2 x2, A1→Task1 x2, A1→Task3 x1)
+  2.1.1.2.1                      |  2021.0000 | Events: 5 .....  (A1→Task2 x2, A1→Task1 x2, A1→Task3 x1)
+  1.1.1.1.0                      |  2020.0000 | Events: 4 .....  (A1→Task1 x2, A1→Task2 x2)
+  1.2.1.1.0                      |  2020.0000 | Events: 4 .....  (A1→Task1 x2, A1→Task2 x2)
+  2.1.1.1.0                      |  2020.0000 | Events: 4 .....  (A1→Task2 x2, A1→Task1 x2)
+  1.1.2.1.2                      |  2012.0000 | Events: 5 .....  (A1→Task1 x2, A1→Task3 x2, A1→Task2 x1)
+  2.1.1.2.2                      |  2012.0000 | Events: 5 .....  (A1→Task1 x2, A1→Task3 x2, A1→Task2 x1)
+  1.1.2.1.0                      |  2011.0000 | Events: 4 .....  (A1→Task1 x2, A1→Task3 x1, A1→Task2 x1)
+  2.1.1.2.0                      |  2011.0000 | Events: 4 .....  (A1→Task1 x2, A1→Task2 x1, A1→Task3 x1)
+  0.0.0.0.1                      |  1000.0000 | Events: 1 .....  (A1→Task1 x1)
+  0.0.0.0.2                      |    10.0000 | Events: 1 .....  (A1→Task2 x1)
+  0.0.0.0.3                      |     1.0000 | Events: 1 .....  (A1→Task3 x1)
+  0.0.0.0.0                      |     0.0000 | Events: 0 ..... 
+
+═════════════════════════════════════════════
+FINAL: 19 → 6
+═════════════════════════════════════════════
+  1.1.1.1.1                      |  2030.0000 .....  (A1→Task2 x3, A1→Task1 x2)
+  1.2.1.1.1                      |  2030.0000 .....  (A1→Task2 x3, A1→Task1 x2)
+  2.1.1.1.1                      |  2030.0000 .....  (A1→Task2 x3, A1→Task1 x2)
+  2.1.1.1.2                      |  2021.0000 .....  (A1→Task2 x2, A1→Task1 x2, A1→Task3 x1)
+  2.1.1.2.1                      |  2021.0000 .....  (A1→Task2 x2, A1→Task1 x2, A1→Task3 x1)
+  0.0.0.0.0                      |     0.0000 ..... 

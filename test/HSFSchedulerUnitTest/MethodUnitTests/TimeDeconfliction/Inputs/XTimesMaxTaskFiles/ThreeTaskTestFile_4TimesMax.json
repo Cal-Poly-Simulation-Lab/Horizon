@@ -3,7 +3,7 @@
     {
       "name": "Task1",
       "type": "None",
-      "maxTimes": 3,
+      "maxTimes": 4,
       "target": {
         "name": "Target1",
         "type": "None",
@@ -21,11 +21,11 @@
     {
       "name": "Task2",
       "type": "None",
-      "maxTimes": 3,
+      "maxTimes": 4,
       "target": {
-        "name": "Target2",
+        "name": "Target1",
         "type": "None",
-        "value": 20.0,
+        "value": 10.0,
         "dynamicState": {
           "type": "NULL_STATE",
           "integratorType": "None",
@@ -39,11 +39,11 @@
     {
       "name": "Task3",
       "type": "None",
-      "maxTimes": 3,
+      "maxTimes": 4,
       "target": {
-        "name": "Target3",
+        "name": "Target1",
         "type": "None",
-        "value": 30.0,
+        "value": 10.0,
         "dynamicState": {
           "type": "NULL_STATE",
           "integratorType": "None",

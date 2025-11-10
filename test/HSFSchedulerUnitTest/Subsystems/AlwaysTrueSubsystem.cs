@@ -19,12 +19,9 @@ namespace HSFSystem
         #endregion
 
         #region Constructors
-        public AlwaysTrueSubsystem(JObject subtestJson)
+        public AlwaysTrueSubsystem(JObject subtestJson, Asset asset) : base(subtestJson, asset)
         {
-            // Initialize lookup to prevent null reference exceptions
-            // lookup = new Dictionary<string, double>();
-            // lookup.Add("Task1", 0.0);  // Default mapping for the test task
-            // lookup.Add("Target1", 0.0); // Also add target name mapping
+            // No additional initialization needed - base constructor handles Name, Asset, Type, etc.
         }
 
         #endregion Constructors

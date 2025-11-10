@@ -14,10 +14,18 @@ bin/
 
 # Horizon output (should be self-generated within repo):
 output/
+**/output/
+**/**/output/
+**/**/**/output/
+**/**/**/**/output/
+**/AccessReport.*
+**/**/AccessReport.*
+**/**/**/AccessReport.*
+ */
 
 # Exclude my notes:
-notes.txt
-thesis_notes.md
+**/notes.*
+**/thesis_notes.*
 
 # MacOS Finder unnecessary file:
 .DS_Store
@@ -264,4 +272,6 @@ _Pvt_Extensions
 user-compiled-subsystems.txt
 
 ################# END VISUAL STUDIO ITEMS ########################
+test/HSFSchedulerUnitTest/thesis_notes.md
+test/HSFSchedulerUnitTest/ParallelizationStrategy.md
 

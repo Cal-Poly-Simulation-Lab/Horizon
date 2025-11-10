@@ -1,0 +1,274 @@
+{
+  "Name": "TwoAssets_OneTask",
+  "SimInputFile": "/Users/jason/source/Horizon/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateSchedules/Inputs/SimInput_MaxSched100_CropTo50.json",
+  "TaskInputFile": "/Users/jason/source/Horizon/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateSchedules/Inputs/OneTaskTestFile.json",
+  "ModelInputFile": "/Users/jason/source/Horizon/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateSchedules/Inputs/TwoAssetTestModel_AlwaysTrue.json",
+  "MaxNumScheds": 10,
+  "NumSchedCropTo": 5,
+  "Iterations": [
+    {
+      "Iteration": 0,
+      "CountBefore": 1,
+      "CountAfter": 2,
+      "CropOccurred": false,
+      "Schedules": [
+        {
+          "ID": "1",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0",
+          "Value": 0,
+          "Events": 0,
+          "AssetTaskPairs": []
+        }
+      ]
+    },
+    {
+      "Iteration": 1,
+      "CountBefore": 2,
+      "CountAfter": 3,
+      "CropOccurred": false,
+      "Schedules": [
+        {
+          "ID": "0.1",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "1.0",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.0",
+          "Value": 0,
+          "Events": 0,
+          "AssetTaskPairs": []
+        }
+      ]
+    },
+    {
+      "Iteration": 2,
+      "CountBefore": 3,
+      "CountAfter": 4,
+      "CropOccurred": false,
+      "Schedules": [
+        {
+          "ID": "0.0.1",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.1.0",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "1.0.0",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.0.0",
+          "Value": 0,
+          "Events": 0,
+          "AssetTaskPairs": []
+        }
+      ]
+    },
+    {
+      "Iteration": 3,
+      "CountBefore": 4,
+      "CountAfter": 5,
+      "CropOccurred": false,
+      "Schedules": [
+        {
+          "ID": "0.0.0.1",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.0.1.0",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.1.0.0",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "1.0.0.0",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.0.0.0",
+          "Value": 0,
+          "Events": 0,
+          "AssetTaskPairs": []
+        }
+      ]
+    },
+    {
+      "Iteration": 4,
+      "CountBefore": 5,
+      "CountAfter": 6,
+      "CropOccurred": false,
+      "Schedules": [
+        {
+          "ID": "0.0.0.0.1",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.0.0.1.0",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.0.1.0.0",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.1.0.0.0",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "1.0.0.0.0",
+          "Value": 2000,
+          "Events": 1,
+          "AssetTaskPairs": [
+            "testasset1\u2192Task1",
+            "testasset2\u2192Task1"
+          ]
+        },
+        {
+          "ID": "0.0.0.0.0",
+          "Value": 0,
+          "Events": 0,
+          "AssetTaskPairs": []
+        }
+      ]
+    }
+  ],
+  "FinalCrop": {
+    "Iteration": -1,
+    "CountBefore": 6,
+    "CountAfter": 6,
+    "CropOccurred": false,
+    "Schedules": [
+      {
+        "ID": "0.0.0.0.1",
+        "Value": 2000,
+        "Events": 1,
+        "AssetTaskPairs": [
+          "testasset1\u2192Task1",
+          "testasset2\u2192Task1"
+        ]
+      },
+      {
+        "ID": "0.0.0.1.0",
+        "Value": 2000,
+        "Events": 1,
+        "AssetTaskPairs": [
+          "testasset1\u2192Task1",
+          "testasset2\u2192Task1"
+        ]
+      },
+      {
+        "ID": "0.0.1.0.0",
+        "Value": 2000,
+        "Events": 1,
+        "AssetTaskPairs": [
+          "testasset1\u2192Task1",
+          "testasset2\u2192Task1"
+        ]
+      },
+      {
+        "ID": "0.1.0.0.0",
+        "Value": 2000,
+        "Events": 1,
+        "AssetTaskPairs": [
+          "testasset1\u2192Task1",
+          "testasset2\u2192Task1"
+        ]
+      },
+      {
+        "ID": "1.0.0.0.0",
+        "Value": 2000,
+        "Events": 1,
+        "AssetTaskPairs": [
+          "testasset1\u2192Task1",
+          "testasset2\u2192Task1"
+        ]
+      },
+      {
+        "ID": "0.0.0.0.0",
+        "Value": 0,
+        "Events": 0,
+        "AssetTaskPairs": []
+      }
+    ]
+  }
+}

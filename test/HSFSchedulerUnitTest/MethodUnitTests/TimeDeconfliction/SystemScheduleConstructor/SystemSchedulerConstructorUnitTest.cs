@@ -112,7 +112,7 @@ namespace HSFSchedulerUnitTest
             accessStack.Push(new Access(asset1, task1, currentTime, endTime));
 
             // Create the new schedule
-            var newSysSchedule = new SystemSchedule(stateHistory, accessStack, 0.0);
+            var newSysSchedule = new SystemSchedule(stateHistory, accessStack, 0.0, Scheduler.emptySchedule);
             var result = newSysSchedule.AllStates.Events.Peek();
             //Assert the result
             Assert.Multiple(() =>
@@ -168,7 +168,7 @@ namespace HSFSchedulerUnitTest
             accessStack.Push(new Access(asset1, task1, accessStart, endTime));
 
             // Create the new schedule
-            var newSysSchedule = new SystemSchedule(stateHistory, accessStack, 0.0);
+            var newSysSchedule = new SystemSchedule(stateHistory, accessStack, 0.0, Scheduler.emptySchedule);
             var result = newSysSchedule.AllStates.Events.Peek();
             //Assert the result
             Assert.Multiple(() =>
@@ -225,7 +225,7 @@ namespace HSFSchedulerUnitTest
             accessStack.Push(new Access(asset1, task1, accessStart, accessEnd));
 
             // Create the new schedule
-            var newSysSchedule = new SystemSchedule(stateHistory, accessStack, 0.0);
+            var newSysSchedule = new SystemSchedule(stateHistory, accessStack, 0.0, Scheduler.emptySchedule);
             var result = newSysSchedule.AllStates.Events.Peek();
             //Assert the result
             Assert.Multiple(() =>
@@ -282,7 +282,7 @@ namespace HSFSchedulerUnitTest
             accessStack.Push(new Access(asset1, task1, accessStart, accessEnd));
 
             // Create the new schedule
-            var newSysSchedule = new SystemSchedule(stateHistory, accessStack, 0.0);
+            var newSysSchedule = new SystemSchedule(stateHistory, accessStack, 0.0,Scheduler.emptySchedule);
             var result = newSysSchedule.AllStates.Events.Peek();
             //Assert the result
             Assert.Multiple(() =>

@@ -9,54 +9,79 @@ using Utilities;
 using MissionElements;
 using UserModel;
 using Task = MissionElements.Task;
-using Microsoft.CodeAnalysis.CSharp.Syntax; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Scripting.Interpreter;
+using Microsoft.CodeAnalysis; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
 
 namespace HSFScheduler
 {
     public class SystemSchedule
     {
         #region Attributes
-        public string Name = ""; 
+        public string Name = "";
+        public string _scheduleID{ get; set; } = "";
         public StateHistory AllStates; //pop never gets used so just use list
         public double ScheduleValue;
         #endregion
+        
+        # region Debug / Private Attributes & Methods
+        private int numEvents { get; set; }
+        private string EventExistString { get; set; }
+        
+        /// <summary>
+        /// Debug and visualization information for this schedule
+        /// </summary>
+        public SystemScheduleInfo ScheduleInfo { get; private set; }
+
+        public void UpdateInfoStrings()
+        {
+            numEvents = this.AllStates.Events.Count();
+            EventExistString = this.ScheduleInfo.EventString; 
+        }
+
+        public string UpdateScheduleID(SystemSchedule oldSystemSchedule)
+        {
+            string prefix = "";
+            if (oldSystemSchedule.Name.ToLower().Contains("empty")) // This is the empty schedule
+            {
+                for (int i = 0; i < Scheduler.SchedulerStep; i++)
+                {
+                    prefix += "0.";
+                }
+                _scheduleID = prefix + Scheduler._schedID.ToString();
+            }
+            else
+            {
+                _scheduleID = oldSystemSchedule._scheduleID + "." + Scheduler._schedID.ToString(); 
+            }
+            // else
+            // {
+            //     int numPeriods = oldSystemScheduleID.Count(c => c == '.');
+            //     for (int i = 0; i < Scheduler.SchedulerStep - 1 - numPeriods; i++)
+            //     {
+            //         prefix += ".0";
+            //     }
+            //     _scheduleID = oldSystemScheduleID + prefix + "." + Scheduler._schedID.ToString();
+            // }
+            Scheduler._schedID++;
+            return _scheduleID; 
+        }
+        #endregion
 
         #region Constructors
-        public SystemSchedule(SystemState initialstates) 
-        {
-            ScheduleValue = 0;
-            AllStates = new StateHistory(initialstates);
-        }
-        public SystemSchedule(SystemState initialstates, string name) 
+        public SystemSchedule(SystemState initialstates, string name)
         {
             ScheduleValue = 0;
             Name = name;
             AllStates = new StateHistory(initialstates);
-        }
-        public SystemSchedule(StateHistory allStates)
-        {
-            AllStates = new StateHistory(allStates);
-        }
-        public SystemSchedule(StateHistory allStates, string name)
-        {
-            AllStates = new StateHistory(allStates);
-            Name = name; 
-        }
-        public SystemSchedule(SystemSchedule oldSchedule, Event emptyEvent)
-        {
-            AllStates = new StateHistory(oldSchedule.AllStates);
-            AllStates.Events.Push(emptyEvent);
-        }
-        public SystemSchedule(SystemSchedule oldSchedule, Event emptyEvent,string name)
-        {
-            AllStates = new StateHistory(oldSchedule.AllStates);
-            AllStates.Events.Push(emptyEvent);
-            Name = name;
+            ScheduleInfo = new SystemScheduleInfo();
+            UpdateInfoStrings();
         }
 
-        public SystemSchedule(StateHistory oldStates, Stack<Access> newAccessStack, double currentTime)
+
+        public SystemSchedule(StateHistory oldStates, Stack<Access> newAccessStack, double currentTime, SystemSchedule oldSystemSchedule)
         {
-            
+
             Dictionary<Asset, Task> tasks = new Dictionary<Asset, Task>();
             Dictionary<Asset, double> taskStarts = new Dictionary<Asset, double>();
             Dictionary<Asset, double> taskEnds = new Dictionary<Asset, double>();
@@ -163,6 +188,11 @@ namespace HSFScheduler
             eventToAdd.SetTaskStart(taskStarts);
             AllStates = new StateHistory(oldStates, eventToAdd);
 
+            // Informational Use Only:
+            ScheduleInfo = new SystemScheduleInfo(AllStates, Scheduler.SchedulerStep);
+            _scheduleID = UpdateScheduleID(oldSystemSchedule);
+            UpdateInfoStrings();
+
         }
                 
         #endregion
@@ -175,10 +205,9 @@ namespace HSFScheduler
         /// <returns></returns>
         public bool CanAddTasks(Stack<Access> newAccessList, double currentTime)
         {
-            // Track which tasks we've already checked to avoid double-counting
-            HashSet<Task> checkedTasks = new HashSet<Task>();
 
-	        foreach(var access in newAccessList)
+
+            foreach (var access in newAccessList)
             {
                 // This is where event timing gets enforced. 
                 if (!AllStates.isEmpty(access.Asset)) // Ensure there is an event with the accessible asset. Otherwise skip
@@ -186,31 +215,40 @@ namespace HSFScheduler
                     if (AllStates.GetLastEvent().GetEventEnd(access.Asset) > currentTime)
                         return false;
                 }
-                
-                // Check Access times here?  
+            } // Otherwise continue on to check if any tasks have been performed too many times...
 
-                // This is where the task count gets enforced. 
-                if (access.Task != null && !checkedTasks.Contains(access.Task))
+            if (Scheduler.SchedulerStep >= 1) {
+                int a =4; // breakpoint for Debugging
+            }
+            // Task Completion Counting Logic:
+            HashSet<Task> checkedTasks = new HashSet<Task>(); //  Used to track which tasks we've already checked to avoid double-counting
+            Dictionary<Task, int> taskCountDict = new Dictionary<Task, int>(); // Used to track the total number of times each task has been performed (across all assets and events).
+            foreach(var access in newAccessList)
+            {
+                if (!checkedTasks.Contains(access.Task)) // This prevents double-counting the same task (as we count across all events and assets therewithin.)
                 {
+                    // This is the first time we've seen this task, so add it to the checked tasks set.
                     checkedTasks.Add(access.Task);
-                    
-                    // Count how many times this task has been completed historically (across all assets -- All Events)
-                    int historicalCount = AllStates.timesCompletedTask(access.Task);
-                    
-                    // Count how many times we're adding it in this newAccessList (across all assets -- newAccessList)
-                    int newCount = 0;
-                    foreach(var a in newAccessList)
-                    {
-                        if (a.Task == access.Task)
-                            newCount++;
-                    }
-                    
-                    // Reject if adding these new instances would exceed the limit
-                    if (historicalCount + newCount > access.Task.MaxTimesToPerform)
-                        return false; // Return false (cant add tasks) if the task has been performed too many times. 
+                    int historicalCount = AllStates.timesCompletedTask(access.Task); // Count the number of times this task has been performed historically (across all assets and events)
+                    taskCountDict.Add(access.Task, historicalCount + 1); // Add the task to the dictionary with the total number of times it has been performed (including this event's asset).
                 }
-	        }
+                else
+                {
+                    // Another asset is performing the same task in this event, so increment the count one further.
+                    taskCountDict[access.Task] += 1;
+                }
+            }
+
+            // Task Completion Counting Logic Enforcement: Check if any task has been performed too many times.
+            foreach(var taskCount in taskCountDict)
+            {
+                // Here taskCount.Value is the total number of times the task has been performed; taskCount.Key is the task itself.
+                if (taskCount.Value > taskCount.Key.MaxTimesToPerform) // This task has been performed more times than the maximum allowed.
+                    return false; // If the task has been performed more times than the maximum allowed, return false.
+            }
+
 	        return true; // otherwise return true! 
+
         }
 
         #region Accessors
@@ -297,7 +335,8 @@ namespace HSFScheduler
                         else if (!stateTimeDData[kvpDoubleProfile.Key].ContainsKey(data.Key))
                             stateTimeDData[kvpDoubleProfile.Key].Add(data.Key, data.Value);
                         else
-                            Console.WriteLine("idk"); //TERRIBLE!
+                            //Console.WriteLine("idk"); //TERRIBLE!
+                            Console.Write(""); // pass this up for now
 
                 foreach (var kvpIntProfile in sysState.Idata)
                     foreach (var data in kvpIntProfile.Value.Data)

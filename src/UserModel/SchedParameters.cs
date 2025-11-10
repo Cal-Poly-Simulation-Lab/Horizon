@@ -16,6 +16,8 @@ namespace UserModel
         //public static double SimStepSeconds { get; private set; }
         public static int MaxNumScheds { get; private set; }
         public static int NumSchedCropTo { get; private set; }
+        public static bool ConsoleLogging { get; private set; }
+        public static string ConsoleLogMode { get; private set; } = "off"; // "off", "all", "kept"
         #endregion
 
         public static bool LoadScheduleJson(JObject scheduleJson)
@@ -46,6 +48,41 @@ namespace UserModel
                     string msg = $"Scheduler Crop To is not found and is required in scenario {SimParameters.ScenarioName}";
                     Console.WriteLine(msg);
                     throw new ArgumentException(msg);
+                }
+                if (JsonLoader<string>.TryGetValue("ConsoleLog", scheduleJson, out string ConsoleLog))
+                {
+                    string logMode = ConsoleLog.ToLower();
+
+                    if (logMode.Contains("kept") || logMode.Contains("before"))
+                    {
+                        SchedParameters.ConsoleLogging = true;
+                        SchedParameters.ConsoleLogMode = "truncate";
+                        Console.WriteLine("\tConsole Logging: 'kept/before' mode currently depreceated; enabling 'truncate' mode.");
+                    }
+                    else if (logMode.Contains("verbose") || logMode.Contains("verb") || logMode.Contains("all"))
+                    {
+                        SchedParameters.ConsoleLogging = true;
+                        SchedParameters.ConsoleLogMode = "all";
+                        Console.WriteLine("\tConsole Logging: 'all' mode (all schedules every iteration).");
+                    }
+                    else if (logMode.Contains("on") || logMode.Contains("tru") || logMode.Contains("true") || logMode.Contains("truncate"))
+                    {
+                        SchedParameters.ConsoleLogging = true;
+                        SchedParameters.ConsoleLogMode = "truncate";
+                        Console.WriteLine("\tConsole Logging: 'on/truncate' mode (first NumToCropTo schedules every iteration).");
+                    }
+                    else
+                    {
+                        SchedParameters.ConsoleLogging = false;
+                        SchedParameters.ConsoleLogMode = "off";
+                        Console.WriteLine("\tConsole Logging: 'off' (non-verbose).");
+                    }
+                }
+                else
+                {
+                    SchedParameters.ConsoleLogging = false;
+                    SchedParameters.ConsoleLogMode = "off";
+                    Console.WriteLine("\tNo 'ConsoleLog' setting; default: 'off' (non-verbose).");
                 }
 
                 return true;

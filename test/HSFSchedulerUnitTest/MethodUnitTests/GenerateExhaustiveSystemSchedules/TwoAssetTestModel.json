@@ -53,9 +53,8 @@
     "dependencies": [],
 
     "evaluator": {
-      "type": "scripted",
-      "src": "test\\HSFSchedulerUnitTest\\SchedulerTestEval.py",
-      "className": "eval",
+      "type": "TargetValueEvaluator",
+      "className": "EVAL",
       "states": []
     }
     

@@ -21,6 +21,17 @@ namespace HSFScheduler
     [Serializable]
     public class Scheduler
     {
+        #region Static Accesible Attributes
+        public static int SchedulerStep {get; set;} = -1;
+        public static double CurrentTime {get; private set;} = SimParameters.SimStartSeconds;
+        public static double NextTime {get; private set;} = SimParameters.SimStartSeconds + SimParameters.SimStepSeconds;
+
+        // Console logging control
+        public static int _schedID { get; set; } = 0;
+        public static int _SchedulesGenerated { get; private set; } = 0;
+        public static int _SchedulesCarriedOver { get; private set; } = 0;
+        public static int _SchedulesCropped { get; private set; } = 0;
+        #endregion
         //TODO:  Support monitoring of scheduler progress - Eric Mehiel
         #region Attributes
         private double _startTime;
@@ -42,6 +53,7 @@ namespace HSFScheduler
         public Stack<Access>? preGeneratedAccesses { get; private set; }
         public List<SystemSchedule> potentialSystemSchedules { get; private set; } = new List<SystemSchedule>();
         public List<SystemSchedule> systemCanPerformList { get; private set; } = new List<SystemSchedule>();
+        List<SystemSchedule> keptSchedules = new List<SystemSchedule>();
         
         public Evaluator ScheduleEvaluator { get; private set; }
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -71,6 +83,7 @@ namespace HSFScheduler
         /// <returns></returns>
         public virtual List<SystemSchedule> GenerateSchedules(SystemClass system, Stack<MissionElements.Task> tasks, SystemState initialStateList)
         {
+            var schedulerStopwatch = System.Diagnostics.Stopwatch.StartNew();
             log.Info("SIMULATING... ");
 
             // Create empty systemSchedule with initial state set
@@ -109,10 +122,18 @@ namespace HSFScheduler
 
             // Initializations for the loop below
             //List<SystemSchedule> potentialSystemSchedules = new List<SystemSchedule>();
-            
+
             //mainSchedulingLoop(double currentTime, double endTime, double timeStep)
             for (double currentTime = _startTime; currentTime < _endTime; currentTime += _stepLength)
             {
+                var iterationStopwatch = System.Diagnostics.Stopwatch.StartNew();
+                
+                // Update the scheduler step, current time, and next time (static attributes)
+                Scheduler.SchedulerStep += 1;
+                Scheduler.CurrentTime = currentTime;
+                Scheduler.NextTime = currentTime + _stepLength;
+
+
                 log.Info("Simulation Time " + currentTime);
                 // if accesses are pregenerated, look up the access information and update assetTaskList
                 if (canPregenAccess)
@@ -122,7 +143,7 @@ namespace HSFScheduler
                     // and it is most convenient to just pull the current accesses and push. 
                     scheduleCombos = GenerateExhaustiveSystemSchedules(preGeneratedAccesses, system, currentTime);
                 }
-                
+
                 // First, crop schedules to maxNumchedules: 
                 systemSchedules = CropToMaxSchedules(systemSchedules, Scheduler.emptySchedule, ScheduleEvaluator);
 
@@ -151,15 +172,44 @@ namespace HSFScheduler
 
                 // "State Deconfliction" Step --> 
                 systemCanPerformList = CheckAllPotentialSchedules(system, potentialSystemSchedules);
-
                 systemCanPerformList = EvaluateAndSortCanPerformSchedules(this.ScheduleEvaluator, systemCanPerformList);
 
-        
+                Scheduler._SchedulesGenerated = systemCanPerformList.Count();
+
                 this.systemSchedules = MergeAndClearSystemSchedules(this.systemSchedules, this.systemCanPerformList);
 
-                // Print completion percentage in command window
-                Console.WriteLine("Scheduler Status: {0:F}% done; {1} schedules generated.", 100 * currentTime / _endTime, systemSchedules.Count);
+                // Log the number of schedules generated, carried over, and cropped
+
+                Scheduler._SchedulesCarriedOver = systemSchedules.Count() - Scheduler._SchedulesGenerated;
+
+                UpdateScheduleIDs(systemSchedules);
+
+                iterationStopwatch.Stop();
+                
+
+                SystemScheduleInfo.PrintAllSchedulesSummary(systemSchedules, showAssetTaskDetails: false, 
+                iterationTime: iterationStopwatch.Elapsed);
+  
+
+
+                // Note: Both "kept" and "all" modes print here (at end of iteration, after all work is done)
+
             }
+            
+            // Final crop
+            systemSchedules = CropToMaxSchedules(systemSchedules, Scheduler.emptySchedule, ScheduleEvaluator, logging: false);
+            
+            schedulerStopwatch.Stop();
+            
+            // Print final schedules in both "all" and "kept" modes
+            Console.WriteLine("\n" + new string('█', 80));
+            Console.WriteLine("FINAL SCHEDULES (after final crop)");
+            Console.WriteLine(new string('█', 80));
+            SystemScheduleInfo.PrintAllSchedulesSummary(systemSchedules, showAssetTaskDetails: false, overRideConsoleLogging: true, iterationTime: schedulerStopwatch.Elapsed, finalScheduleSummary: true);
+            
+            
+
+
             return this.systemSchedules;
         }
 
@@ -170,12 +220,13 @@ namespace HSFScheduler
         /// <param name="scheduleEvaluator"></param>
         /// <param name="emptySched"></param>
         /// 
+        /// <returns></returns>
         public static List<SystemSchedule> InitializeEmptySchedule(List<SystemSchedule> systemSchedules, SystemState initialStateList)
         {
             string Name = "Empty Schedule"; 
             Scheduler.emptySchedule = new SystemSchedule(initialStateList, Name); // Create the first empty schedule. This should schange as things move forward. 
+            emptySchedule._scheduleID = "0"; // This might break but prob not? lol This really only should be for the emptySchedule. And it should be 0.
             systemSchedules.Add(Scheduler.emptySchedule);
-
             // Return the systemSchedules list back to the caller (scheduler) for readability's sake (Even though it was already changed). 
             return systemSchedules;
 
@@ -195,14 +246,20 @@ namespace HSFScheduler
             return canPregenAccess; 
         }
 
-        public static List<SystemSchedule> CropToMaxSchedules(List<SystemSchedule> systemSchedules, SystemSchedule emptySchedule, Evaluator scheduleEvaluator)
+        public static List<SystemSchedule> CropToMaxSchedules(List<SystemSchedule> systemSchedules, SystemSchedule emptySchedule, Evaluator scheduleEvaluator, bool logging = true)
         {
+            var _oldScheduleCount = systemSchedules.Count();
+            Scheduler._SchedulesCropped = 0;
             if (systemSchedules.Count > SchedParameters.MaxNumScheds)
             {
                 log.Info("Cropping " + systemSchedules.Count + " Schedules.");
                 Scheduler.CropSchedules(systemSchedules, scheduleEvaluator, emptySchedule, SchedParameters.NumSchedCropTo);
                 systemSchedules.Add(emptySchedule);
             }
+            Scheduler._SchedulesCropped = _oldScheduleCount - systemSchedules.Count();
+            // Update all existing schedule visualizations to reflect new current step
+            if (logging) { foreach (var schedule in systemSchedules) { schedule.ScheduleInfo.UpdateForCurrentTimeStep(); schedule.UpdateInfoStrings(); } } 
+
             return systemSchedules; 
         }
 
@@ -287,7 +344,8 @@ namespace HSFScheduler
             var _potentialSystemSchedules = new List<SystemSchedule>();
             int k = 0; 
             foreach(var oldSystemSchedule in systemSchedules)
-            {   
+            {
+                Scheduler._schedID = 1;
                 //potentialSystemSchedules.Add(new SystemSchedule( new StateHistory(oldSystemSchedule.AllStates)));
                 foreach (var newAccessTaskStack in scheduleCombos)
                 {
@@ -295,12 +353,12 @@ namespace HSFScheduler
                     if (oldSystemSchedule.CanAddTasks(newAccessTaskStack, currentTime))
                     {
                         var CopySchedule = new StateHistory(oldSystemSchedule.AllStates);
-                        _potentialSystemSchedules.Add(new SystemSchedule(CopySchedule, newAccessTaskStack, currentTime));
+                        _potentialSystemSchedules.Add(new SystemSchedule(CopySchedule, newAccessTaskStack, currentTime, oldSystemSchedule));
                         // oldSched = new SystemSchedule(CopySchedule);
                     }
-
-                }
+                } 
             }
+            // Scheduler._schedID = 0; // Reset the Scheduler._scedID for next loop. 
             return _potentialSystemSchedules; 
         }
         public static List<SystemSchedule> CheckAllPotentialSchedules(SystemClass system, List<SystemSchedule> potentialSystemSchedules)
@@ -349,6 +407,18 @@ namespace HSFScheduler
 
         #region GenerateSchedules() sub methods 
 
+        public static void UpdateScheduleIDs(List<SystemSchedule> systemSchedules)
+        {
+            foreach (var sched in systemSchedules)
+            {
+                int numPeriods = sched._scheduleID.Count(c => c == '.');
+                for (int i = 0; i < Scheduler.SchedulerStep - numPeriods ; i++)
+                {
+                    sched._scheduleID += ".0";
+                }
+            
+            }
+        }
 
         public void MainSchedulingLoop(double currentTime, double endTime, double timeStep)
         {
