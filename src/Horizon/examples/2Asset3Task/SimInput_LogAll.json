@@ -1,0 +1,19 @@
+{
+  "name": "2Asset3Task_Example",
+  "version": 1.0,
+  "dependencies": {
+    "baseSrc": "./"
+  },
+  "simulationParameters": {
+    "startJD": 2454680.0,
+    "startSeconds": 0.0,
+    "endSeconds": 60.0,
+    "stepSeconds": 12
+  },
+  "schedulerParameters": {
+    "maxSchedules": 1000,
+    "cropTo": 10,
+    "ConsoleLog": "all"
+  }
+}
+
