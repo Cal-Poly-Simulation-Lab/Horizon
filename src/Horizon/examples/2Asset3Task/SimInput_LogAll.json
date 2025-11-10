@@ -13,7 +13,7 @@
   "schedulerParameters": {
     "maxSchedules": 1000,
     "cropTo": 10,
-    "ConsoleLog": "all"
+    "ConsoleLog": "truncate"
   }
 }
 

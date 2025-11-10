@@ -53,6 +53,7 @@ namespace HSFScheduler
         public Stack<Access>? preGeneratedAccesses { get; private set; }
         public List<SystemSchedule> potentialSystemSchedules { get; private set; } = new List<SystemSchedule>();
         public List<SystemSchedule> systemCanPerformList { get; private set; } = new List<SystemSchedule>();
+        List<SystemSchedule> keptSchedules = new List<SystemSchedule>();
         
         public Evaluator ScheduleEvaluator { get; private set; }
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -82,6 +83,7 @@ namespace HSFScheduler
         /// <returns></returns>
         public virtual List<SystemSchedule> GenerateSchedules(SystemClass system, Stack<MissionElements.Task> tasks, SystemState initialStateList)
         {
+            var schedulerStopwatch = System.Diagnostics.Stopwatch.StartNew();
             log.Info("SIMULATING... ");
 
             // Create empty systemSchedule with initial state set
@@ -124,6 +126,8 @@ namespace HSFScheduler
             //mainSchedulingLoop(double currentTime, double endTime, double timeStep)
             for (double currentTime = _startTime; currentTime < _endTime; currentTime += _stepLength)
             {
+                var iterationStopwatch = System.Diagnostics.Stopwatch.StartNew();
+                
                 // Update the scheduler step, current time, and next time (static attributes)
                 Scheduler.SchedulerStep += 1;
                 Scheduler.CurrentTime = currentTime;
@@ -142,12 +146,6 @@ namespace HSFScheduler
 
                 // First, crop schedules to maxNumchedules: 
                 systemSchedules = CropToMaxSchedules(systemSchedules, Scheduler.emptySchedule, ScheduleEvaluator);
-                
-                // If "kept" mode, print schedules AFTER cropping (only those that survived)
-                if (SchedParameters.ConsoleLogMode == "kept")
-                {
-                    SystemScheduleInfo.PrintAllSchedulesSummary(systemSchedules, showAssetTaskDetails: false); 
-                }
 
                 // Generate an exhaustive list of new tasks possible from the combinations of Assets and Tasks
                 //TODO: Parallelize this.
@@ -186,24 +184,31 @@ namespace HSFScheduler
 
                 UpdateScheduleIDs(systemSchedules);
 
-                // Print status summary and schedules based on ConsoleLogMode
-                if (SchedParameters.ConsoleLogMode != "kept")
-                {
-                    SystemScheduleInfo.PrintAllSchedulesSummary(systemSchedules, showAssetTaskDetails: false); 
-                }
+                iterationStopwatch.Stop();
+                
 
-                // Note: "kept" mode prints full details AFTER cropping (see above in loop, line 146-150)
+                SystemScheduleInfo.PrintAllSchedulesSummary(systemSchedules, showAssetTaskDetails: false, 
+                iterationTime: iterationStopwatch.Elapsed);
+  
+
+
+                // Note: Both "kept" and "all" modes print here (at end of iteration, after all work is done)
 
             }
             
             // Final crop
             systemSchedules = CropToMaxSchedules(systemSchedules, Scheduler.emptySchedule, ScheduleEvaluator, logging: false);
             
+            schedulerStopwatch.Stop();
+            
             // Print final schedules in both "all" and "kept" modes
             Console.WriteLine("\n" + new string('█', 80));
             Console.WriteLine("FINAL SCHEDULES (after final crop)");
             Console.WriteLine(new string('█', 80));
-            SystemScheduleInfo.PrintAllSchedulesSummary(systemSchedules, showAssetTaskDetails: false, overRideConsoleLogging: true);
+            SystemScheduleInfo.PrintAllSchedulesSummary(systemSchedules, showAssetTaskDetails: false, overRideConsoleLogging: true, iterationTime: schedulerStopwatch.Elapsed, finalScheduleSummary: true);
+            
+            
+
 
             return this.systemSchedules;
         }

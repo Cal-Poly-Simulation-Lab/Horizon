@@ -15,7 +15,13 @@ bin/
 # Horizon output (should be self-generated within repo):
 output/
 **/output/
-**/AccessReport.csv
+**/**/output/
+**/**/**/output/
+**/**/**/**/output/
+**/AccessReport.*
+**/**/AccessReport.*
+**/**/**/AccessReport.*
+ */
 
 # Exclude my notes:
 **/notes.*

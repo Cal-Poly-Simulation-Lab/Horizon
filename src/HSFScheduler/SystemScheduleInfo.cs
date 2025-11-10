@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MissionElements;
 using UserModel;
 
@@ -239,17 +240,22 @@ namespace HSFScheduler
         /// <summary>
         /// Generate a comprehensive schedule summary for all schedules
         /// </summary>
-        public static void PrintAllSchedulesSummary(List<SystemSchedule> schedules, bool showAssetTaskDetails = false, bool overRideConsoleLogging = false)
+        public static void PrintAllSchedulesSummary(List<SystemSchedule> schedules, bool showAssetTaskDetails = false, bool overRideConsoleLogging = false, TimeSpan? iterationTime = null, bool finalScheduleSummary = false)
         {
-            string statusMessage = $"Scheduler Status: {100 * Scheduler.CurrentTime / SimParameters.SimEndSeconds:F}% done; Generated: {Scheduler._SchedulesGenerated} " +
-                                $"| Carried Over: {Scheduler._SchedulesCarriedOver} | Cropped: {Scheduler._SchedulesCropped} | Total: {schedules.Count}";
+            string it = Scheduler.SchedulerStep.ToString(); 
+            if (finalScheduleSummary) { it = "FINAL"; }
+            string timeMessage = iterationTime.HasValue ? $"Step {it} in {iterationTime.Value.TotalSeconds,8:F4}s | Total Schedules: {schedules.Count,7} " : $"Step {it} | Total: {schedules.Count,7} schedules";
+            
+            string statusMessage = $" Status: {100 * Scheduler.CurrentTime / SimParameters.SimEndSeconds,4:F1}% ... Generated: {Scheduler._SchedulesGenerated,5} " +
+                                $"| Carried Over: {Scheduler._SchedulesCarriedOver,5} | Cropped: {Scheduler._SchedulesCropped,5}";
+            
             Console.WriteLine("\n" + new string('=', 80));
-            Console.WriteLine($"SCHEDULE SUMMARY - Current Scheduler Step: {Scheduler.SchedulerStep} | Total Schedules: {schedules.Count}");
+            Console.WriteLine($"SCHEDULE SUMMARY - {timeMessage}");
             Console.WriteLine($"{statusMessage}");
             Console.WriteLine(new string('=', 80));
             
             if (!SchedParameters.ConsoleLogging && !overRideConsoleLogging)
-            { return; } // return eraly if verbose is not set. }
+            { return; } // return eraly if "all" is not set. }
             
             // Otherwise continue printing:
             if (schedules.Count == 0)
@@ -262,19 +268,35 @@ namespace HSFScheduler
             Console.WriteLine("Time:  " + GenerateTimeStepHeader());
             Console.WriteLine("Events:" + GenerateEventHeader(schedules));
             Console.WriteLine(new string('-', 80));
-            
+
             // Print each schedule's details
             for (int i = 0; i < schedules.Count; i++)
             {
                 var schedule = schedules[i];
-                // Console.WriteLine($"Schedule #{i + 1,2}: Events={schedule.AllStates.Events.Count,2} | Value={schedule.ScheduleValue,8:F2} | Pattern: {schedule.ScheduleInfo.EventString}");
-                Console.WriteLine($"Schedule {schedule._scheduleID}: Events={schedule.AllStates.Events.Count,2} | Value={schedule.ScheduleValue,8:F2} | Pattern: {schedule.ScheduleInfo.EventString}");
+                if (SchedParameters.ConsoleLogMode == "truncate" && i > SchedParameters.NumSchedCropTo)
+                {
+                    Console.WriteLine("                               .");
+                    Console.WriteLine("                               .");
+                    Console.WriteLine("                               .");
+                    Console.WriteLine($" [SytemScheduleInfo]: {schedules.Count - SchedParameters.NumSchedCropTo} evalutated schedules not printed... \n" +
+                                      $" Schedule printing truncated at {SchedParameters.NumSchedCropTo} given ConsoleLogMode = '{SchedParameters.ConsoleLogMode}'. Top {SchedParameters.NumSchedCropTo} shown above. \n" +
+                                      $" (Note: these {schedules.Count - SchedParameters.NumSchedCropTo} generated and evlauted this scheduler timestep (from either/both carried over and new schedules).");
+                    break;
+                }
+                // Otherwise print the line! Top sched down! 
+                Console.WriteLine($" {schedule._scheduleID,12} | Val:{schedule.ScheduleValue,10:F2} | Ev:{schedule.AllStates.Events.Count,2} | {schedule.ScheduleInfo.EventString}");
                 if (showAssetTaskDetails)
                 {
                     PrintAssetTaskDetails(schedule);
                 }
             }
             
+            // Print out the time on the final schedule summary print: 
+            if (finalScheduleSummary)
+            {
+                Console.WriteLine(new string('-', 80));
+                Console.WriteLine($"SCHEDULER TOTAL TIME: {iterationTime.Value.TotalSeconds:F3} seconds");
+            }
             Console.WriteLine(new string('-', 80) + "\n");
         }
         

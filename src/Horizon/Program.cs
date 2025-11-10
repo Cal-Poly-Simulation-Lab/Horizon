@@ -72,6 +72,8 @@ namespace Horizon
 
         public static int Main(string[] args) //
         {
+            var programStopwatch = System.Diagnostics.Stopwatch.StartNew();
+            
             Program program = new Program();
 
             // Begin the Logger
@@ -91,6 +93,7 @@ namespace Horizon
             int i = 0;
             //Morgan's Way
             Console.WriteLine($"Publishing simulation results to {program.OutputPath}");
+            
             StreamWriter sw = File.CreateText(program.OutputPath);
             foreach (SystemSchedule sched in program.Schedules)
             {
@@ -118,7 +121,10 @@ namespace Horizon
             //    File.WriteAllText(@"..\..\..\" + asset.Name + "_dynamicStateData.csv", asset.AssetDynamicState.ToString());
             //}
 
-            //Console.ReadKey();
+            //Console.ReadKey()
+            programStopwatch.Stop();
+            Console.WriteLine($"Simulation results published to {program.OutputPath}"); // Not an actual verification? 
+            Console.WriteLine($"TOTAL PROGRAM TIME: {programStopwatch.Elapsed.TotalSeconds:F3} seconds\n");
             return 0;
         }
         public void InitInput(List<string> argsList)

@@ -52,18 +52,24 @@ namespace UserModel
                 if (JsonLoader<string>.TryGetValue("ConsoleLog", scheduleJson, out string ConsoleLog))
                 {
                     string logMode = ConsoleLog.ToLower();
-                    
-                    if (logMode.Contains("kept"))
+
+                    if (logMode.Contains("kept") || logMode.Contains("before"))
                     {
                         SchedParameters.ConsoleLogging = true;
-                        SchedParameters.ConsoleLogMode = "kept";
-                        Console.WriteLine("\tConsole Logging: 'kept' mode (only schedules that survive cropping).");
+                        SchedParameters.ConsoleLogMode = "truncate";
+                        Console.WriteLine("\tConsole Logging: 'kept/before' mode currently depreceated; enabling 'truncate' mode.");
                     }
-                    else if (logMode.Contains("on") || logMode.Contains("true") || logMode.Contains("verbose") || logMode.Contains("all"))
+                    else if (logMode.Contains("verbose") || logMode.Contains("verb") || logMode.Contains("all"))
                     {
                         SchedParameters.ConsoleLogging = true;
                         SchedParameters.ConsoleLogMode = "all";
                         Console.WriteLine("\tConsole Logging: 'all' mode (all schedules every iteration).");
+                    }
+                    else if (logMode.Contains("on") || logMode.Contains("tru") || logMode.Contains("true") || logMode.Contains("truncate"))
+                    {
+                        SchedParameters.ConsoleLogging = true;
+                        SchedParameters.ConsoleLogMode = "truncate";
+                        Console.WriteLine("\tConsole Logging: 'on/truncate' mode (first NumToCropTo schedules every iteration).");
                     }
                     else
                     {

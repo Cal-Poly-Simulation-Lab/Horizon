@@ -335,7 +335,8 @@ namespace HSFScheduler
                         else if (!stateTimeDData[kvpDoubleProfile.Key].ContainsKey(data.Key))
                             stateTimeDData[kvpDoubleProfile.Key].Add(data.Key, data.Value);
                         else
-                            Console.WriteLine("idk"); //TERRIBLE!
+                            //Console.WriteLine("idk"); //TERRIBLE!
+                            Console.Write(""); // pass this up for now
 
                 foreach (var kvpIntProfile in sysState.Idata)
                     foreach (var data in kvpIntProfile.Value.Data)
