@@ -89,7 +89,7 @@ namespace Horizon
             int i = 0;
             //Morgan's Way
             Console.WriteLine($"Publishing simulation results to {program.OutputPath}");
-            StreamWriter sw = File.CreateText(program.OutputPath);
+            StreamWriter sw = File.CreateText(program.OutputPath + "\\ScheduleResults.txt");
             foreach (SystemSchedule sched in program.Schedules)
             {
                 sw.WriteLine("Schedule Number: " + i + "Schedule Value: " + program.Schedules[i].ScheduleValue);
@@ -106,7 +106,7 @@ namespace Horizon
 
             // Mehiel's way
             string stateDataFilePath = Path.Combine(DevEnvironment.RepoDirectory, "output/HorizonLog/Scratch");// + string.Format("output-{0:yyyy-MM-dd-hh-mm-ss}", DateTime.Now);
-            SystemSchedule.WriteSchedule(program.Schedules[0], stateDataFilePath);
+            SystemSchedule.WriteSchedule(program.Schedules[0], program.OutputPath); // stateDataFilePath);
 
             //  Move this to a method that always writes out data about the dynamic state of assets, the target dynamic state data, other data?
             //var csv = new StringBuilder();
@@ -315,29 +315,26 @@ namespace Horizon
         public void InitOutput(List<string> argsList)
         {
             // Initialize Output File
-            var outputFileName = string.Format("output-{0:yyyy-MM-dd}-*", DateTime.Now);
+            var outputPathName = string.Format("output-{0:yyyy-MM-dd}-*", DateTime.Now);
             string outputPath = "";
-
-            // This is the way that works with initInput args in only. Using other way for now
-            // if (this.OutputPath != null) {outputPath = this.OutputPath; } // Use user-specified if applicable // Update the outputPath to the user specified input, if applicable
-            // else {outputPath = Path.Combine(DevEnvironment.RepoDirectory, "output/HorizonLog");} // Otherwise use default
-            // Directory.CreateDirectory(outputPath); // Create the output directory if it doesn't already exist. 
 
             if (argsList.Contains("-o"))
             {
                 int indx = argsList.IndexOf("-o");
                 outputPath = argsList[indx + 1];
             }
+            else if (this.OutputPath != null)
+            {
+                outputPath = this.OutputPath; // Use user-specified if applicable
+            }
             else
             {
-                outputPath = Path.Combine(DevEnvironment.RepoDirectory, "output/HorizonLog");
+                outputPath = Path.Combine(DevEnvironment.RepoDirectory, "output\\HorizonLog");
             }
-            // Create the output directory if it doesn't already exist.
-            Directory.CreateDirectory(outputPath); 
 
-            // Filter out other output files for naming ocnvention
+            // Filter out other output files for naming convention
             var txt = ".txt";
-            string[] fileNames = System.IO.Directory.GetFiles(outputPath, outputFileName, System.IO.SearchOption.TopDirectoryOnly);
+            string[] fileNames = System.IO.Directory.GetDirectories(outputPath, outputPathName, System.IO.SearchOption.TopDirectoryOnly);
             double number = 0;
             foreach (var fileName in fileNames)
             {
@@ -346,9 +343,11 @@ namespace Horizon
                     number = Char.GetNumericValue(version);
             }
             number++;
-            outputFileName = outputFileName.Remove(outputFileName.Length - 1) + number + string.Format("_{0:HH:mm:ss}",DateTime.Now);
-            outputFileName = outputFileName.Replace(':', '_');
-            outputPath = Path.Combine(outputPath,outputFileName + txt); 
+            outputPathName = outputPathName.Remove(outputPathName.Length - 1) + number + string.Format("_{0:HH:mm:ss}",DateTime.Now);
+            outputPathName = outputPathName.Replace(':', '_');
+            outputPath = Path.Combine(outputPath, outputPathName);
+            // Create the output directory if it doesn't already exist.
+            Directory.CreateDirectory(outputPath); 
             this.OutputPath = outputPath;
         }
 
