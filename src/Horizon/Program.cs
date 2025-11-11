@@ -94,19 +94,22 @@ namespace Horizon
             //Morgan's Way
             Console.WriteLine($"Publishing simulation results to {program.OutputPath}");
             
-            StreamWriter sw = File.CreateText(program.OutputPath);
-            foreach (SystemSchedule sched in program.Schedules)
+            using (StreamWriter sw = File.CreateText(program.OutputPath))
             {
-                sw.WriteLine("Schedule Number: " + i + "Schedule Value: " + program.Schedules[i].ScheduleValue);
-                foreach (var eit in sched.AllStates.Events)
+                foreach (SystemSchedule sched in program.Schedules)
                 {
-                    if (i < 5)//just compare the first 5 schedules for now
+                    sw.WriteLine("Schedule Number: " + i + "Schedule Value: " + program.Schedules[i].ScheduleValue);
+                    foreach (var eit in sched.AllStates.Events)
                     {
-                        sw.WriteLine(eit.ToString());
+                        if (i < 5)//just compare the first 5 schedules for now
+                        {
+                            sw.WriteLine(eit.ToString());
+                        }
                     }
+                    i++;
                 }
-                i++;
-            }
+            } // StreamWriter auto-closes here
+            
             program.log.Info("Max Schedule Value: " + maxSched);
 
             // Mehiel's way
