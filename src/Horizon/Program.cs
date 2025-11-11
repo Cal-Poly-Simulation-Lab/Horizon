@@ -36,9 +36,13 @@ namespace Horizon
         public string SimulationFilePath { get; set; }
         public string TaskDeckFilePath { get; set; }
         public string ModelFilePath { get; set; }
-        public string OutputPath { get; set; }
+        public string OutputPath { get; private set; }
+        public static string StaticOutputPath { get; private set; }  // For static methods (AccessReport, etc.)
         public bool outputSet { get; set; } = false;
-        public string basePath { get; set; } = Utilities.DevEnvironment.RepoDirectory; 
+        public string basePath { get; set; } = Utilities.DevEnvironment.RepoDirectory;
+        
+        private ConsoleLogger _consoleLogger;
+        private DateTime _runDateTime; 
 
         // Load the environment. First check if there is an ENVIRONMENT XMLNode in the input file
         public Domain SystemUniverse { get; set; }
@@ -70,11 +74,64 @@ namespace Horizon
         public SystemClass SimSystem { get; set; }
         public Stack<Task> SystemTasks { get; set; } = new Stack<Task>();
 
+        /// <summary>
+        /// Parse run version string (e.g., "00A", "99Z") and increment to next version
+        /// Format: XXY where XX = 00-99, Y = A-Z
+        /// </summary>
+        private static string IncrementRunVersion(string currentVersion)
+        {
+            if (string.IsNullOrEmpty(currentVersion) || currentVersion.Length != 3)
+                return "00A";
+            
+            int number = int.Parse(currentVersion.Substring(0, 2));
+            char letter = currentVersion[2];
+            
+            number++;
+            if (number > 99)
+            {
+                number = 0;
+                letter++;
+                if (letter > 'Z')
+                    throw new InvalidOperationException("Run version overflow! Exceeded 99Z.");
+            }
+            
+            return $"{number:D2}{letter}";
+        }
+        
+        /// <summary>
+        /// Get the next run version by scanning existing Run_* directories
+        /// </summary>
+        private static string GetNextRunVersion(string outputDir)
+        {
+            if (!Directory.Exists(outputDir))
+                return "00A";
+            
+            var runDirs = Directory.GetDirectories(outputDir, "Run_*");
+            if (runDirs.Length == 0)
+                return "00A";
+            
+            string maxVersion = "00A";
+            foreach (var dir in runDirs)
+            {
+                string dirName = Path.GetFileName(dir);
+                // Extract version: "Run_00A_..." → "00A"
+                if (dirName.StartsWith("Run_") && dirName.Length > 8)
+                {
+                    string version = dirName.Substring(4, 3);
+                    if (string.Compare(version, maxVersion) > 0)
+                        maxVersion = version;
+                }
+            }
+            
+            return IncrementRunVersion(maxVersion);
+        }
+
         public static int Main(string[] args) //
         {
             var programStopwatch = System.Diagnostics.Stopwatch.StartNew();
             
             Program program = new Program();
+            program._runDateTime = DateTime.Now;
 
             // Begin the Logger
             program.log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -83,6 +140,10 @@ namespace Horizon
             List<string> argsList = args.ToList();
             program.InitInput(argsList);
             program.InitOutput(argsList);
+            
+            // Start console logging after output directory is created
+            program.StartConsoleLogging();
+            
             program.LoadScenario();
             program.LoadTasks();
             program.LoadSubsystems();
@@ -91,30 +152,35 @@ namespace Horizon
             double maxSched = program.EvaluateSchedules();
 
             int i = 0;
-            //Morgan's Way
+            
+            // Write schedule summary text file
+            string summaryPath = Path.Combine(program.OutputPath, "schedules_summary.txt");
             Console.WriteLine($"Publishing simulation results to {program.OutputPath}");
             
-            using (StreamWriter sw = File.CreateText(program.OutputPath))
+            using (StreamWriter sw = File.CreateText(summaryPath))
             {
-                foreach (SystemSchedule sched in program.Schedules)
+            foreach (SystemSchedule sched in program.Schedules)
+            {
+                sw.WriteLine("Schedule Number: " + i + "Schedule Value: " + program.Schedules[i].ScheduleValue);
+                foreach (var eit in sched.AllStates.Events)
                 {
-                    sw.WriteLine("Schedule Number: " + i + "Schedule Value: " + program.Schedules[i].ScheduleValue);
-                    foreach (var eit in sched.AllStates.Events)
+                    if (i < 5)//just compare the first 5 schedules for now
                     {
-                        if (i < 5)//just compare the first 5 schedules for now
-                        {
-                            sw.WriteLine(eit.ToString());
-                        }
+                        sw.WriteLine(eit.ToString());
                     }
-                    i++;
                 }
+                i++;
+            }
             } // StreamWriter auto-closes here
             
             program.log.Info("Max Schedule Value: " + maxSched);
 
-            // Mehiel's way
-            string stateDataFilePath = Path.Combine(DevEnvironment.RepoDirectory, "output/HorizonLog/Scratch");// + string.Format("output-{0:yyyy-MM-dd-hh-mm-ss}", DateTime.Now);
-            SystemSchedule.WriteSchedule(program.Schedules[0], stateDataFilePath);
+            // Write detailed state data using new clean CSV format
+            SystemSchedule.WriteScheduleData(program.Schedules, program.OutputPath, SimParameters.NumSchedulesForStateOutput);
+            
+            // Also keep old format for backward compatibility (best schedule only, in data/heritage/)
+            string heritageDir = Path.Combine(program.OutputPath, "data", "heritage");
+            SystemSchedule.WriteSchedule(program.Schedules[0], heritageDir);
 
             //  Move this to a method that always writes out data about the dynamic state of assets, the target dynamic state data, other data?
             //var csv = new StringBuilder();
@@ -128,7 +194,29 @@ namespace Horizon
             programStopwatch.Stop();
             Console.WriteLine($"Simulation results published to {program.OutputPath}"); // Not an actual verification? 
             Console.WriteLine($"TOTAL PROGRAM TIME: {programStopwatch.Elapsed.TotalSeconds:F3} seconds\n");
+            
+            // Stop console logging before exiting
+            program.StopConsoleLogging();
+            
             return 0;
+        }
+        
+        private void StartConsoleLogging()
+        {
+            _consoleLogger = new ConsoleLogger(
+                OutputPath,
+                SimParameters.ScenarioName ?? "Unknown",
+                SimulationFilePath,
+                ModelFilePath,
+                TaskDeckFilePath,
+                _runDateTime
+            );
+            _consoleLogger.StartLogging();
+        }
+        
+        private void StopConsoleLogging()
+        {
+            _consoleLogger?.StopLogging();
         }
         public void InitInput(List<string> argsList)
         {
@@ -332,60 +420,69 @@ namespace Horizon
         }
         public void InitOutput(List<string> argsList)
         {
-            // Initialize Output File
-            var outputFileName = string.Format("output-{0:yyyy-MM-dd}-*", DateTime.Now);
-            string outputPath = "";
+            // NOTE: Output path logic handled here. InitInput() may set outputSet flag but actual path creation happens here.
 
-            // This is the way that works with initInput args in only. Using other way for now
-            // if (this.OutputPath != null) {outputPath = this.OutputPath; } // Use user-specified if applicable // Update the outputPath to the user specified input, if applicable
-            // else {outputPath = Path.Combine(DevEnvironment.RepoDirectory, "output/HorizonLog");} // Otherwise use default
-            // Directory.CreateDirectory(outputPath); // Create the output directory if it doesn't already exist. 
+            string baseOutputDir = "";
 
+            // Determine base output directory (parent of all run directories)
             if (argsList.Contains("-o"))
             {
                 int indx = argsList.IndexOf("-o");
-                outputPath = argsList[indx + 1];
+                baseOutputDir = argsList[indx + 1];
                 outputSet = true;
             }
             else if (outputSet)
             {
-                outputPath = OutputPath;
+                baseOutputDir = OutputPath;  // Set from scenario in InitInput
             }
             else
             {
-                outputPath = Path.Combine(DevEnvironment.RepoDirectory, "output/HorizonLog");
+                // Default: <repo>/output/
+                baseOutputDir = Path.Combine(DevEnvironment.RepoDirectory, "output");
             }
 
-            // Logging and Console writing:
-            if (outputSet)
+            // Create base output directory if it doesn't exist
+            Directory.CreateDirectory(baseOutputDir);
+            
+            // Generate timestamp and scenario name for run directory
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+            string scenarioName = SimParameters.ScenarioName ?? "Unknown";
+            
+            // Handle last_run → Run_XXY versioning
+            var lastRunDirs = Directory.GetDirectories(baseOutputDir, "last_run_*");
+            
+            if (lastRunDirs.Length > 0)
             {
-                Console.WriteLine("Using output path: " + OutputPath);
-                log.Info("Using output path: " + OutputPath);
-            }
-            else
-            {
-                Console.WriteLine("Using default output path: " + OutputPath);
-                log.Info("Using output path: " + OutputPath);
+                // Rename existing last_run to Run_XXY
+                string lastRunDir = lastRunDirs[0];  // Should only be one
+                string nextVersion = GetNextRunVersion(baseOutputDir);
+                string versionedName = Path.GetFileName(lastRunDir).Replace("last_run_", $"Run_{nextVersion}_");
+                string versionedPath = Path.Combine(baseOutputDir, versionedName);
+                
+                Directory.Move(lastRunDir, versionedPath);
+                Console.WriteLine($"Archived previous run: {Path.GetFileName(versionedPath)}");
             }
             
-            // Create the output directory if it doesn't already exist.
-            Directory.CreateDirectory(outputPath); 
-
-            // Filter out other output files for naming ocnvention
-            var txt = ".txt";
-            string[] fileNames = System.IO.Directory.GetFiles(outputPath, outputFileName, System.IO.SearchOption.TopDirectoryOnly);
-            double number = 0;
-            foreach (var fileName in fileNames)
+            // Create new last_run directory
+            string runDirName = $"last_run_{timestamp}_{scenarioName}";
+            string runDirPath = Path.Combine(baseOutputDir, runDirName);
+            Directory.CreateDirectory(runDirPath);
+            
+            this.OutputPath = runDirPath;
+            StaticOutputPath = runDirPath;  // Set static for Access.cs and other static methods
+            SimParameters.OutputDirectory = runDirPath;  // Set for AccessReport and other static methods
+            
+            // Logging
+            if (outputSet)
             {
-                char version = fileName[fileName.Length - txt.Length - 10];
-                if (number < Char.GetNumericValue(version))
-                    number = Char.GetNumericValue(version);
+                Console.WriteLine($"Using output directory: {runDirPath}");
+                log.Info($"Using output directory: {runDirPath}");
             }
-            number++;
-            outputFileName = outputFileName.Remove(outputFileName.Length - 1) + number + string.Format("_{0:HH:mm:ss}",DateTime.Now);
-            outputFileName = outputFileName.Replace(':', '_');
-            outputPath = Path.Combine(outputPath,outputFileName + txt); 
-            this.OutputPath = outputPath;
+            else
+            {
+                Console.WriteLine($"Using default output directory: {runDirPath}");
+                log.Info($"Using output directory: {runDirPath}");
+            }
         }
 
         public void LoadScenario()

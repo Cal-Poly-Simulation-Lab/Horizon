@@ -157,7 +157,7 @@ namespace HSFSystem
                 { "log4net", new[] { "log4net.dll" } },
                 { "Microsoft.CSharp", new[] { "Microsoft.CSharp.dll" } }
             };
-            
+
             // Add references for each using directive found
             string horizonBuildDir = Path.Combine(Utilities.DevEnvironment.RepoDirectory, "src/Horizon/bin/Debug/net8.0");
             foreach (var usingDirective in usingDirectives)
@@ -360,7 +360,7 @@ namespace HSFSystem
 
         //Type[] constructorArgs = [typeof(JObject)];
         ConstructorInfo constructor = type.GetConstructor(constructorArgTypes);
-        
+
             if (constructor == null)
             {
                 Console.WriteLine($"[ERROR] Looking for constructor with args: {string.Join(", ", constructorArgTypes.Select(t => t.Name))}");
