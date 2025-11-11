@@ -273,14 +273,14 @@ namespace HSFScheduler
             for (int i = 0; i < schedules.Count; i++)
             {
                 var schedule = schedules[i];
-                if (SchedParameters.ConsoleLogMode == "truncate" && i > SchedParameters.NumSchedCropTo)
+                if (SchedParameters.ConsoleLogMode == "truncate" && i > SchedParameters.NumSchedCropTo || i > 20)
                 {
                     Console.WriteLine("                               .");
                     Console.WriteLine("                               .");
                     Console.WriteLine("                               .");
-                    Console.WriteLine($" [SytemScheduleInfo]: {schedules.Count - SchedParameters.NumSchedCropTo} evalutated schedules not printed... \n" +
-                                      $" Schedule printing truncated at {SchedParameters.NumSchedCropTo} given ConsoleLogMode = '{SchedParameters.ConsoleLogMode}'. Top {SchedParameters.NumSchedCropTo} shown above. \n" +
-                                      $" (Note: these {schedules.Count - SchedParameters.NumSchedCropTo} generated and evlauted this scheduler timestep (from either/both carried over and new schedules).");
+                    Console.WriteLine($" [SytemScheduleInfo]: {schedules.Count - (i-1)} evalutated schedules not printed... \n" +
+                                      $" Schedule printing truncated at {i-1} given ConsoleLogMode = '{SchedParameters.ConsoleLogMode}'. Top {i-1} shown above. \n" +
+                                      $" (Note: these {schedules.Count - (i-1)} generated and evlauted this scheduler timestep (from either/both carried over and new schedules).");
                     break;
                 }
                 // Otherwise print the line! Top sched down! 
@@ -291,7 +291,7 @@ namespace HSFScheduler
                 }
             }
             
-            // Print out the time on the final schedule summary print: 
+            // Print out the time on the final schedule summary print:
             if (finalScheduleSummary)
             {
                 Console.WriteLine(new string('-', 80));
