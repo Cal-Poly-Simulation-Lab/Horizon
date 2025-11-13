@@ -1,0 +1,18 @@
+{
+  "name": "CanPerformTest",
+  "version": 1.0,
+  "simulationParameters": {
+    "startJD": 2454680.0,
+    "startSeconds": 0.0,
+    "endSeconds": 60.0,
+    "stepSeconds": 12
+  },
+  "schedulerParameters": {
+    "maxSchedules": 100,
+    "cropTo": 10,
+    "ConsoleLog": "off"
+  },
+  "dependencies": {
+    "baseSrc": "../../../../"
+  }
+}

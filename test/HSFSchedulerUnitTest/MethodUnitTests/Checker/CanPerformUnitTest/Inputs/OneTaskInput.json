@@ -1,0 +1,22 @@
+{
+  "tasks": [
+    {
+      "name": "testtask1",
+      "type": "comm",
+      "maxTimes": 10,
+      "target": {
+        "name": "testtarget1",
+        "type": "Location",
+        "value": 10.0,
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "integratorType": "None",
+          "stateData": [0.0, 0.0, 0.0],
+          "eoms": {
+            "type": "None"
+          }
+        }
+      }
+    }
+  ]
+}
