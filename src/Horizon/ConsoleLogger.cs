@@ -94,6 +94,23 @@ namespace Horizon
                 diffWithHeader.AppendLine(diffOutput);
                 File.WriteAllText(Path.Combine(repoStateDir, "git_diff.txt"), diffWithHeader.ToString());
 
+                // Parse status to separate modified and untracked files
+                var statusLines = statusOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                var modifiedFiles = new List<string>();
+                var untrackedFiles = new List<string>();
+                
+                foreach (var line in statusLines)
+                {
+                    if (line.StartsWith("??"))
+                    {
+                        untrackedFiles.Add(line.Substring(3).Trim());
+                    }
+                    else if (!string.IsNullOrWhiteSpace(line))
+                    {
+                        modifiedFiles.Add(line.Trim());
+                    }
+                }
+
                 // Create README explaining repo state files
                 var readme = new StringBuilder();
                 readme.AppendLine("# Repository State Snapshot");
@@ -105,11 +122,25 @@ namespace Horizon
                 readme.AppendLine($"- **Commit**: {gitCommit}");
                 readme.AppendLine($"- **Origin**: {gitOrigin}");
                 readme.AppendLine($"- **Captured**: {_runDateTime:yyyy-MM-dd HH:mm:ss}");
+                readme.AppendLine($"- **Modified Files**: {modifiedFiles.Count}");
+                readme.AppendLine($"- **Untracked Files**: {untrackedFiles.Count}");
                 readme.AppendLine();
                 readme.AppendLine("## Files");
                 readme.AppendLine("- **`git_status.txt`**: Machine-readable list of modified/untracked files");
-                readme.AppendLine("- **`git_diff.txt`**: Complete diff of all uncommitted changes");
+                readme.AppendLine("- **`git_diff.txt`**: Complete diff of all uncommitted changes to tracked files");
                 readme.AppendLine();
+                
+                if (untrackedFiles.Count > 0)
+                {
+                    readme.AppendLine("## Untracked Files");
+                    readme.AppendLine("The following files were untracked (not in git diff):");
+                    foreach (var file in untrackedFiles)
+                    {
+                        readme.AppendLine($"- `{file}`");
+                    }
+                    readme.AppendLine();
+                }
+                
                 readme.AppendLine("## How to Reproduce Exact State");
                 readme.AppendLine("1. Clone the repository:");
                 readme.AppendLine($"   ```bash");
@@ -121,15 +152,24 @@ namespace Horizon
                 readme.AppendLine($"   git checkout {gitCommit}");
                 readme.AppendLine($"   ```");
                 readme.AppendLine();
-                readme.AppendLine("3. Apply uncommitted changes (if working tree was dirty):");
+                readme.AppendLine("3. Apply uncommitted changes to tracked files:");
                 readme.AppendLine($"   ```bash");
                 readme.AppendLine($"   git apply .repo_state/git_diff.txt");
                 readme.AppendLine($"   ```");
                 readme.AppendLine();
+                
+                if (untrackedFiles.Count > 0)
+                {
+                    readme.AppendLine("4. **IMPORTANT**: Manually recreate untracked files listed above");
+                    readme.AppendLine("   (Untracked files cannot be included in git diff)");
+                    readme.AppendLine();
+                }
+                
                 readme.AppendLine("## Notes");
                 readme.AppendLine("- If `git_status.txt` is empty, the working tree was clean (no uncommitted changes)");
                 readme.AppendLine("- If `git_diff.txt` has no content after the header, there were no modifications to tracked files");
-                readme.AppendLine("- Untracked files (marked with `??` in status) are not included in the diff");
+                readme.AppendLine("- Untracked files (marked with `??` in status) cannot be captured in a diff");
+                readme.AppendLine("- For complete reproducibility with untracked files, manually copy them from the original workspace");
                 
                 File.WriteAllText(Path.Combine(repoStateDir, "README.md"), readme.ToString());
             }
