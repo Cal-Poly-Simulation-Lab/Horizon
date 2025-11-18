@@ -44,6 +44,7 @@ namespace HSFSchedulerUnitTest
         
         private string OutputDir => Path.Combine(CurrentTestDir, "Output");
         private string CurrentRunDir = "";
+        public string CurrentRunDirPublic => CurrentRunDir;  // Public accessor for runner
         
         // Public accessors for runner
         public Horizon.Program Program => program;
@@ -272,8 +273,12 @@ namespace HSFSchedulerUnitTest
                 Directory.CreateDirectory(programOutputDir);
                 SimParameters.OutputDirectory = programOutputDir;
                 
-                // Initialize hash history file tracking in contextual test output directory
-                HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(programOutputDir);
+                // Initialize hash history file tracking if enabled (uses ProgramOutput as base for HashData/ subdir)
+                if (SimParameters.EnableHashTracking)
+                {
+                    HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(programOutputDir);
+                    HSFScheduler.StateHistory.InitializeStateHashHistoryFile(programOutputDir);
+                }
             }
             else
             {
@@ -285,8 +290,12 @@ namespace HSFSchedulerUnitTest
                 }
                 SimParameters.OutputDirectory = programOutputDir;
                 
-                // Ensure hash history file is initialized in contextual test output directory
-                HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(programOutputDir);
+                // Ensure hash history file is initialized if enabled (uses ProgramOutput as base for HashData/ subdir)
+                if (SimParameters.EnableHashTracking)
+                {
+                    HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(programOutputDir);
+                    HSFScheduler.StateHistory.InitializeStateHashHistoryFile(programOutputDir);
+                }
             }
         }
         
@@ -891,25 +900,6 @@ namespace HSFSchedulerUnitTest
             }
             
             return snapshots;
-        }
-        
-        /// <summary>
-        /// Generates a hash set from all schedules and saves to file
-        /// Calls static Program.GenerateAndSaveScheduleHashSet (single source of truth)
-        /// </summary>
-        public void GenerateAndSaveScheduleHashSet(List<SystemSchedule> schedules)
-        {
-            // Call static Program method (single source of truth for hash calculation)
-            Horizon.Program.GenerateAndSaveScheduleHashSet(schedules, CurrentRunDir);
-        }
-
-        /// <summary>
-        /// Saves blockchain schedule hash summary to file
-        /// Calls static Program.SaveScheduleHashBlockchainSummary (single source of truth)
-        /// </summary>
-        public void SaveScheduleHashBlockchainSummary(List<SystemSchedule> schedules)
-        {
-            Horizon.Program.SaveScheduleHashBlockchainSummary(schedules, CurrentRunDir);
         }
         
         #endregion

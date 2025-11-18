@@ -371,18 +371,46 @@ namespace HSFScheduler
         {
                 int numSched = 0;
                 List<SystemSchedule> _canPerformList = new List<SystemSchedule>();
+                double currentTime = Scheduler.CurrentTime;
+                
                 foreach (var potentialSchedule in potentialSystemSchedules)
                 {
-
-
-                    if (Checker.CheckSchedule(system, potentialSchedule)) {
-                        //potentialSchedule.GetEndState().GetLastValue()
-
-                        
+                    // Get schedule hash (blockchain hash, consistent with ScheduleHash property)
+                    // This must match what RecordCombinedHashHistory uses for lookup
+                    string scheduleHash = potentialSchedule.ScheduleInfo.ScheduleHash;
+                    if (string.IsNullOrEmpty(scheduleHash))
+                    {
+                        // Fallback: compute full hash if blockchain hash not yet initialized
+                        scheduleHash = SystemSchedule.ComputeScheduleHash(potentialSchedule);
+                    }
+                    
+                    // Check if schedule passes
+                    bool checkResult = Checker.CheckSchedule(system, potentialSchedule);
+                    
+                    // Update state hash after CheckSchedule completes (blockchain-style)
+                    if (SimParameters.EnableHashTracking)
+                    {
+                        StateHistory.UpdateStateHashAfterCheck(
+                            potentialSchedule.AllStates, 
+                            currentTime, 
+                            checkResult, 
+                            scheduleHash);
+                    }
+                    
+                    if (checkResult) {
                         _canPerformList.Add(potentialSchedule);
                         numSched++;
                     }
                 }
+                
+                // Record state hash history after CheckSchedule (sorted by schedule hash)
+                if (SimParameters.EnableHashTracking && potentialSystemSchedules.Count > 0)
+                {
+                    StateHistory.RecordStateHashHistory(potentialSystemSchedules, "Check", currentTime);
+                    // Record combined schedule-state hash history
+                    SystemScheduleInfo.RecordCombinedHashHistory(potentialSystemSchedules, "Check", Scheduler.SchedulerStep);
+                }
+                
                 return _canPerformList;
         }
 
@@ -418,7 +446,9 @@ namespace HSFScheduler
 
         public static List<SystemSchedule> EvaluateAndSortCanPerformSchedules(Evaluator scheduleEvaluator, List<SystemSchedule> _canPerformList)
         {
-           // Evaluate Schedule Step --> 
+            double currentTime = Scheduler.CurrentTime;
+            
+            // Evaluate Schedule Step --> 
             foreach (SystemSchedule systemSchedule in _canPerformList)
             {
                 systemSchedule.ScheduleValue = scheduleEvaluator.Evaluate(systemSchedule);
@@ -431,6 +461,29 @@ namespace HSFScheduler
             // OLD: _canPerformList.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
             // OLD: _canPerformList.Reverse();
             SortSchedulesDeterministic(_canPerformList, descending: true, context: "EvalSort");
+            
+            // Update state hash after evaluation (schedule hashes must be computed first, done above)
+            // Note: CheckSchedule result is true for all schedules in _canPerformList (they all passed Check)
+            if (SimParameters.EnableHashTracking)
+            {
+                foreach (SystemSchedule systemSchedule in _canPerformList)
+                {
+                    string scheduleHash = systemSchedule.ScheduleInfo.ScheduleHash;
+                    StateHistory.UpdateStateHashAfterEval(
+                        systemSchedule.AllStates, 
+                        currentTime, 
+                        checkScheduleResult: true,  // All passed CheckSchedule
+                        scheduleHash);
+                }
+                
+                // Record state hash history after evaluation (sorted by schedule hash)
+                if (_canPerformList.Count > 0)
+                {
+                    StateHistory.RecordStateHashHistory(_canPerformList, "EvalAll", currentTime);
+                    // Record combined schedule-state hash history
+                    SystemScheduleInfo.RecordCombinedHashHistory(_canPerformList, "EvalAll", Scheduler.SchedulerStep);
+                }
+            }
             
             // I used an interal can perform list to prevent conrfuision and not change attribute within static method. 
             // Need to return to caller (scheduelr) to update the list as sorted:

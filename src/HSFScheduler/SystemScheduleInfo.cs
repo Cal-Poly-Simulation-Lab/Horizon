@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MissionElements;
 using UserModel;
@@ -22,17 +23,25 @@ namespace HSFScheduler
         private static string? _hashHistoryFilePath = null;
         private static string? _lastContext = null;
         
+        // Static fields for combined schedule-state hash history file tracking
+        private static readonly object _combinedHashHistoryLock = new object();
+        private static string? _combinedHashHistoryFilePath = null;
+        
         /// <summary>
         /// Initializes the hash history file path (called once at program start)
-        /// Sets the file path to FullScheduleHashHistory.txt at the root of the output directory
+        /// Sets the file path to FullScheduleHashHistory.txt in HashData/ subdirectory
         /// Can be called multiple times to update the path (useful for test runs)
         /// </summary>
         public static void InitializeHashHistoryFile(string outputDirectory)
         {
             lock (_hashHistoryLock)
             {
+                // Create HashData subdirectory if it doesn't exist
+                string hashDataDir = Path.Combine(outputDirectory, "HashData");
+                Directory.CreateDirectory(hashDataDir);
+                
                 // Always update path (allows re-initialization for test runs with different directories)
-                _hashHistoryFilePath = Path.Combine(outputDirectory, "FullScheduleHashHistory.txt");
+                _hashHistoryFilePath = Path.Combine(hashDataDir, "FullScheduleHashHistory.txt");
                 // Clear existing file if it exists (start fresh each run)
                 if (File.Exists(_hashHistoryFilePath))
                 {
@@ -49,9 +58,14 @@ namespace HSFScheduler
         /// Writes a line with format: [<iteration>: <context>] <all hashes space delimited>
         /// Context is either "CropToMax" or "EvalSort" (detected from order or previous call)
         /// Thread-safe and maintains iteration counter
+        /// Only records if SimParameters.EnableHashTracking is true
         /// </summary>
         public static void RecordSortHashHistory(List<SystemSchedule> schedules, string context = "")
         {
+            // Early return if hash tracking is disabled
+            if (!SimParameters.EnableHashTracking)
+                return;
+                
             lock (_hashHistoryLock)
             {
                 // Initialize file path if not set (use SimParameters.OutputDirectory)
@@ -106,6 +120,134 @@ namespace HSFScheduler
                 if (!string.IsNullOrEmpty(_hashHistoryFilePath))
                 {
                     File.AppendAllText(_hashHistoryFilePath, line + Environment.NewLine);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Computes a combined hash from schedule hash and state hash
+        /// Format: hash(scheduleHash + stateHash)
+        /// </summary>
+        private static string ComputeCombinedHash(string scheduleHash, string stateHash)
+        {
+            if (string.IsNullOrEmpty(scheduleHash) || string.IsNullOrEmpty(stateHash))
+                return "";
+            
+            string combined = $"{scheduleHash}||{stateHash}";
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                byte[] hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(combined));
+                return System.BitConverter.ToString(hashBytes).Replace("-", "").ToLower().Substring(0, 16);  // 16 char hash
+            }
+        }
+        
+        /// <summary>
+        /// Records combined schedule-state hash history after CheckSchedule or evaluation
+        /// Matches schedule hashes with their corresponding state hashes using (Step, ScheduleHash) key
+        /// Writes a line with format: [<iteration>A/B] <combined hashes space delimited>
+        /// A = Check context, B = EvalAll context (matching the step from StateHashHistory)
+        /// Only records if SimParameters.EnableHashTracking is true
+        /// </summary>
+        public static void RecordCombinedHashHistory(List<SystemSchedule> schedules, string context, int step)
+        {
+            // Early return if hash tracking is disabled
+            if (!SimParameters.EnableHashTracking)
+                return;
+                
+            lock (_combinedHashHistoryLock)
+            {
+                // Initialize file path if not set
+                if (string.IsNullOrEmpty(_combinedHashHistoryFilePath))
+                {
+                    string outputDir = SimParameters.OutputDirectory ?? Path.Combine(Utilities.DevEnvironment.RepoDirectory, "output");
+                    string hashDataDir = Path.Combine(outputDir, "HashData");
+                    Directory.CreateDirectory(hashDataDir);
+                    _combinedHashHistoryFilePath = Path.Combine(hashDataDir, "FullScheduleStateHashHistory.txt");
+                    // Clear existing file if it exists (start fresh each run)
+                    if (File.Exists(_combinedHashHistoryFilePath))
+                    {
+                        File.Delete(_combinedHashHistoryFilePath);
+                    }
+                }
+                
+                // Build dictionary of schedule hash -> combined hash (sorted by schedule hash for determinism)
+                var combinedHashDict = new Dictionary<string, string>();
+                var verificationErrors = new List<string>();
+                
+                foreach (var schedule in schedules)
+                {
+                    string scheduleHash = schedule.ScheduleInfo.ScheduleHash;
+                    
+                    // Fallback: if blockchain hash not initialized, compute full hash (same as CheckAllPotentialSchedules)
+                    if (string.IsNullOrEmpty(scheduleHash))
+                    {
+                        scheduleHash = SystemSchedule.ComputeScheduleHash(schedule);
+                    }
+                    
+                    if (!string.IsNullOrEmpty(scheduleHash))
+                    {
+                        // Find corresponding state hash using (Step, ScheduleHash) key
+                        string stateHash = "";
+                        var stateHistory = schedule.AllStates;
+                        
+                        // Check if schedule hash is a key in StateHashHistory
+                        bool found = stateHistory.StateHashHistory.TryGetValue((step, scheduleHash), out stateHash!);
+                        
+                        if (!found)
+                        {
+                            // Try to find any entry with matching schedule hash (might be from different step)
+                            var matchingEntry = stateHistory.StateHashHistory
+                                .Where(kvp => kvp.Key.ScheduleHash == scheduleHash)
+                                .OrderByDescending(kvp => kvp.Key.Step)
+                                .FirstOrDefault();
+                            
+                            if (matchingEntry.Key != default)
+                            {
+                                stateHash = matchingEntry.Value;
+                                verificationErrors.Add($"WARNING: ScheduleHash {scheduleHash} found at step {matchingEntry.Key.Step} but expected step {step}");
+                            }
+                            else
+                            {
+                                verificationErrors.Add($"ERROR: ScheduleHash {scheduleHash} not found in StateHashHistory for schedule {schedule._scheduleID}");
+                                continue;  // Skip this schedule
+                            }
+                        }
+                        
+                        // Compute combined hash if state hash found
+                        if (!string.IsNullOrEmpty(stateHash))
+                        {
+                            // Compute combined hash
+                            string combinedHash = ComputeCombinedHash(scheduleHash, stateHash);
+                            combinedHashDict[scheduleHash] = combinedHash;
+                        }
+                    }
+                }
+                
+                // Print verification errors only (not successful lookups)
+                if (verificationErrors.Count > 0)
+                {
+                    Console.WriteLine($"  Combined Hash Verification Issues ({verificationErrors.Count}):");
+                    foreach (var error in verificationErrors)
+                    {
+                        Console.WriteLine($"    {error}");
+                    }
+                }
+                
+                // Sort by schedule hash (deterministic ordering)
+                var sortedEntries = combinedHashDict.OrderBy(kvp => kvp.Key).ToList();
+                var combinedHashList = sortedEntries.Select(kvp => kvp.Value).ToList();
+                
+                // Format: [<iteration>A/B] <combined hashes space delimited>
+                // A = Check (step iteration), B = EvalAll (step iteration)
+                string contextSuffix = context == "Check" ? "A" : "B";
+                string iterationStr = step.ToString().PadLeft(4);
+                string hashesStr = string.Join(" ", combinedHashList);
+                string line = $"[{iterationStr}{contextSuffix}] {hashesStr}";
+                
+                // Append to file (thread-safe via lock)
+                if (!string.IsNullOrEmpty(_combinedHashHistoryFilePath))
+                {
+                    File.AppendAllText(_combinedHashHistoryFilePath, line + Environment.NewLine);
                 }
             }
         }

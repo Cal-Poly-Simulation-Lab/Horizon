@@ -146,12 +146,9 @@ namespace Horizon
             program.LoadEvaluator();
             program.CreateSchedules();
             
-            // Generate hash set right after GenerateSchedules() returns (before EvaluateSchedules() sorts them)
-            // Set to true to enable hash generation
-            bool generateHashSet = true;
-            if (generateHashSet)
+            // Generate hash outputs if enabled (right after GenerateSchedules() returns, before EvaluateSchedules() sorts them)
+            if (SimParameters.EnableHashTracking)
             {
-                GenerateAndSaveScheduleHashSet(program.Schedules, program.OutputPath);
                 SaveScheduleHashBlockchainSummary(program.Schedules, program.OutputPath);
             }
             
@@ -502,8 +499,12 @@ namespace Horizon
             StaticOutputPath = runDirPath;  // Set static for Access.cs and other static methods
             SimParameters.OutputDirectory = runDirPath;  // Set for AccessReport and other static methods
             
-            // Initialize hash history file tracking
-            HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(runDirPath);
+            // Initialize hash history file tracking if enabled
+            if (SimParameters.EnableHashTracking)
+            {
+                HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(runDirPath);
+                HSFScheduler.StateHistory.InitializeStateHashHistoryFile(runDirPath);
+            }
             
             // MERGE RESOLUTION: Removed Eric's old directory filtering/numbering logic
             // No longer needed with our versioned run directory system (Run_00A, Run_00B, etc.)
@@ -886,8 +887,12 @@ namespace Horizon
             StaticOutputPath = testRunPath;
             SimParameters.OutputDirectory = testRunPath;
             
-            // Initialize hash history file tracking
-            HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(testRunPath);
+            // Initialize hash history file tracking if enabled
+            if (SimParameters.EnableHashTracking)
+            {
+                HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(testRunPath);
+                HSFScheduler.StateHistory.InitializeStateHashHistoryFile(testRunPath);
+            }
             
             // Write test info file
             string infoPath = Path.Combine(testRunPath, "TEST_OUTPUT_INFO.txt");
@@ -922,27 +927,6 @@ namespace Horizon
         }
 
         /// <summary>
-        /// Static method: Generates a hash set from all schedules and saves to file
-        /// Uses events, event times, and asset->task pairs per schedule to create unique hash IDs
-        /// Can be called from both Program.Main() and test runs
-        /// </summary>
-        public static void GenerateAndSaveScheduleHashSet(List<HSFScheduler.SystemSchedule> schedules, string outputPath)
-        {
-            var hashSet = new HashSet<string>();
-            
-            foreach (var schedule in schedules)
-            {
-                string hash = ComputeScheduleHash(schedule);
-                hashSet.Add(hash);
-            }
-            
-            // Save hash set to file (sorted for consistency)
-            string hashFilePath = Path.Combine(outputPath, "schedule_hashes.txt");
-            var sortedHashes = hashSet.OrderBy(h => h).ToList();
-            File.WriteAllLines(hashFilePath, sortedHashes);
-        }
-        
-        /// <summary>
         /// Static method: Computes a hash for a schedule based on schedule data only (NOT ScheduleID).
         /// Delegates to SystemSchedule.ComputeScheduleHash for consistent hash computation.
         /// </summary>
@@ -952,24 +936,78 @@ namespace Horizon
         }
 
         /// <summary>
-        /// Static method: Saves blockchain schedule hash summary to file
+        /// Computes a combined hash from schedule hash and state hash
+        /// Format: hash(scheduleHash + stateHash)
+        /// </summary>
+        private static string ComputeCombinedHash(string scheduleHash, string stateHash)
+        {
+            if (string.IsNullOrEmpty(scheduleHash) || string.IsNullOrEmpty(stateHash))
+                return "";
+            
+            string combined = $"{scheduleHash}||{stateHash}";
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                byte[] hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(combined));
+                return System.BitConverter.ToString(hashBytes).Replace("-", "").ToLower().Substring(0, 16);  // 16 char hash
+            }
+        }
+        
+        /// <summary>
+        /// Static method: Saves blockchain schedule hash summary to file in HashData/ subdirectory
         /// Outputs final ScheduleHash (top of last iteration's stack) for each schedule
+        /// Also includes StateHash and CombinedHash after checks
         /// Can be called from both Program.Main() and test runs
         /// </summary>
         public static void SaveScheduleHashBlockchainSummary(List<HSFScheduler.SystemSchedule> schedules, string outputPath)
         {
-            string summaryPath = Path.Combine(outputPath, "scheduleHashBlockchainSummary.txt");
+            // Create HashData subdirectory if it doesn't exist
+            string hashDataDir = Path.Combine(outputPath, "HashData");
+            Directory.CreateDirectory(hashDataDir);
+            
+            string summaryPath = Path.Combine(hashDataDir, "scheduleHashBlockchainSummary.txt");
             using (StreamWriter sw = File.CreateText(summaryPath))
             {
                 sw.WriteLine($"ScheduleHash Blockchain Summary - {schedules.Count} schedules");
-                sw.WriteLine(new string('=', 80));
-                sw.WriteLine($"{"ScheduleID",-20} {"Value",-12} {"Events",-8} {"ScheduleHash",-20}");
-                sw.WriteLine(new string('-', 80));
+                sw.WriteLine(new string('=', 120));
+                sw.WriteLine($"{"ScheduleID",-20} {"Value",-12} {"Events",-8} {"ScheduleHash",-20} {"StateHash",-20} {"CombinedHash",-20}");
+                sw.WriteLine(new string('-', 120));
                 
                 foreach (var schedule in schedules)
                 {
                     string scheduleHash = schedule.ScheduleInfo.ScheduleHash;
-                    sw.WriteLine($"{schedule._scheduleID,-20} {schedule.ScheduleValue,-12:F2} {schedule.AllStates.Events.Count,-8} {scheduleHash,-20}");
+                    
+                    // Find corresponding state hash using final schedule hash and last step
+                    string stateHash = "";
+                    string combinedHash = "";
+                    var stateHistory = schedule.AllStates;
+                    
+                    // Get the last step where state hash was recorded
+                    if (stateHistory.StateHashHistory.Count > 0 && !string.IsNullOrEmpty(scheduleHash))
+                    {
+                        // Try to find state hash for this schedule hash at the last step
+                        int lastStep = stateHistory.StateHashHistory.Keys.Max(k => k.Step);
+                        if (stateHistory.StateHashHistory.TryGetValue((lastStep, scheduleHash), out stateHash))
+                        {
+                            // Compute combined hash
+                            combinedHash = ComputeCombinedHash(scheduleHash, stateHash);
+                        }
+                        else
+                        {
+                            // Fallback: find any entry with matching schedule hash
+                            var matchingEntry = stateHistory.StateHashHistory
+                                .Where(kvp => kvp.Key.ScheduleHash == scheduleHash)
+                                .OrderByDescending(kvp => kvp.Key.Step)
+                                .FirstOrDefault();
+                            
+                            if (matchingEntry.Key != default)
+                            {
+                                stateHash = matchingEntry.Value;
+                                combinedHash = ComputeCombinedHash(scheduleHash, stateHash);
+                            }
+                        }
+                    }
+                    
+                    sw.WriteLine($"{schedule._scheduleID,-20} {schedule.ScheduleValue,-12:F2} {schedule.AllStates.Events.Count,-8} {scheduleHash,-20} {stateHash,-20} {combinedHash,-20}");
                 }
             }
         }

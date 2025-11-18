@@ -76,10 +76,12 @@ namespace HSFSchedulerUnitTest
             // Store schedules in program (same as CreateSchedules does)
             capture.Program.Schedules = finalSchedules;
             
-            // Generate hash set right after GenerateSchedules() returns (before EvaluateSchedules() sorts them)
+            // Generate hash outputs if enabled (right after GenerateSchedules() returns, before EvaluateSchedules() sorts them)
             // This matches Program.Main() - computes hashes on schedules as they come out of GenerateSchedules()
-            capture.GenerateAndSaveScheduleHashSet(capture.Program.Schedules);
-            capture.SaveScheduleHashBlockchainSummary(capture.Program.Schedules);
+            if (SimParameters.EnableHashTracking)
+            {
+                Horizon.Program.SaveScheduleHashBlockchainSummary(capture.Program.Schedules, capture.CurrentRunDirPublic);
+            }
             
             // Evaluate schedules (same as Program.Main())
             // This sorts capture.Program.Schedules by ScheduleValue (descending) - same as Program.Main()

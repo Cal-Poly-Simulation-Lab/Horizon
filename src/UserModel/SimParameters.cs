@@ -19,6 +19,7 @@ namespace UserModel
         public static string ScenarioName { get; private set; } = "Default Scenario";
         public static string OutputDirectory { get; set; } = "";
         public static int NumSchedulesForStateOutput { get; private set; } = 5;  // Default: top 5 schedules
+        public static bool EnableHashTracking { get; private set; } = true;  // Default: enabled
 
         private static bool _isInitialized = false;
         #endregion
@@ -95,6 +96,14 @@ namespace UserModel
                     }
                 }
                 // else: use default (5)
+
+                // Optional: Enable/disable hash tracking
+                if (JsonLoader<bool>.TryGetValue("enableHashTracking", simulationJson, out bool enableHashTracking))
+                {
+                    EnableHashTracking = enableHashTracking;
+                    Console.WriteLine($"\tHash Tracking: {(enableHashTracking ? "Enabled" : "Disabled")}");
+                }
+                // else: use default (true)
 
                 return true;
             }
