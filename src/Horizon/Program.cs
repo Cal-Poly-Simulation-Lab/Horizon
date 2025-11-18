@@ -152,6 +152,7 @@ namespace Horizon
             if (generateHashSet)
             {
                 GenerateAndSaveScheduleHashSet(program.Schedules, program.OutputPath);
+                SaveScheduleHashBlockchainSummary(program.Schedules, program.OutputPath);
             }
             
             double maxSched = program.EvaluateSchedules();
@@ -501,6 +502,9 @@ namespace Horizon
             StaticOutputPath = runDirPath;  // Set static for Access.cs and other static methods
             SimParameters.OutputDirectory = runDirPath;  // Set for AccessReport and other static methods
             
+            // Initialize hash history file tracking
+            HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(runDirPath);
+            
             // MERGE RESOLUTION: Removed Eric's old directory filtering/numbering logic
             // No longer needed with our versioned run directory system (Run_00A, Run_00B, etc.)
             
@@ -793,6 +797,8 @@ namespace Horizon
         public double EvaluateSchedules()
         {
             // Evaluate the schedules and set their values
+            // Note: Schedules were already evaluated during GenerateSchedules loop, so values won't change
+            // Hash updates only occur when schedule data changes (new events), not on re-evaluation
             foreach (SystemSchedule systemSchedule in Schedules)
             {
                 systemSchedule.ScheduleValue = SchedEvaluator.Evaluate(systemSchedule);
@@ -810,7 +816,7 @@ namespace Horizon
             // This ensures schedules with the same value are ordered consistently across runs
             // OLD: Schedules.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
             // OLD: Schedules.Reverse();
-            HSFScheduler.Scheduler.SortSchedulesDeterministic(Schedules, descending: true);
+            HSFScheduler.Scheduler.SortSchedulesDeterministic(Schedules, descending: true, context: "EvalSort");
             double maxSched = Schedules[0].ScheduleValue;
             return maxSched;
         }
@@ -880,6 +886,9 @@ namespace Horizon
             StaticOutputPath = testRunPath;
             SimParameters.OutputDirectory = testRunPath;
             
+            // Initialize hash history file tracking
+            HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(testRunPath);
+            
             // Write test info file
             string infoPath = Path.Combine(testRunPath, "TEST_OUTPUT_INFO.txt");
             var info = new StringBuilder();
@@ -940,6 +949,29 @@ namespace Horizon
         public static string ComputeScheduleHash(HSFScheduler.SystemSchedule schedule)
         {
             return HSFScheduler.SystemSchedule.ComputeScheduleHash(schedule);
+        }
+
+        /// <summary>
+        /// Static method: Saves blockchain schedule hash summary to file
+        /// Outputs final ScheduleHash (top of last iteration's stack) for each schedule
+        /// Can be called from both Program.Main() and test runs
+        /// </summary>
+        public static void SaveScheduleHashBlockchainSummary(List<HSFScheduler.SystemSchedule> schedules, string outputPath)
+        {
+            string summaryPath = Path.Combine(outputPath, "scheduleHashBlockchainSummary.txt");
+            using (StreamWriter sw = File.CreateText(summaryPath))
+            {
+                sw.WriteLine($"ScheduleHash Blockchain Summary - {schedules.Count} schedules");
+                sw.WriteLine(new string('=', 80));
+                sw.WriteLine($"{"ScheduleID",-20} {"Value",-12} {"Events",-8} {"ScheduleHash",-20}");
+                sw.WriteLine(new string('-', 80));
+                
+                foreach (var schedule in schedules)
+                {
+                    string scheduleHash = schedule.ScheduleInfo.ScheduleHash;
+                    sw.WriteLine($"{schedule._scheduleID,-20} {schedule.ScheduleValue,-12:F2} {schedule.AllStates.Events.Count,-8} {scheduleHash,-20}");
+                }
+            }
         }
 
     }

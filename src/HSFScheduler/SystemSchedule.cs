@@ -190,6 +190,18 @@ namespace HSFScheduler
 
             // Informational Use Only:
             ScheduleInfo = new SystemScheduleInfo(AllStates, Scheduler.SchedulerStep);
+            
+            // Update schedule hash: inherit from old schedule if it exists, then add new event (blockchain-style)
+            if (oldSystemSchedule != null)
+            {
+                // Copy hash history from old schedule (preserves traceability, uses deterministic iteration numbering)
+                SystemScheduleInfo.CopyHashHistoryFromOldSchedule(this, oldSystemSchedule);
+            }
+            
+            // Update schedule hash with new event (schedule value is 0 initially, will be set later)
+            // Iteration number is determined automatically (0, 1, 2, ...) based on hash history count
+            SystemScheduleInfo.UpdateHashAfterEvent(this, eventToAdd, ScheduleValue);
+            
             _scheduleID = UpdateScheduleID(oldSystemSchedule);
             UpdateInfoStrings();
 
@@ -818,10 +830,45 @@ namespace HSFScheduler
         }
 
         /// <summary>
+        /// Static helper: Computes hash representation for a single event (blockchain-style building block)
+        /// Returns event hash string: "e{eventStart:F2}:{eventEnd:F2}|{asset:task:start:end|...}"
+        /// All double times truncated to 2 decimals to avoid precision errors.
+        /// </summary>
+        private static string ComputeEventHashString(Event evt)
+        {
+            var eventTasks = new List<string>();
+            
+            // Extract asset->task pairs with times (truncated to 2 decimals to avoid precision errors)
+            // Preserve order as they exist in evt.Tasks (Dictionary iteration order)
+            foreach (var assetTaskPair in evt.Tasks)
+            {
+                double taskStart = evt.GetTaskStart(assetTaskPair.Key);
+                double taskEnd = evt.GetTaskEnd(assetTaskPair.Key);
+                eventTasks.Add($"{assetTaskPair.Key.Name}:{assetTaskPair.Value.Name}:{taskStart:F2}:{taskEnd:F2}");
+            }
+            
+            // DO NOT SORT - preserve object order to allow different hashes for reflective symmetry
+            
+            // Event representation: tasks separated by '|'
+            // All double times truncated to 2 decimals to avoid precision errors in hash calculation
+            double eventStart = 0;
+            double eventEnd = 0;
+            if (evt.Tasks.Count > 0)
+            {
+                var firstAsset = evt.Tasks.Keys.First();
+                eventStart = evt.GetEventStart(firstAsset);
+                eventEnd = evt.GetEventEnd(firstAsset);
+            }
+            
+            return $"e{eventStart:F2}:{eventEnd:F2}|{string.Join("|", eventTasks)}";
+        }
+
+        /// <summary>
         /// Static method: Computes a hash for a schedule based on schedule data only (NOT ScheduleID).
         /// Includes: schedule value, all events in chronological order, event times, and asset->task pairs (preserving object iteration order).
         /// All double times truncated to 2 decimals to avoid precision errors.
         /// ScheduleID is explicitly NOT included in the hash computation.
+        /// Uses ComputeEventHashString helper for each event.
         /// </summary>
         public static string ComputeScheduleHash(SystemSchedule schedule)
         {
@@ -833,32 +880,7 @@ namespace HSFScheduler
             var allEventHashes = new List<string>();
             foreach (var evt in eventsList)
             {
-                var eventTasks = new List<string>();
-                
-                // Extract asset->task pairs with times (truncated to 2 decimals to avoid precision errors)
-                // Preserve order as they exist in evt.Tasks (Dictionary iteration order)
-                foreach (var assetTaskPair in evt.Tasks)
-                {
-                    double taskStart = evt.GetTaskStart(assetTaskPair.Key);
-                    double taskEnd = evt.GetTaskEnd(assetTaskPair.Key);
-                    eventTasks.Add($"{assetTaskPair.Key.Name}:{assetTaskPair.Value.Name}:{taskStart:F2}:{taskEnd:F2}");
-                }
-                
-                // DO NOT SORT - preserve object order to allow different hashes for reflective symmetry
-                
-                // Event representation: tasks separated by '|', events separated by '||'
-                // All double times truncated to 2 decimals to avoid precision errors in hash calculation
-                double eventStart = 0;
-                double eventEnd = 0;
-                if (evt.Tasks.Count > 0)
-                {
-                    var firstAsset = evt.Tasks.Keys.First();
-                    eventStart = evt.GetEventStart(firstAsset);
-                    eventEnd = evt.GetEventEnd(firstAsset);
-                }
-                
-                string eventHash = $"e{eventStart:F2}:{eventEnd:F2}|{string.Join("|", eventTasks)}";
-                allEventHashes.Add(eventHash);
+                allEventHashes.Add(ComputeEventHashString(evt));
             }
             
             // Combine schedule value (truncated to 2 decimals) + all events
@@ -872,6 +894,57 @@ namespace HSFScheduler
             {
                 byte[] hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(combined));
                 return BitConverter.ToString(hashBytes).Replace("-", "").ToLower().Substring(0, 16);  // 16 char hash
+            }
+        }
+
+        /// <summary>
+        /// Static method: Computes incremental hash for a schedule (blockchain-style)
+        /// Combines previous hash + new event + schedule value to compute new hash
+        /// This allows tracking hash evolution as events are added without recomputing all events
+        /// </summary>
+        /// <param name="previousHash">Hash from previous iteration (empty string for initial hash)</param>
+        /// <param name="latestEvent">The most recent event added to the schedule (null for empty schedule)</param>
+        /// <param name="scheduleValue">Current schedule value (truncated to 2 decimals)</param>
+        /// <returns>New incremental hash</returns>
+        public static string ComputeIncrementalHash(string previousHash, Event? latestEvent, double scheduleValue)
+        {
+            // If no previous hash, this is the initial hash (empty schedule or first event)
+            // For initial hash, use full computation if we have an event, otherwise just value
+            if (string.IsNullOrEmpty(previousHash))
+            {
+                if (latestEvent == null)
+                {
+                    // Empty schedule - just value
+                    string combined = $"value{scheduleValue:F2}||";
+                    using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                    {
+                        byte[] hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(combined));
+                        return BitConverter.ToString(hashBytes).Replace("-", "").ToLower().Substring(0, 16);
+                    }
+                }
+                else
+                {
+                    // First event - combine value + event
+                    string eventHash = ComputeEventHashString(latestEvent);
+                    string combined = $"value{scheduleValue:F2}||{eventHash}";
+                    using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                    {
+                        byte[] hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(combined));
+                        return BitConverter.ToString(hashBytes).Replace("-", "").ToLower().Substring(0, 16);
+                    }
+                }
+            }
+            else
+            {
+                // Incremental update: previous hash + new event + current value
+                // Blockchain-style: hash(previousHash || event || value)
+                string eventHash = latestEvent != null ? ComputeEventHashString(latestEvent) : "";
+                string combined = $"{previousHash}||{eventHash}||value{scheduleValue:F2}";
+                using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                {
+                    byte[] hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(combined));
+                    return BitConverter.ToString(hashBytes).Replace("-", "").ToLower().Substring(0, 16);
+                }
             }
         }
     }

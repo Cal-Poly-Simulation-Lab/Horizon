@@ -15,6 +15,103 @@ namespace HSFScheduler
     /// </summary>
     public class SystemScheduleInfo
     {
+        #region Static Hash History Tracking
+        
+        private static readonly object _hashHistoryLock = new object();
+        private static int _sortIteration = 0;
+        private static string? _hashHistoryFilePath = null;
+        private static string? _lastContext = null;
+        
+        /// <summary>
+        /// Initializes the hash history file path (called once at program start)
+        /// Sets the file path to FullScheduleHashHistory.txt at the root of the output directory
+        /// Can be called multiple times to update the path (useful for test runs)
+        /// </summary>
+        public static void InitializeHashHistoryFile(string outputDirectory)
+        {
+            lock (_hashHistoryLock)
+            {
+                // Always update path (allows re-initialization for test runs with different directories)
+                _hashHistoryFilePath = Path.Combine(outputDirectory, "FullScheduleHashHistory.txt");
+                // Clear existing file if it exists (start fresh each run)
+                if (File.Exists(_hashHistoryFilePath))
+                {
+                    File.Delete(_hashHistoryFilePath);
+                }
+                // Reset iteration counter and context when initializing (fresh run)
+                _sortIteration = 0;
+                _lastContext = null;
+            }
+        }
+        
+        /// <summary>
+        /// Records schedule hash history after sorting
+        /// Writes a line with format: [<iteration>: <context>] <all hashes space delimited>
+        /// Context is either "CropToMax" or "EvalSort" (detected from order or previous call)
+        /// Thread-safe and maintains iteration counter
+        /// </summary>
+        public static void RecordSortHashHistory(List<SystemSchedule> schedules, string context = "")
+        {
+            lock (_hashHistoryLock)
+            {
+                // Initialize file path if not set (use SimParameters.OutputDirectory)
+                if (string.IsNullOrEmpty(_hashHistoryFilePath))
+                {
+                    string outputDir = SimParameters.OutputDirectory ?? Path.Combine(Utilities.DevEnvironment.RepoDirectory, "output");
+                    InitializeHashHistoryFile(outputDir);
+                }
+                
+                // Auto-detect context if not provided
+                if (string.IsNullOrEmpty(context))
+                {
+                    // EvalSort always follows CropToMax in the same iteration, or starts a new iteration
+                    // If last context was CropToMax, this must be EvalSort
+                    if (_lastContext == "CropToMax")
+                    {
+                        context = "EvalSort";
+                    }
+                    else
+                    {
+                        // CropToMax is always called first (at start of iteration)
+                        context = "CropToMax";
+                        _sortIteration++;
+                    }
+                }
+                else if (context == "CropToMax")
+                {
+                    _sortIteration++;
+                }
+                
+                _lastContext = context;
+                
+                // Collect all schedule hashes (final blockchain hash for each schedule)
+                var hashList = new List<string>();
+                foreach (var schedule in schedules)
+                {
+                    string scheduleHash = schedule.ScheduleInfo.ScheduleHash;
+                    if (!string.IsNullOrEmpty(scheduleHash))
+                    {
+                        hashList.Add(scheduleHash);
+                    }
+                }
+                
+                // Format: [<iteration>: <context>] <hashes space delimited>
+                // Ensure consistent header width: [<4 chars>: <9 chars>] = 15 chars total
+                string contextPadded = context.Length <= 9 ? context.PadRight(9) : context.Substring(0, 9);
+                string iterationStr = _sortIteration.ToString().PadLeft(4);
+                string hashesStr = string.Join(" ", hashList);
+                string line = $"[{iterationStr}: {contextPadded}] {hashesStr}";
+                
+                // Append to file (thread-safe via lock)
+                if (!string.IsNullOrEmpty(_hashHistoryFilePath))
+                {
+                    File.AppendAllText(_hashHistoryFilePath, line + Environment.NewLine);
+                }
+            }
+        }
+        
+        #endregion
+        
         #region Visualization Attributes
         
         /// <summary>
@@ -60,6 +157,34 @@ namespace HSFScheduler
         /// </summary>
         public string? EventString { get; private set; }
         
+        /// <summary>
+        /// Schedule hash history - tracks schedule hash evolution per scheduler step (blockchain-style)
+        /// Key: Scheduler step (iteration number)
+        /// Value: Stack of hashes for that step (bottom = after event added, top = after value evaluated)
+        /// This structure ensures repeatability regardless of execution order
+        /// </summary>
+        public Dictionary<int, Stack<string>> ScheduleHashHistory { get; set; } = new Dictionary<int, Stack<string>>();
+        
+        /// <summary>
+        /// Returns the final schedule hash (top of the last step's stack)
+        /// This is the hash after all iterations have completed
+        /// </summary>
+        public string ScheduleHash
+        {
+            get
+            {
+                if (ScheduleHashHistory.Count == 0)
+                    return "";
+                
+                // Get the last step's stack (highest key)
+                int lastStep = ScheduleHashHistory.Keys.Max();
+                var lastStack = ScheduleHashHistory[lastStep];
+                
+                // Return top of stack (most recent hash for that step)
+                return lastStack.Count > 0 ? lastStack.Peek() : "";
+            }
+        }
+        
         #endregion
 
         #region Constructor
@@ -82,6 +207,8 @@ namespace HSFScheduler
             // Generate the time step and event strings
             TimeStepString = GenerateTimeStepString();
             EventString = GenerateEventString();
+            
+            // Initialize hash history for empty schedule (no scheduler step yet, will be set when first event added)
         }
         public SystemScheduleInfo(StateHistory allStates, int creationTimeStep)
         {
@@ -99,6 +226,8 @@ namespace HSFScheduler
             // Generate the time step and event strings
             TimeStepString = GenerateTimeStepString();
             EventString = GenerateEventString();
+            
+            // Hash history will be initialized when first event is added (in SystemSchedule constructor)
         }
         
         #endregion
@@ -161,6 +290,152 @@ namespace HSFScheduler
         public void UpdateScheduleDepth(int depth)
         {
             ScheduleDepth = depth;
+        }
+
+        /// <summary>
+        /// Gets the next iteration number for this schedule (starts at 0, increments upward)
+        /// Uses the count of existing hash history entries to ensure deterministic iteration numbering
+        /// </summary>
+        private int GetNextIterationNumber()
+        {
+            return ScheduleHashHistory.Count;
+        }
+
+        /// <summary>
+        /// Gets the final hash from the previous iteration (top of last iteration's stack)
+        /// Returns empty string if no previous iterations exist
+        /// </summary>
+        private string GetPreviousIterationHash()
+        {
+            if (ScheduleHashHistory.Count == 0)
+                return "";
+            
+            int lastIteration = ScheduleHashHistory.Keys.Max();
+            if (ScheduleHashHistory[lastIteration].Count > 0)
+            {
+                return ScheduleHashHistory[lastIteration].Peek();
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// Update schedule hash when a new event is added (blockchain-style)
+        /// Uses the top of the previous iteration's stack as previous hash, creates new hash with new event
+        /// Pushes hash to current iteration's stack (first entry in stack for this iteration)
+        /// Iteration numbers start at 0 and increment upward deterministically
+        /// </summary>
+        /// <param name="newEvent">The new event being added</param>
+        /// <param name="scheduleValue">Current schedule value (typically 0 when event first added)</param>
+        /// <returns>The new hash after adding the event</returns>
+        private string UpdateScheduleHashAfterEvent(Event newEvent, double scheduleValue)
+        {
+            // Get iteration number (deterministic: 0, 1, 2, ... based on history count)
+            int iteration = GetNextIterationNumber();
+            
+            // Get previous hash from last iteration's stack top
+            string previousHash = GetPreviousIterationHash();
+            
+            // Ensure stack exists for current iteration
+            if (!ScheduleHashHistory.ContainsKey(iteration))
+            {
+                ScheduleHashHistory[iteration] = new Stack<string>();
+            }
+            
+            // Compute incremental hash: previous hash + new event + value
+            string newHash = SystemSchedule.ComputeIncrementalHash(previousHash, newEvent, scheduleValue);
+            
+            // Push to current iteration's stack (first entry = after event added)
+            ScheduleHashHistory[iteration].Push(newHash);
+            
+            return newHash;
+        }
+
+        /// <summary>
+        /// Update schedule hash when schedule value is evaluated (blockchain-style)
+        /// Uses the top of current iteration's stack as previous hash, creates new hash with updated value
+        /// Pushes hash to current iteration's stack (second entry in stack for this iteration)
+        /// </summary>
+        /// <param name="scheduleValue">New schedule value after evaluation</param>
+        /// <returns>The new hash after value evaluation</returns>
+        private string UpdateScheduleHashAfterValueEvaluation(double scheduleValue)
+        {
+            // Get current iteration (should already exist from event addition)
+            if (ScheduleHashHistory.Count == 0)
+            {
+                // No previous iteration - create one
+                int iteration = GetNextIterationNumber();
+                ScheduleHashHistory[iteration] = new Stack<string>();
+                // Use empty string as previous hash
+                string initialHash = SystemSchedule.ComputeIncrementalHash("", null, scheduleValue);
+                ScheduleHashHistory[iteration].Push(initialHash);
+                return initialHash;
+            }
+            
+            // Get current iteration (last one in dictionary)
+            int currentIteration = ScheduleHashHistory.Keys.Max();
+            
+            // Get previous hash (top of current iteration's stack - the hash after event was added)
+            string previousHash = "";
+            if (ScheduleHashHistory[currentIteration].Count > 0)
+            {
+                previousHash = ScheduleHashHistory[currentIteration].Peek();
+            }
+            else
+            {
+                // If no hash for this iteration yet, get from previous iteration
+                previousHash = GetPreviousIterationHash();
+            }
+            
+            // Compute incremental hash: previous hash + no new event + new value
+            string hashAfterValueEval = SystemSchedule.ComputeIncrementalHash(previousHash, null, scheduleValue);
+            
+            // Push to current iteration's stack (second entry = after value evaluated)
+            ScheduleHashHistory[currentIteration].Push(hashAfterValueEval);
+            
+            return hashAfterValueEval;
+        }
+
+        /// <summary>
+        /// Static helper: Updates schedule hash after a new event is added
+        /// Wraps the instance method for clean integration into existing code
+        /// </summary>
+        public static void UpdateHashAfterEvent(SystemSchedule schedule, Event newEvent, double scheduleValue = 0.0)
+        {
+            schedule.ScheduleInfo.UpdateScheduleHashAfterEvent(newEvent, scheduleValue);
+        }
+
+        /// <summary>
+        /// Static helper: Updates schedule hash after value evaluation
+        /// Wraps the instance method for clean integration into existing code
+        /// </summary>
+        public static void UpdateHashAfterValueEvaluation(SystemSchedule schedule, double scheduleValue)
+        {
+            schedule.ScheduleInfo.UpdateScheduleHashAfterValueEvaluation(scheduleValue);
+        }
+
+        /// <summary>
+        /// Static helper: Copies schedule hash history from old schedule to new schedule
+        /// Used when creating a new schedule from an existing one (preserves traceability)
+        /// </summary>
+        public static void CopyHashHistoryFromOldSchedule(SystemSchedule newSchedule, SystemSchedule oldSchedule)
+        {
+            if (oldSchedule.ScheduleInfo.ScheduleHashHistory.Count == 0)
+                return;
+            
+            // Copy hash history from old schedule (preserve traceability)
+            newSchedule.ScheduleInfo.ScheduleHashHistory = new Dictionary<int, Stack<string>>();
+            foreach (var kvp in oldSchedule.ScheduleInfo.ScheduleHashHistory)
+            {
+                // Deep copy stacks (reverse to preserve order)
+                var stackCopy = new Stack<string>();
+                var reversed = new List<string>(kvp.Value);
+                reversed.Reverse();
+                foreach (var hash in reversed)
+                {
+                    stackCopy.Push(hash);
+                }
+                newSchedule.ScheduleInfo.ScheduleHashHistory[kvp.Key] = stackCopy;
+            }
         }
         
         /// <summary>
@@ -284,7 +559,8 @@ namespace HSFScheduler
                     break;
                 }
                 // Otherwise print the line! Top sched down! 
-                Console.WriteLine($" {schedule._scheduleID,12} | Val:{schedule.ScheduleValue,10:F2} | Ev:{schedule.AllStates.Events.Count,2} | {schedule.ScheduleInfo.EventString}");
+                string scheduleHashDisplay = finalScheduleSummary ? $" | Hash:{schedule.ScheduleInfo.ScheduleHash,16}" : "";
+                Console.WriteLine($" {schedule._scheduleID,12} | Val:{schedule.ScheduleValue,10:F2} | Ev:{schedule.AllStates.Events.Count,2}{scheduleHashDisplay} | {schedule.ScheduleInfo.EventString}");
                 if (showAssetTaskDetails)
                 {
                     PrintAssetTaskDetails(schedule);

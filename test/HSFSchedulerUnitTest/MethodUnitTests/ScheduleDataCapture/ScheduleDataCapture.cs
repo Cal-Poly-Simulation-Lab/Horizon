@@ -271,6 +271,9 @@ namespace HSFSchedulerUnitTest
                 string programOutputDir = Path.Combine(CurrentRunDir, "ProgramOutput");
                 Directory.CreateDirectory(programOutputDir);
                 SimParameters.OutputDirectory = programOutputDir;
+                
+                // Initialize hash history file tracking in contextual test output directory
+                HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(programOutputDir);
             }
             else
             {
@@ -281,6 +284,9 @@ namespace HSFSchedulerUnitTest
                     Directory.CreateDirectory(programOutputDir);
                 }
                 SimParameters.OutputDirectory = programOutputDir;
+                
+                // Ensure hash history file is initialized in contextual test output directory
+                HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(programOutputDir);
             }
         }
         
@@ -895,6 +901,15 @@ namespace HSFSchedulerUnitTest
         {
             // Call static Program method (single source of truth for hash calculation)
             Horizon.Program.GenerateAndSaveScheduleHashSet(schedules, CurrentRunDir);
+        }
+
+        /// <summary>
+        /// Saves blockchain schedule hash summary to file
+        /// Calls static Program.SaveScheduleHashBlockchainSummary (single source of truth)
+        /// </summary>
+        public void SaveScheduleHashBlockchainSummary(List<SystemSchedule> schedules)
+        {
+            Horizon.Program.SaveScheduleHashBlockchainSummary(schedules, CurrentRunDir);
         }
         
         #endregion
