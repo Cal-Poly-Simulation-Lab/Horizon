@@ -269,8 +269,10 @@ namespace HSFScheduler
             foreach (SystemSchedule systemSchedule in schedulesToCrop)
                 systemSchedule.ScheduleValue = scheduleEvaluator.Evaluate(systemSchedule);
 
-            // Sort the sysScheds by their values
-            schedulesToCrop.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
+            // Sort the sysScheds by their values, then by ScheduleID for deterministic ordering
+            // This ensures schedules with the same value are ordered consistently across runs
+            // OLD: schedulesToCrop.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
+            SortSchedulesDeterministic(schedulesToCrop, descending: false);
 
             // Delete the sysScheds that don't fit
             int numSched = schedulesToCrop.Count;
@@ -380,15 +382,38 @@ namespace HSFScheduler
                 return _canPerformList;
         }
 
+        /// <summary>
+        /// Sorts schedules deterministically by ScheduleValue (descending), then by content hash (ascending) for tie-breaking
+        /// This ensures schedules with the same value are ordered consistently across runs
+        /// </summary>
+        public static void SortSchedulesDeterministic(List<SystemSchedule> schedules, bool descending = true)
+        {
+            schedules.Sort((x, y) => 
+            {
+                int valueCompare = x.ScheduleValue.CompareTo(y.ScheduleValue);
+                if (valueCompare != 0)
+                    return valueCompare;
+                // Tie-breaker: Use content hash for deterministic ordering of equal-value schedules
+                // Content hash is based on schedule data (events, times, tasks) and provides stable ordering
+                string hashX = SystemSchedule.ComputeScheduleHash(x);
+                string hashY = SystemSchedule.ComputeScheduleHash(y);
+                return string.CompareOrdinal(hashX, hashY);
+            });
+            
+            if (descending)
+                schedules.Reverse();
+        }
+
         public static List<SystemSchedule> EvaluateAndSortCanPerformSchedules(Evaluator scheduleEvaluator, List<SystemSchedule> _canPerformList)
         {
            // Evaluate Schedule Step --> 
             foreach (SystemSchedule systemSchedule in _canPerformList)
                 systemSchedule.ScheduleValue = scheduleEvaluator.Evaluate(systemSchedule);
 
-            // Sort the schedule by their values:
-            _canPerformList.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
-            _canPerformList.Reverse();
+            // Sort the schedule by their values, then by ScheduleID for deterministic ordering
+            // OLD: _canPerformList.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
+            // OLD: _canPerformList.Reverse();
+            SortSchedulesDeterministic(_canPerformList, descending: true);
             
             // I used an interal can perform list to prevent conrfuision and not change attribute within static method. 
             // Need to return to caller (scheduelr) to update the list as sorted:

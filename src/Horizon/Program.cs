@@ -145,6 +145,15 @@ namespace Horizon
             program.LoadSubsystems();
             program.LoadEvaluator();
             program.CreateSchedules();
+            
+            // Generate hash set right after GenerateSchedules() returns (before EvaluateSchedules() sorts them)
+            // Set to true to enable hash generation
+            bool generateHashSet = true;
+            if (generateHashSet)
+            {
+                GenerateAndSaveScheduleHashSet(program.Schedules, program.OutputPath);
+            }
+            
             double maxSched = program.EvaluateSchedules();
 
             int i = 0;
@@ -797,9 +806,11 @@ namespace Horizon
                 }
             }
 
-            // Sort the sysScheds by their values
-            Schedules.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
-            Schedules.Reverse();
+            // Sort the sysScheds by their values, then by ScheduleID for deterministic ordering
+            // This ensures schedules with the same value are ordered consistently across runs
+            // OLD: Schedules.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
+            // OLD: Schedules.Reverse();
+            HSFScheduler.Scheduler.SortSchedulesDeterministic(Schedules, descending: true);
             double maxSched = Schedules[0].ScheduleValue;
             return maxSched;
         }
@@ -899,6 +910,36 @@ namespace Horizon
                 _consoleLogger = new ConsoleLogger(OutputPath, scenarioName, SimulationFilePath, ModelFilePath, TaskDeckFilePath, _runDateTime);
                 _consoleLogger.StartLogging();
             }
+        }
+
+        /// <summary>
+        /// Static method: Generates a hash set from all schedules and saves to file
+        /// Uses events, event times, and asset->task pairs per schedule to create unique hash IDs
+        /// Can be called from both Program.Main() and test runs
+        /// </summary>
+        public static void GenerateAndSaveScheduleHashSet(List<HSFScheduler.SystemSchedule> schedules, string outputPath)
+        {
+            var hashSet = new HashSet<string>();
+            
+            foreach (var schedule in schedules)
+            {
+                string hash = ComputeScheduleHash(schedule);
+                hashSet.Add(hash);
+            }
+            
+            // Save hash set to file (sorted for consistency)
+            string hashFilePath = Path.Combine(outputPath, "schedule_hashes.txt");
+            var sortedHashes = hashSet.OrderBy(h => h).ToList();
+            File.WriteAllLines(hashFilePath, sortedHashes);
+        }
+        
+        /// <summary>
+        /// Static method: Computes a hash for a schedule based on schedule data only (NOT ScheduleID).
+        /// Delegates to SystemSchedule.ComputeScheduleHash for consistent hash computation.
+        /// </summary>
+        public static string ComputeScheduleHash(HSFScheduler.SystemSchedule schedule)
+        {
+            return HSFScheduler.SystemSchedule.ComputeScheduleHash(schedule);
         }
 
     }

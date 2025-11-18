@@ -816,5 +816,63 @@ namespace HSFScheduler
             System.IO.File.WriteAllText(Path.Combine(scheduleWritePath, fileName + ".csv"), csv.ToString());
             csv.Clear();
         }
+
+        /// <summary>
+        /// Static method: Computes a hash for a schedule based on schedule data only (NOT ScheduleID).
+        /// Includes: schedule value, all events in chronological order, event times, and asset->task pairs (preserving object iteration order).
+        /// All double times truncated to 2 decimals to avoid precision errors.
+        /// ScheduleID is explicitly NOT included in the hash computation.
+        /// </summary>
+        public static string ComputeScheduleHash(SystemSchedule schedule)
+        {
+            // Extract ALL events in chronological order (repeatable order)
+            var eventsList = schedule.AllStates.Events.ToList();
+            eventsList.Reverse();  // Chronological order (oldest first) - ensures deterministic ordering
+            
+            // Build hash for all events: preserve object order (do NOT sort - allows different hashes for reflective symmetry)
+            var allEventHashes = new List<string>();
+            foreach (var evt in eventsList)
+            {
+                var eventTasks = new List<string>();
+                
+                // Extract asset->task pairs with times (truncated to 2 decimals to avoid precision errors)
+                // Preserve order as they exist in evt.Tasks (Dictionary iteration order)
+                foreach (var assetTaskPair in evt.Tasks)
+                {
+                    double taskStart = evt.GetTaskStart(assetTaskPair.Key);
+                    double taskEnd = evt.GetTaskEnd(assetTaskPair.Key);
+                    eventTasks.Add($"{assetTaskPair.Key.Name}:{assetTaskPair.Value.Name}:{taskStart:F2}:{taskEnd:F2}");
+                }
+                
+                // DO NOT SORT - preserve object order to allow different hashes for reflective symmetry
+                
+                // Event representation: tasks separated by '|', events separated by '||'
+                // All double times truncated to 2 decimals to avoid precision errors in hash calculation
+                double eventStart = 0;
+                double eventEnd = 0;
+                if (evt.Tasks.Count > 0)
+                {
+                    var firstAsset = evt.Tasks.Keys.First();
+                    eventStart = evt.GetEventStart(firstAsset);
+                    eventEnd = evt.GetEventEnd(firstAsset);
+                }
+                
+                string eventHash = $"e{eventStart:F2}:{eventEnd:F2}|{string.Join("|", eventTasks)}";
+                allEventHashes.Add(eventHash);
+            }
+            
+            // Combine schedule value (truncated to 2 decimals) + all events
+            // Order: value first, then events in chronological order (ensures repeatable hash)
+            // NOTE: ScheduleID is NOT included in hash computation - only schedule data
+            string eventsCombined = string.Join("||", allEventHashes);
+            string combined = $"value{schedule.ScheduleValue:F2}||{eventsCombined}";
+            
+            // Compute SHA256 hash
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                byte[] hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(combined));
+                return BitConverter.ToString(hashBytes).Replace("-", "").ToLower().Substring(0, 16);  // 16 char hash
+            }
+        }
     }
 }
