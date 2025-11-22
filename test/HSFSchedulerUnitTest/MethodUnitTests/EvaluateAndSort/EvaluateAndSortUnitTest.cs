@@ -9,7 +9,7 @@ using UserModel;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace HSFSchedulerUnitTest.MethodUnitTests.EvaluateAndSort
+namespace HSFSchedulerUnitTest
 {
     /// <summary>
     /// Unit tests for Scheduler.EvaluateAndSortCanPerformSchedules()

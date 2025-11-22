@@ -10,7 +10,7 @@ using UserModel;
 using System.IO;
 using Horizon;
 
-namespace HSFSchedulerUnitTest.MethodUnitTests.SortSchedulesDeterministic
+namespace HSFSchedulerUnitTest
 {
     /// <summary>
     /// Unit tests for Scheduler.SortSchedulesDeterministic()
