@@ -378,24 +378,13 @@ namespace HSFScheduler
                     // Get schedule hash (blockchain hash, consistent with ScheduleHash property)
                     // This must match what RecordCombinedHashHistory uses for lookup
                     string scheduleHash = potentialSchedule.ScheduleInfo.ScheduleHash;
-                    if (string.IsNullOrEmpty(scheduleHash))
-                    {
-                        // Fallback: compute full hash if blockchain hash not yet initialized
-                        scheduleHash = SystemSchedule.ComputeScheduleHash(potentialSchedule);
-                    }
-                    
+                    // if (string.IsNullOrEmpty(scheduleHash)) { scheduleHash = SystemSchedule.ComputeScheduleHash(potentialSchedule); }
+
                     // Check if schedule passes
                     bool checkResult = Checker.CheckSchedule(system, potentialSchedule);
                     
                     // Update state hash after CheckSchedule completes (blockchain-style)
-                    if (SimParameters.EnableHashTracking)
-                    {
-                        StateHistory.UpdateStateHashAfterCheck(
-                            potentialSchedule.AllStates, 
-                            currentTime, 
-                            checkResult, 
-                            scheduleHash);
-                    }
+                    if (SimParameters.EnableHashTracking) {StateHistory.UpdateStateHashAfterCheck(potentialSchedule.AllStates,currentTime, checkResult,scheduleHash); }
                     
                     if (checkResult) {
                         _canPerformList.Add(potentialSchedule);
@@ -403,7 +392,8 @@ namespace HSFScheduler
                     }
                 }
                 
-                // Record state hash history after CheckSchedule (sorted by schedule hash)
+                // Record state hash history after CheckSchedule (sorted by schedule hash) 
+                // (This is for all schedules even if they wont pass check --> track failed schedules too)
                 if (SimParameters.EnableHashTracking && potentialSystemSchedules.Count > 0)
                 {
                     StateHistory.RecordStateHashHistory(potentialSystemSchedules, "Check", currentTime);
@@ -440,7 +430,7 @@ namespace HSFScheduler
                 return string.CompareOrdinal(hashX, hashY);
             });
             
-            // Record hash history after sorting
+            // Record hash history after sorting (ScheduleHashHistory)
             SystemScheduleInfo.RecordSortHashHistory(schedules, context);
         }
 
