@@ -13,25 +13,14 @@ bin/
 [Dd]ebug/
 
 # Horizon output (should be self-generated within repo):
-# Keep README.md and last_run as examples, ignore everything else in output/
-/output/*
-!/output/README.md
-!/output/last_run*/
-**/**/output/*
-**/**/**/output/*
-**/**/**/**/output/*
-
-# Also ignore output dirs in subdirectories
+output/
+**/output/
+**/**/output/
+**/**/**/output/
+**/**/**/**/output/
 **/AccessReport.*
 **/**/AccessReport.*
 **/**/**/AccessReport.*
-**/**/output/*
-**/**/**/output/*
-
-# Sample output directories (Eric's scriptedpy outputs):
-samples/**/output/
-samples/**/*_Output/
- */
 
 # Exclude my notes:
 **/notes.*

@@ -1,9 +1,0 @@
-
-Friday July 16th 3:59p:
-git commit -m "First push towards creating SchedulerUnitTest.cs ... Currently, trying to create Simulation Input Files (Model, Task, Sim) that can be loaded in order to test the Schedule
-r. A `SchedulerTestHelper` method was created under `namespace HSFSchedulerUnitTest` to help with all the loading. Trying to get that to work. Right now having some issues with `LoadSubsys
-tems` for the (placeholder) 'SchedulerSubTest.cs' that is trying to load via the `SchedulerTestHelper` method. 'HSF_Helper.py' errors appear to be present, but it is failing within the `Su
-bsystemFactory.cs` > `GetSubsytem` before the first line of code of the method is even executed. Will continue (hopefully with Dr. Mehiel's help) later. Future work is to iron outnthe kink
-s in the subsystem loading, then to make sure that we can invoke `CreateSchedules` so that we can step into the program with our custom Simulation Input Files. At that point, we will need 
-t make sure that we create files that correspond to the unit testing... The first one will be to test a 1-asset 1-task schedule to make sure it outputs accordingly... Then, will need to de
-al with schedule overlapping (from subsystems setting task end times) to see what happens to the program... More on that later."
