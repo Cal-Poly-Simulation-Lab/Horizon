@@ -117,10 +117,15 @@ namespace HSFSystem
                 NewState = proposedEvent.State;
                 bool result = false;
                 try
-                {
+                {   
                     result = this.CanPerform(proposedEvent, environment);
                     // Enforce that Task Start and End are within EVENT task start and end
                     // Also report this out. Where to report? --> 
+                    if (CheckTaskStartAndEnd(proposedEvent, Asset)){
+                        return result;
+                    }
+                    return false; // Task Start and End are not within Event Start and End so return false
+
                 }
                 catch (Exception ex)
                 {
@@ -143,8 +148,14 @@ namespace HSFSystem
                             IsEvaluated = true;
                             Task = proposedEvent.GetAssetTask(Asset); //Find the correct task for the subsystem
                             NewState = proposedEvent.State;
-                            if (!CanPerform(proposedEvent, environment))
-                                return false;
+                            bool result = CanPerform(proposedEvent, environment);
+                            // Enforce that Task Start and End are within EVENT task start and end
+                            // Also report this out. Where to report? --> 
+                            if (CheckTaskStartAndEnd(proposedEvent, Asset)){
+                                return result;
+                            }
+                            return false; // Task Start and End are not within Event Start and End so return false
+                            
                             //  Need to deal with this issue in next update
                             //double te = proposedEvent.GetTaskEnd(Asset);
                             //double ee = proposedEvent.GetEventEnd(Asset);
@@ -159,6 +170,20 @@ namespace HSFSystem
                 return true;
             }
 
+        }
+        private bool CheckTaskStartAndEnd(Event proposedEvent, Asset asset)
+        {
+                    if (proposedEvent.GetTaskStart(Asset) < proposedEvent.GetEventStart(Asset) || 
+                        proposedEvent.GetTaskEnd(Asset)   < proposedEvent.GetEventStart(Asset) ||
+                        proposedEvent.GetTaskStart(Asset) > proposedEvent.GetEventEnd(Asset)   ||
+                        proposedEvent.GetTaskEnd(Asset)   > proposedEvent.GetEventEnd(Asset)   )
+                    {
+                        log.Info($"Task Start and End are not within Event Start and End for subsystem {Name}"
+                                + $"Task Start: {proposedEvent.GetTaskStart(Asset)}, Event Start: {proposedEvent.GetEventStart(Asset)},"
+                                + $"Task End: {proposedEvent.GetTaskEnd(Asset)}, Event End: {proposedEvent.GetEventEnd(Asset)}");
+                        return false;
+                    }
+                    return true;
         }
         /// <summary>
         /// The default canExtend function. May be over written for additional functionality.
