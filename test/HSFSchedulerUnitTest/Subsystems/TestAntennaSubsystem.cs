@@ -18,11 +18,10 @@ namespace HSFSystem
     public class TestAntennaSubsystem: Subsystem
     {
         // Parameters (configuration, not state!)
-        public double? _transmissionPowerRequired {get; private set;}
         
         // State keys (references to where state lives in SystemState)
         protected StateVariableKey<double> NUM_IMAGE_KEY;
-        protected StateVariableKey<int> TRANSMISSION_KEY;
+        protected StateVariableKey<double> TRANSMISSION_KEY;
         
         public TestAntennaSubsystem(JObject subJson, Asset asset) : base(subJson, asset)
         {
@@ -43,14 +42,11 @@ namespace HSFSystem
             double numImages = state.GetLastValue(NUM_IMAGE_KEY).Item2;
             if (taskType == "TRANSMIT")
             {
-                if (numImages <= 0)
-                {
-                    return false; // cannot transmit if nothing stored
-                }
+                if (numImages <= 0) { return false; } // cannot transmit if nothing stored
 
                 state.AddValue(NUM_IMAGE_KEY, proposedEvent.GetTaskEnd(Asset), numImages - 1);
 
-                int transmissions = state.GetLastValue(TRANSMISSION_KEY).Item2;
+                double transmissions = state.GetLastValue(TRANSMISSION_KEY).Item2;
                 state.AddValue(TRANSMISSION_KEY, proposedEvent.GetTaskEnd(Asset), transmissions + 1);
                 return true;
             }
@@ -65,10 +61,13 @@ namespace HSFSystem
                 this.NUM_IMAGE_KEY = stateKey;
             }
             else if (stateKey.VariableName.Equals(Asset.Name + ".num_transmissions"))
+            {
                 this.TRANSMISSION_KEY = stateKey;
-            else{
-                throw new ArgumentException("Attempting to set unknown TestAntenna state variable key.", stateKey, stateKey.VariableName);
-                }
+            }
+            else
+            {
+                throw new ArgumentException($"Attempting to set unknown TestAntenna state variable key '{stateKey.VariableName}'.", nameof(stateKey));
+            }
         }
     }
 }

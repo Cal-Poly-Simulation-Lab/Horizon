@@ -48,8 +48,8 @@
             "states": [
               {
                 "type": "double",
-                "name": "power_key",
-                "key": "power",
+                "name": "test_power_key",
+                "key": "test_power",
                 "value": 75
               }
             ]
@@ -62,7 +62,7 @@
             "parameters": [],
             "states": [
               {
-                "type": "int",
+                "type": "double",
                 "name": "transmission_key",
                 "key": "num_transmissions",
                 "value": 0
@@ -83,7 +83,7 @@
             ],
             "states": [
               {
-                "type": "int",
+                "type": "double",
                 "name": "num_image_key",
                 "key": "num_images_stored",
                 "value": 0
@@ -151,8 +151,8 @@
             "states": [
               {
                 "type": "double",
-                "name": "power_key",
-                "key": "power",
+                "name": "test_power_key",
+                "key": "test_power",
                 "value": 75
               }
             ]
@@ -165,7 +165,7 @@
             "parameters": [],
             "states": [
               {
-                "type": "int",
+                "type": "double",
                 "name": "transmission_key",
                 "key": "num_transmissions",
                 "value": 0
@@ -186,7 +186,7 @@
             ],
             "states": [
               {
-                "type": "int",
+                "type": "double",
                 "name": "num_image_key",
                 "key": "num_images_stored",
                 "value": 0
@@ -200,117 +200,47 @@
 
     "dependencies": [
       {
-        "subsystemName": "EOSensor",
-        "assetName": "Asset1",
-        "depSubsystemName": "ADCS",
-        "depAssetName": "Asset1"
-      },
-      {
-        "subsystemName": "SSDR",
-        "assetName": "Asset1",
-        "depSubsystemName": "EOSensor",
-        "depAssetName": "Asset1",
-        "fcnName": "SSDR_asset1_from_EOSensor_asset1"
-      },
-      {
-        "subsystemName": "Comm",
-        "assetName": "Asset1",
-        "depSubsystemName": "SSDR",
-        "depAssetName": "Asset1",
-        "fcnName": "Comm_asset1_from_SSDR_asset1"
+        "subsystemName": "Antenna",
+        "assetName": "asset1",
+        "depSubsystemName": "Camera",
+        "depAssetName": "asset1"
       },
       {
         "subsystemName": "Power",
-        "assetName": "Asset1",
-        "depSubsystemName": "Comm",
-        "depAssetName": "Asset1",
-        "fcnName": "Power_asset1_from_Comm_asset1"
+        "assetName": "asset1",
+        "depSubsystemName": "Camera",
+        "depAssetName": "asset1"
       },
       {
         "subsystemName": "Power",
-        "assetName": "Asset1",
-        "depSubsystemName": "ADCS",
-        "depAssetName": "Asset1",
-        "fcnName": "Power_asset1_from_ADCS_asset1"
+        "assetName": "asset1",
+        "depSubsystemName": "Antenna",
+        "depAssetName": "asset1"
+      },
+      {
+        "subsystemName": "Antenna",
+        "assetName": "asset2",
+        "depSubsystemName": "Camera",
+        "depAssetName": "asset2"
       },
       {
         "subsystemName": "Power",
-        "assetName": "Asset1",
-        "depSubsystemName": "EOSensor",
-        "depAssetName": "Asset1",
-        "fcnName": "Power_asset1_from_EOSensor_asset1"
+        "assetName": "asset2",
+        "depSubsystemName": "Camera",
+        "depAssetName": "asset2"
       },
       {
         "subsystemName": "Power",
-        "assetName": "Asset1",
-        "depSubsystemName": "SSDR",
-        "depAssetName": "Asset1",
-        "fcnName": "Power_asset1_from_SSDR_asset1"
-      },
-      {
-        "subsystemName": "EOSensor",
-        "assetName": "Asset2",
-        "depSubsystemName": "ADCS",
-        "depAssetName": "Asset2"
-      },
-      {
-        "subsystemName": "SSDR",
-        "assetName": "Asset2",
-        "depSubsystemName": "EOSensor",
-        "depAssetName": "Asset2",
-        "fcnName": "SSDR_asset1_from_EOSensor_asset1"
-      },
-      {
-        "subsystemName": "Comm",
-        "assetName": "Asset2",
-        "depSubsystemName": "SSDR",
-        "depAssetName": "Asset2",
-        "fcnName": "Comm_asset1_from_SSDR_asset1"
-      },
-      {
-        "subsystemName": "Power",
-        "assetName": "Asset2",
-        "depSubsystemName": "Comm",
-        "depAssetName": "Asset2",
-        "fcnName": "Power_asset1_from_Comm_asset1"
-      },
-      {
-        "subsystemName": "Power",
-        "assetName": "Asset2",
-        "depSubsystemName": "ADCS",
-        "depAssetName": "Asset2",
-        "fcnName": "Power_asset1_from_ADCS_asset1"
-      },
-      {
-        "subsystemName": "Power",
-        "assetName": "Asset2",
-        "depSubsystemName": "EOSensor",
-        "depAssetName": "Asset2",
-        "fcnName": "Power_asset1_from_EOSensor_asset1"
-      },
-      {
-        "subsystemName": "Power",
-        "assetName": "Asset2",
-        "depSubsystemName": "SSDR",
-        "depAssetName": "Asset2",
-        "fcnName": "Power_asset1_from_SSDR_asset1"
+        "assetName": "asset2",
+        "depSubsystemName": "Antenna",
+        "depAssetName": "asset2"
       }
     ],
+    
     "evaluator": {
       "type": "TargetValueEvaluator",
       "className": "EVAL",
-      "states": [
-        {
-          "asset": "Asset1",
-          "key": "DataBufferFillRatio",
-          "type": "double"
-        },
-        {
-          "asset": "Asset2",
-          "key": "DataBufferFillRatio",
-          "type": "double"
-        }
-      ]
+      "states": []
     }
   }
 }
