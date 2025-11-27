@@ -18,18 +18,19 @@ namespace HSFSystem
     public class TestCameraSubsystem : Subsystem
     {
         // Parameters (configuration, not state!)
-        public double? _maxImages {get; private set;}
+        protected double maxImages;
         
         // State key (reference to where state lives in SystemState)
         protected StateVariableKey<double> NUM_IMAGE_KEY;
         
         public TestCameraSubsystem(JObject subJson, Asset asset) : base(subJson, asset)
         {
-             // Load maxImages Paramter
-            if (JsonLoader<double>.TryGetValue("maxImages", subJson, out double maxImages))
-            {
-                _maxImages = maxImages;
-            }
+            this.GetParameterByName<double>(subJson, nameof(maxImages), out maxImages);
+            //  // Load maxImages Paramter
+            // if (JsonLoader<double>.TryGetValue("maxImages", subJson, out double maxImages))
+            // {
+            //     _maxImages = maxImages;
+            // }
         }
         
         // Public getter for testing
@@ -47,8 +48,8 @@ namespace HSFSystem
             double numImages = state.GetLastValue(NUM_IMAGE_KEY).Item2; // last power value
             if (taskType == "IMAGING")
             {
-                if (numImages >= _maxImages) { return false; } // Fail if max images reached. 
-                state.AddValue(NUM_IMAGE_KEY, proposedEvent.GetTaskEnd(Asset), numImages + 1);
+                if (numImages >= maxImages) { return false; } // Fail if max images reached. 
+                state.AddValue(NUM_IMAGE_KEY, proposedEvent.GetTaskStart(Asset) + 0.1, numImages + 1);
                 return true;
             }
             return true; // Return true and do nothing if its not an imaging task. 
@@ -58,7 +59,7 @@ namespace HSFSystem
         public override void SetStateVariableKey(dynamic stateKey)
         {
             // Store the KEY reference (not the value!)
-            if (stateKey.VariableName.Equals(Asset.Name + ".num_images_stored"))
+            if (stateKey.VariableName.Equals(Asset.Name.ToLower() + ".num_images_stored"))
             {
                 this.NUM_IMAGE_KEY = stateKey;
             }

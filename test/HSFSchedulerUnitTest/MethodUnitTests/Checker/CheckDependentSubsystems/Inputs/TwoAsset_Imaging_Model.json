@@ -22,35 +22,35 @@
               {
                 "name": "requiredPowerImage",
                 "type": "double",
-                "value": 10
+                "value": 10.0
               },
               {
                 "name": "requiredPowerTrasmit",
                 "type": "double",
-                "value": 20
+                "value": 20.0
               },
               {
                 "name": "rechargeValue",
                 "type": "double",
-                "value":  35
+                "value":  25.0
               },
               {
                 "name": "maxPower",
                 "type": "double",
-                "value":  100
+                "value":  100.0
               },
               {
                 "name": "minPower",
                 "type": "double",
-                "value":  0
+                "value":  0.0
               }
             ],
             "states": [
               {
                 "type": "double",
-                "name": "test_power_key",
-                "key": "test_power",
-                "value": 75
+                "name": "checker_power_key",
+                "key": "checker_power",
+                "value": 75.0
               }
             ]
           },
@@ -65,7 +65,7 @@
                 "type": "double",
                 "name": "transmission_key",
                 "key": "num_transmissions",
-                "value": 0
+                "value": 0.0
               }
             ]
           },
@@ -78,7 +78,7 @@
               {
                 "name": "maxImages",
                 "type": "double",
-                "value": 10
+                "value": 10.0
               }
             ],
             "states": [
@@ -86,22 +86,12 @@
                 "type": "double",
                 "name": "num_image_key",
                 "key": "num_images_stored",
-                "value": 0
+                "value": 0.0
               }
             ]
           }
         ],
         "constraints": [
-          {
-            "value": 10,
-            "subsystemName": "Power",
-            "type": "FAIL_IF_LOWER",
-            "name": "min_power_10_watt",
-            "state": {
-              "type": "double",
-              "key": "power"
-            }
-          }
         ]
       },
       {
@@ -125,35 +115,35 @@
               {
                 "name": "rechargeValue",
                 "type": "double",
-                "value":  25
+                "value":  25.0
               },
               {
                 "name": "requiredPowerImage",
                 "type": "double",
-                "value": 10
+                "value": 10.0
               },
               {
                 "name": "requiredPowerTrasmit",
                 "type": "double",
-                "value": 20
+                "value": 20.0
               },
               {
                 "name": "maxPower",
                 "type": "double",
-                "value":  100
+                "value":  100.0
               },
               {
                 "name": "minPower",
                 "type": "double",
-                "value":  0
+                "value":  0.0
               }
             ],
             "states": [
               {
                 "type": "double",
-                "name": "test_power_key",
-                "key": "test_power",
-                "value": 75
+                "name": "checker_power_key",
+                "key": "checker_power",
+                "value": 75.0
               }
             ]
           },
@@ -168,7 +158,7 @@
                 "type": "double",
                 "name": "transmission_key",
                 "key": "num_transmissions",
-                "value": 0
+                "value": 0.0
               }
             ]
           },
@@ -181,7 +171,7 @@
               {
                 "name": "maxImages",
                 "type": "double",
-                "value": 10
+                "value": 10.0
               }
             ],
             "states": [
@@ -189,7 +179,7 @@
                 "type": "double",
                 "name": "num_image_key",
                 "key": "num_images_stored",
-                "value": 0
+                "value": 0.0
               }
             ]
           }

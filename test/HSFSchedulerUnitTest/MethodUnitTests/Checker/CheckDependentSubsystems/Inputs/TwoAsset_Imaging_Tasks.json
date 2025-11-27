@@ -3,11 +3,11 @@
     {
       "name": "RechargeTask1",
       "type": "RECHARGE",
-      "maxTimes": 10,
+      "maxTimes": 1000,
       "target": {
         "name": "asset",
         "type": "AssetTarget",
-        "value": 0,
+        "value": 1,
         "dynamicState": {
           "type": "NULL_STATE",
           "integratorType": "None",
@@ -25,7 +25,7 @@
     {
       "name": "Imaging Task 1",
       "type": "IMAGING",
-      "maxTimes": 10,
+      "maxTimes": 100,
       "target": {
         "name": "Any",
         "type": "AnyTarget",
@@ -47,7 +47,7 @@
     {
       "name": "Transmit Task 1",
       "type": "TRANSMIT",
-      "maxTimes": 10,
+      "maxTimes": 100,
       "target": {
         "name": "Any",
         "type": "AnyTarget",

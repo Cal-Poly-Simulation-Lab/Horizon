@@ -662,6 +662,7 @@ namespace HSFScheduler
         private static Dictionary<string, Dictionary<string, SortedList<double, double>>> ExtractAllStatesWithTime(SystemSchedule schedule)
         {
             var result = new Dictionary<string, Dictionary<string, SortedList<double, double>>>();
+            bool debugStateOutput = Environment.GetEnvironmentVariable("HSF_DEBUG_STATE_OUTPUT") == "1";
             
             SystemState sysState = null;
             if (schedule.AllStates.Events.Count != 0)
@@ -701,7 +702,29 @@ namespace HSFScheduler
                 sysState = sysState.PreviousState;
             }
             
+            if (debugStateOutput)
+            {
+                Console.WriteLine($"[StateDebug] Schedule {_scheduleDebugId(schedule)} captured state snapshots:");
+                foreach (var assetEntry in result.OrderBy(k => k.Key))
+                {
+                    foreach (var stateEntry in assetEntry.Value.OrderBy(k => k.Key))
+                    {
+                        double lastValue = stateEntry.Value.Count > 0 ? stateEntry.Value.Values.Last() : double.NaN;
+                        Console.WriteLine($"  - {assetEntry.Key}.{stateEntry.Key}: {stateEntry.Value.Count} entries (last={lastValue})");
+                    }
+                }
+            }
+            
             return result;
+        }
+
+        private static string _scheduleDebugId(SystemSchedule schedule)
+        {
+            if (!string.IsNullOrEmpty(schedule._scheduleID))
+            {
+                return schedule._scheduleID;
+            }
+            return $"value{schedule.ScheduleValue:F2}";
         }
 
         public static void WriteSchedule(SystemSchedule schedule, String scheduleWritePath) //TODO: Unit Test.

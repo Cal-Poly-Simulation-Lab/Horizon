@@ -44,10 +44,10 @@ namespace HSFSystem
             {
                 if (numImages <= 0) { return false; } // cannot transmit if nothing stored
 
-                state.AddValue(NUM_IMAGE_KEY, proposedEvent.GetTaskEnd(Asset), numImages - 1);
+                state.AddValue(NUM_IMAGE_KEY, proposedEvent.GetTaskStart(Asset) + 0.1, numImages - 1);
 
                 double transmissions = state.GetLastValue(TRANSMISSION_KEY).Item2;
-                state.AddValue(TRANSMISSION_KEY, proposedEvent.GetTaskEnd(Asset), transmissions + 1);
+                state.AddValue(TRANSMISSION_KEY, proposedEvent.GetTaskStart(Asset) + 0.1 , transmissions + 1);
                 return true;
             }
             return true; // Return true and do nothing if its not an imaging task. 
@@ -56,11 +56,11 @@ namespace HSFSystem
         public override void SetStateVariableKey(dynamic stateKey)
         {
             // Store the KEY reference (not the value!)
-            if (stateKey.VariableName.Equals(Asset.Name + ".num_images_stored"))
+            if (stateKey.VariableName.Equals(Asset.Name.ToLower() + ".num_images_stored"))
             {
                 this.NUM_IMAGE_KEY = stateKey;
             }
-            else if (stateKey.VariableName.Equals(Asset.Name + ".num_transmissions"))
+            else if (stateKey.VariableName.Equals(Asset.Name.ToLower() + ".num_transmissions"))
             {
                 this.TRANSMISSION_KEY = stateKey;
             }

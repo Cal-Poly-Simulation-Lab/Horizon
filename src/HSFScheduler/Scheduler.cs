@@ -199,6 +199,9 @@ namespace HSFScheduler
             // Final crop
             systemSchedules = CropToMaxSchedules(systemSchedules, Scheduler.emptySchedule, ScheduleEvaluator, logging: false);
             
+            // Ensure final output is sorted best-to-worst (cropping can prepend the empty schedule)
+            SortSchedulesDeterministic(systemSchedules, descending: true, context: "FinalSummary");
+            
             schedulerStopwatch.Stop();
             
             // Print final schedules in both "all" and "kept" modes

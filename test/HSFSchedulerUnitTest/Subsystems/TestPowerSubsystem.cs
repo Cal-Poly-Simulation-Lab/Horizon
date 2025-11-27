@@ -18,41 +18,47 @@ namespace HSFSystem
     public class TestPowerSubsystem : Subsystem
     {
         // Parameters (configuration, not state!)
-        public double? _rechargeValue {get; private set;}
-        public double? _maxPower {get; private set;}
-        public double? _minPower {get; private set;}
-        public double? _transmitPowerRequired {get; private set;}
-        public double? _requiredPowerImage {get; private set;}
+        protected double rechargeValue;
+        protected double maxPower;
+        protected double minPower;
+        protected double transmitPowerRequired;
+        protected double requiredPowerImage;
         // State key (reference to where state lives in SystemState)
-        protected StateVariableKey<double> TEST_POWER_KEY;
+        protected StateVariableKey<double> CHECKER_POWER_KEY;
         
         public TestPowerSubsystem(JObject subJson, Asset asset) : base(subJson, asset)
         {
+            this.GetParameterByName<double>(subJson, nameof(rechargeValue), out rechargeValue);
+            this.GetParameterByName<double>(subJson, nameof(maxPower), out maxPower);
+            this.GetParameterByName<double>(subJson, nameof(minPower), out minPower);
+            this.GetParameterByName<double>(subJson, nameof(transmitPowerRequired), out transmitPowerRequired);
+            this.GetParameterByName<double>(subJson, nameof(requiredPowerImage), out requiredPowerImage);
+            Console.WriteLine($"[TestPowerSubsystem] {Asset.Name}: recharge={rechargeValue}, max={maxPower}, min={minPower}, transmit={transmitPowerRequired}, image={requiredPowerImage}");
             // Load rechargeValue Parameter
-            if (JsonLoader<double>.TryGetValue("rechargeValue", subJson, out double rechargeValue))
-            {
-                this._rechargeValue = rechargeValue;
-            }
-            // Load maxPower Paramter
-            if (JsonLoader<double>.TryGetValue("MaxPower", subJson, out double maxPower))
-            {
-                this._maxPower = maxPower;
-            }
-            // Load minPower Parameter
-            if (JsonLoader<double>.TryGetValue("MinPower", subJson, out double minPower))
-            {
-                _minPower = minPower;
-            }
-            // Load maxPower Paramter
-            if (JsonLoader<double>.TryGetValue("requiredPowerTrasmit", subJson, out double requiredPowerTrasmit))
-            {
-                this._transmitPowerRequired = requiredPowerTrasmit;
-            }  
-            // Load maxPower Paramter
-            if (JsonLoader<double>.TryGetValue("requiredPowerImage", subJson, out double requiredPowerImage))
-            {
-                this._requiredPowerImage = requiredPowerImage;
-            } 
+            // if (JsonLoader<double>.TryGetValue("rechargeValue", subJson, out double rechargeValue))
+            // {
+            //     this.rechargeValue = rechargeValue;
+            // }
+            // // Load maxPower Paramter
+            // if (JsonLoader<double>.TryGetValue("MaxPower", subJson, out double maxPower))
+            // {
+            //     this.maxPower = maxPower;
+            // }
+            // // Load minPower Parameter
+            // if (JsonLoader<double>.TryGetValue("MinPower", subJson, out double minPower))
+            // {
+            //     this.minPower = minPower;
+            // }
+            // // Load maxPower Paramter
+            // if (JsonLoader<double>.TryGetValue("requiredPowerTrasmit", subJson, out double requiredPowerTrasmit))
+            // {
+            //     this.transmitPowerRequired = requiredPowerTrasmit;
+            // }  
+            // // Load maxPower Paramter
+            // if (JsonLoader<double>.TryGetValue("requiredPowerImage", subJson, out double requiredPowerImage))
+            // {
+            //     this.requiredPowerImage = requiredPowerImage;
+            // } 
 
         }
         
@@ -68,24 +74,25 @@ namespace HSFSystem
             var taskType = task.Type.ToUpper();
 
             // Get the last power value from the state
-            double lastPower = state.GetLastValue(TEST_POWER_KEY).Item2; // last power value
+            double lastPower = state.GetLastValue(CHECKER_POWER_KEY).Item2; // last power value
+            //Console.WriteLine($"[Power] {Asset.Name} task={task?.Name} type={taskType} last={lastPower}");
 
             if (taskType == "RECHARGE")
             {
-                if (lastPower + _rechargeValue > _maxPower) { return false; } // Fail if recharge would exceed max charge. 
-                state.AddValue(TEST_POWER_KEY, proposedEvent.GetTaskEnd(Asset), lastPower + _rechargeValue);
+                if (lastPower + rechargeValue > maxPower) { return false; } // Fail if recharge would exceed max charge. 
+                state.AddValue(CHECKER_POWER_KEY, proposedEvent.GetTaskStart(Asset) + 0.1, lastPower + rechargeValue);
                 return true;
             }
-            else if (taskType == "TRASMIT")
+            else if (taskType == "TRANSMIT")
             {
-                if (lastPower < _transmitPowerRequired) { return false; } // Fail if not enough power for transmission. 
-                state.AddValue(TEST_POWER_KEY, proposedEvent.GetTaskEnd(Asset), lastPower - _transmitPowerRequired);
+                if (lastPower < transmitPowerRequired) { return false; } // Fail if not enough power for transmission. 
+                state.AddValue(CHECKER_POWER_KEY, proposedEvent.GetTaskStart(Asset) + 0.1, lastPower - transmitPowerRequired);
                 return true;
             }
             else if (taskType == "IMAGING")
             {
-                if (lastPower < _requiredPowerImage) { return false; } // Fail if not enough power for imaging. 
-                state.AddValue(TEST_POWER_KEY, proposedEvent.GetTaskEnd(Asset), lastPower - _requiredPowerImage);
+                if (lastPower < requiredPowerImage) { return false; } // Fail if not enough power for imaging. 
+                state.AddValue(CHECKER_POWER_KEY, proposedEvent.GetTaskStart(Asset) + 0.1, lastPower - requiredPowerImage);
                 return true;
             }
             return false; // Fail if not a valid task type. 
@@ -95,9 +102,9 @@ namespace HSFSystem
         public override void SetStateVariableKey(dynamic stateKey)
         {
             // Store the KEY reference (not the value!)
-            if (stateKey.VariableName.Equals(Asset.Name + ".test_power"))
+            if (stateKey.VariableName.Equals(Asset.Name.ToLower() + ".checker_power"))
             {
-                this.TEST_POWER_KEY = stateKey;
+                this.CHECKER_POWER_KEY = stateKey;
             }
             else
             {
