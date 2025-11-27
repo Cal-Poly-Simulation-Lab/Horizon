@@ -1,0 +1,316 @@
+{
+  "model": {
+    "assets": [
+      {
+        "name": "asset1",
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "stateData": [ 7378.137, 0, 0, 0, 6.02088, 4.215866 ],
+          "Eoms": {
+            "type": "None"
+          },
+          "integratorOptions": {},
+          "integratorParameters": []
+        },
+        "subsystems": [
+          {
+            "type": "scriptedcs",
+            "src": "test/HSFSchedulerUnitTest/Subsystems/TestPowerSubsystem.cs",
+            "className": "TestPowerSubsystem",
+            "name": "Power",
+            "parameters": [
+              {
+                "name": "requiredPowerImage",
+                "type": "double",
+                "value": 10
+              },
+              {
+                "name": "requiredPowerTrasmit",
+                "type": "double",
+                "value": 20
+              },
+              {
+                "name": "rechargeValue",
+                "type": "double",
+                "value":  35
+              },
+              {
+                "name": "maxPower",
+                "type": "double",
+                "value":  100
+              },
+              {
+                "name": "minPower",
+                "type": "double",
+                "value":  0
+              }
+            ],
+            "states": [
+              {
+                "type": "double",
+                "name": "power_key",
+                "key": "power",
+                "value": 75
+              }
+            ]
+          },
+          {
+            "type": "scriptedcs",
+            "src": "test/HSFSchedulerUnitTest/Subsystems/TestAntennaSubsystem.cs",
+            "className": "TestAntennaSubsystem",
+            "name": "Antenna",
+            "parameters": [],
+            "states": [
+              {
+                "type": "int",
+                "name": "transmission_key",
+                "key": "num_transmissions",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "type": "scriptedcs",
+            "src": "test/HSFSchedulerUnitTest/Subsystems/TestCameraSubsystem.cs",
+            "className": "TestCameraSubsystem",
+            "name": "Camera",
+            "parameters": [
+              {
+                "name": "maxImages",
+                "type": "double",
+                "value": 10
+              }
+            ],
+            "states": [
+              {
+                "type": "int",
+                "name": "num_image_key",
+                "key": "num_images_stored",
+                "value": 0
+              }
+            ]
+          }
+        ],
+        "constraints": [
+          {
+            "value": 10,
+            "subsystemName": "Power",
+            "type": "FAIL_IF_LOWER",
+            "name": "min_power_10_watt",
+            "state": {
+              "type": "double",
+              "key": "power"
+            }
+          }
+        ]
+      },
+      {
+        "name": "asset2",
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "stateData": [ 7378.137, 0, 0, 0, 6.02088, 4.215866 ],
+          "Eoms": {
+            "type": "None"
+          },
+          "integratorOptions": {},
+          "integratorParameters": []
+        },
+        "subsystems": [
+          {
+            "type": "scriptedcs",
+            "src": "test/HSFSchedulerUnitTest/Subsystems/TestPowerSubsystem.cs",
+            "className": "TestPowerSubsystem",
+            "name": "Power",
+            "parameters": [
+              {
+                "name": "rechargeValue",
+                "type": "double",
+                "value":  25
+              },
+              {
+                "name": "requiredPowerImage",
+                "type": "double",
+                "value": 10
+              },
+              {
+                "name": "requiredPowerTrasmit",
+                "type": "double",
+                "value": 20
+              },
+              {
+                "name": "maxPower",
+                "type": "double",
+                "value":  100
+              },
+              {
+                "name": "minPower",
+                "type": "double",
+                "value":  0
+              }
+            ],
+            "states": [
+              {
+                "type": "double",
+                "name": "power_key",
+                "key": "power",
+                "value": 75
+              }
+            ]
+          },
+          {
+            "type": "scriptedcs",
+            "src": "test/HSFSchedulerUnitTest/Subsystems/TestAntennaSubsystem.cs",
+            "className": "TestAntennaSubsystem",
+            "name": "Antenna",
+            "parameters": [],
+            "states": [
+              {
+                "type": "int",
+                "name": "transmission_key",
+                "key": "num_transmissions",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "type": "scriptedcs",
+            "src": "test/HSFSchedulerUnitTest/Subsystems/TestCameraSubsystem.cs",
+            "className": "TestCameraSubsystem",
+            "name": "Camera",
+            "parameters": [
+              {
+                "name": "maxImages",
+                "type": "double",
+                "value": 10
+              }
+            ],
+            "states": [
+              {
+                "type": "int",
+                "name": "num_image_key",
+                "key": "num_images_stored",
+                "value": 0
+              }
+            ]
+          }
+        ],
+        "constraints": []
+      }
+    ],
+
+    "dependencies": [
+      {
+        "subsystemName": "EOSensor",
+        "assetName": "Asset1",
+        "depSubsystemName": "ADCS",
+        "depAssetName": "Asset1"
+      },
+      {
+        "subsystemName": "SSDR",
+        "assetName": "Asset1",
+        "depSubsystemName": "EOSensor",
+        "depAssetName": "Asset1",
+        "fcnName": "SSDR_asset1_from_EOSensor_asset1"
+      },
+      {
+        "subsystemName": "Comm",
+        "assetName": "Asset1",
+        "depSubsystemName": "SSDR",
+        "depAssetName": "Asset1",
+        "fcnName": "Comm_asset1_from_SSDR_asset1"
+      },
+      {
+        "subsystemName": "Power",
+        "assetName": "Asset1",
+        "depSubsystemName": "Comm",
+        "depAssetName": "Asset1",
+        "fcnName": "Power_asset1_from_Comm_asset1"
+      },
+      {
+        "subsystemName": "Power",
+        "assetName": "Asset1",
+        "depSubsystemName": "ADCS",
+        "depAssetName": "Asset1",
+        "fcnName": "Power_asset1_from_ADCS_asset1"
+      },
+      {
+        "subsystemName": "Power",
+        "assetName": "Asset1",
+        "depSubsystemName": "EOSensor",
+        "depAssetName": "Asset1",
+        "fcnName": "Power_asset1_from_EOSensor_asset1"
+      },
+      {
+        "subsystemName": "Power",
+        "assetName": "Asset1",
+        "depSubsystemName": "SSDR",
+        "depAssetName": "Asset1",
+        "fcnName": "Power_asset1_from_SSDR_asset1"
+      },
+      {
+        "subsystemName": "EOSensor",
+        "assetName": "Asset2",
+        "depSubsystemName": "ADCS",
+        "depAssetName": "Asset2"
+      },
+      {
+        "subsystemName": "SSDR",
+        "assetName": "Asset2",
+        "depSubsystemName": "EOSensor",
+        "depAssetName": "Asset2",
+        "fcnName": "SSDR_asset1_from_EOSensor_asset1"
+      },
+      {
+        "subsystemName": "Comm",
+        "assetName": "Asset2",
+        "depSubsystemName": "SSDR",
+        "depAssetName": "Asset2",
+        "fcnName": "Comm_asset1_from_SSDR_asset1"
+      },
+      {
+        "subsystemName": "Power",
+        "assetName": "Asset2",
+        "depSubsystemName": "Comm",
+        "depAssetName": "Asset2",
+        "fcnName": "Power_asset1_from_Comm_asset1"
+      },
+      {
+        "subsystemName": "Power",
+        "assetName": "Asset2",
+        "depSubsystemName": "ADCS",
+        "depAssetName": "Asset2",
+        "fcnName": "Power_asset1_from_ADCS_asset1"
+      },
+      {
+        "subsystemName": "Power",
+        "assetName": "Asset2",
+        "depSubsystemName": "EOSensor",
+        "depAssetName": "Asset2",
+        "fcnName": "Power_asset1_from_EOSensor_asset1"
+      },
+      {
+        "subsystemName": "Power",
+        "assetName": "Asset2",
+        "depSubsystemName": "SSDR",
+        "depAssetName": "Asset2",
+        "fcnName": "Power_asset1_from_SSDR_asset1"
+      }
+    ],
+    "evaluator": {
+      "type": "TargetValueEvaluator",
+      "className": "EVAL",
+      "states": [
+        {
+          "asset": "Asset1",
+          "key": "DataBufferFillRatio",
+          "type": "double"
+        },
+        {
+          "asset": "Asset2",
+          "key": "DataBufferFillRatio",
+          "type": "double"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "model": {
+    "assets": [
+      {
+        "name": "testasset1",
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "stateData": [ 7378.137, 0, 0, 0, 6.02088, 4.215866 ],
+          "Eoms": {
+            "type": "None"
+          },
+          "integratorOptions": {},
+          "integratorParameters": []
+        },
+        "subsystems": [
+          {
+            "type": "scripted",
+            "name": "TaskTimeManipulatorSubsystem",
+            "src": "test\\HSFSchedulerUnitTest\\MethodUnitTests\\Checker\\CanPerformUnitTest\\Subsystems\\TaskTimeManipulatorSubsystem.py",
+            "className": "TaskTimeManipulatorSubsystem",
+            "parameters": [
+              {
+                "name": "taskStartShift",
+                "type": "double",
+                "value": 5.0
+              },
+              {
+                "name": "taskEndShift",
+                "type": "double",
+                "value": -3.0
+              },
+              {
+                "name": "eventStartShift",
+                "type": "double",
+                "value": 0.0
+              },
+              {
+                "name": "eventEndShift",
+                "type": "double",
+                "value": 0.0
+              }
+            ],
+            "states": []
+          }
+        ],
+        "constraints": []
+      }     
+    ],
+
+    "dependencies": [],
+
+    "evaluator": {
+      "type": "TargetValueEvaluator",
+      "className": "EVAL",
+      "states": []
+    }
+    
+  }
+}
+

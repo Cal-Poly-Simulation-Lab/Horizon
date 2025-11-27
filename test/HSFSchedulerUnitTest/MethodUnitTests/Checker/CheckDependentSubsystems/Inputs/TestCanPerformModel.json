@@ -1,0 +1,28 @@
+{
+  "model": {
+    "assets": [
+      {
+        "name": "testasset1",
+        "dynamicState": {
+          "type": "Static_ECI",
+          "stateData": [7000, 0, 0, 0, 0, 0]
+        },
+        "subsystems": [
+          {
+            "type": "testcanperformsubsystem",
+            "name": "TestCanPerformSubsystem",
+            "src": "Subsystems/TestCanPerformSubsystem.cs",
+            "parameters": [
+              {"name": "threshold", "type": "double", "value": 5.0},
+              {"name": "increment", "type": "double", "value": 1.0}
+            ],
+            "states": [
+              {"name": "testvalue_key", "type": "double", "key": "testvalue", "value": 0.0}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+
