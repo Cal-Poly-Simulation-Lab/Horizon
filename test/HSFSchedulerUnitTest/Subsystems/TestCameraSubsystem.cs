@@ -26,11 +26,7 @@ namespace HSFSystem
         public TestCameraSubsystem(JObject subJson, Asset asset) : base(subJson, asset)
         {
             this.GetParameterByName<double>(subJson, nameof(maxImages), out maxImages);
-            //  // Load maxImages Paramter
-            // if (JsonLoader<double>.TryGetValue("maxImages", subJson, out double maxImages))
-            // {
-            //     _maxImages = maxImages;
-            // }
+            
         }
         
         // Public getter for testing
@@ -46,10 +42,11 @@ namespace HSFSystem
 
             // Get the last power value from the state
             double numImages = state.GetLastValue(NUM_IMAGE_KEY).Item2; // last power value
+            double updateTime = proposedEvent.GetTaskStart(Asset) + 0.1;
             if (taskType == "IMAGING")
             {
                 if (numImages >= maxImages) { return false; } // Fail if max images reached. 
-                state.AddValue(NUM_IMAGE_KEY, proposedEvent.GetTaskStart(Asset) + 0.1, numImages + 1);
+                state.AddValue(NUM_IMAGE_KEY, updateTime, numImages + 1);
                 return true;
             }
             return true; // Return true and do nothing if its not an imaging task. 
@@ -68,5 +65,6 @@ namespace HSFSystem
                 throw new ArgumentException($"Attempting to set unknown TestCamera state variable key '{stateKey.VariableName}'.", nameof(stateKey));
             }
         }
+
     }
 }

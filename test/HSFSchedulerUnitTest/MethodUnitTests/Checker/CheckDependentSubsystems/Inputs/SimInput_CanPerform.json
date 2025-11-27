@@ -8,8 +8,8 @@
     "stepSeconds": 5.0
   },
   "schedulerParameters": {
-    "maxSchedules": 1000,
-    "cropTo": 50,
+    "maxSchedules": 100,
+    "cropTo": 10,
     "ConsoleLog": "on"
   },
   "dependencies": {

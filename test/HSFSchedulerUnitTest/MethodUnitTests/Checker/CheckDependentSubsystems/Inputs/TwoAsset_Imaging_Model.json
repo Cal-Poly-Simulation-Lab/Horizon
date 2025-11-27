@@ -20,12 +20,12 @@
             "name": "Power",
             "parameters": [
               {
-                "name": "requiredPowerImage",
+                "name": "imagePowerRequired",
                 "type": "double",
                 "value": 10.0
               },
               {
-                "name": "requiredPowerTrasmit",
+                "name": "transmitPowerRequired",
                 "type": "double",
                 "value": 20.0
               },
@@ -92,6 +92,16 @@
           }
         ],
         "constraints": [
+          {
+            "value": 10,
+            "subsystemName": "Power",
+            "type": "FAIL_IF_LOWER",
+            "name": "asset1_10W_power_constraint",
+            "state": {
+              "type": "double",
+              "key": "checker_power"
+            }
+          }
         ]
       },
       {
@@ -123,7 +133,7 @@
                 "value": 10.0
               },
               {
-                "name": "requiredPowerTrasmit",
+                "name": "transmitPowerRequired",
                 "type": "double",
                 "value": 20.0
               },

@@ -25,7 +25,7 @@ namespace HSFSystem
         
         public TestAntennaSubsystem(JObject subJson, Asset asset) : base(subJson, asset)
         {
-
+            NUM_IMAGE_KEY = new StateVariableKey<double>(asset.Name.ToLower() + ".num_images_stored");
         }
         
         // Public getter for testing
@@ -40,14 +40,15 @@ namespace HSFSystem
             var taskType = task.Type.ToUpper();
 
             double numImages = state.GetLastValue(NUM_IMAGE_KEY).Item2;
+            double updateTime = proposedEvent.GetTaskStart(Asset) + 0.1;
             if (taskType == "TRANSMIT")
             {
                 if (numImages <= 0) { return false; } // cannot transmit if nothing stored
 
-                state.AddValue(NUM_IMAGE_KEY, proposedEvent.GetTaskStart(Asset) + 0.1, numImages - 1);
+                state.AddValue(NUM_IMAGE_KEY, updateTime, numImages - 1);
 
                 double transmissions = state.GetLastValue(TRANSMISSION_KEY).Item2;
-                state.AddValue(TRANSMISSION_KEY, proposedEvent.GetTaskStart(Asset) + 0.1 , transmissions + 1);
+                state.AddValue(TRANSMISSION_KEY, updateTime , transmissions + 1);
                 return true;
             }
             return true; // Return true and do nothing if its not an imaging task. 
@@ -69,5 +70,6 @@ namespace HSFSystem
                 throw new ArgumentException($"Attempting to set unknown TestAntenna state variable key '{stateKey.VariableName}'.", nameof(stateKey));
             }
         }
+
     }
 }

@@ -143,31 +143,26 @@ namespace HSFSystem
                 {
                     if (!sub.IsEvaluated)// && !sub.GetType().Equals(typeof(ScriptedSubsystem)))
                     {
-                        if (sub.CheckDependentSubsystems(proposedEvent, environment))
-                        {
-                            IsEvaluated = true;
-                            Task = proposedEvent.GetAssetTask(Asset); //Find the correct task for the subsystem
-                            NewState = proposedEvent.State;
-                            bool result = CanPerform(proposedEvent, environment);
-                            // Enforce that Task Start and End are within EVENT task start and end
-                            // Also report this out. Where to report? --> 
-                            if (CheckTaskStartAndEnd(proposedEvent, Asset)){
-                                return result;
-                            }
-                            return false; // Task Start and End are not within Event Start and End so return false
-                            
-                            //  Need to deal with this issue in next update
-                            //double te = proposedEvent.GetTaskEnd(Asset);
-                            //double ee = proposedEvent.GetEventEnd(Asset);
-                            //proposedEvent.SetEventEnd(Asset, Math.Max(te, ee));
-                        }
-                        else
+                        if (!sub.CheckDependentSubsystems(proposedEvent, environment))
                         {
                             return false;
                         }
                     }
                 }
-                return true;
+
+                IsEvaluated = true;
+                Task = proposedEvent.GetAssetTask(Asset); //Find the correct task for the subsystem
+                NewState = proposedEvent.State;
+                bool resultParent = CanPerform(proposedEvent, environment);
+                if (CheckTaskStartAndEnd(proposedEvent, Asset)){
+                    return resultParent;
+                }
+                return false; // Task Start and End are not within Event Start and End so return false
+                
+                //  Need to deal with this issue in next update
+                //double te = proposedEvent.GetTaskEnd(Asset);
+                //double ee = proposedEvent.GetEventEnd(Asset);
+                //proposedEvent.SetEventEnd(Asset, Math.Max(te, ee));
             }
 
         }

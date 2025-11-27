@@ -506,82 +506,6 @@ namespace HSFScheduler
             File.WriteAllText(Path.Combine(additionalDir, fileName), csv.ToString());
         }
         
-        private static void WriteScheduleFinalCSV(SystemSchedule schedule, string dataDir, List<string> allAssets)
-        {
-            var csv = new StringBuilder();
-            var stateData = ExtractAllStatesWithTime(schedule);
-            
-            if (stateData.Count == 0) return;
-            
-            // Build header: Asset, Time, then all state variables
-            var allStateVars = new HashSet<string>();
-            foreach (var asset in allAssets)
-            {
-                if (stateData.ContainsKey(asset))
-                {
-                    foreach (var stateVar in stateData[asset].Keys)
-                    {
-                        allStateVars.Add(stateVar);
-                    }
-                }
-            }
-            
-            csv.Append("Asset,Time");
-            foreach (var stateVar in allStateVars.OrderBy(s => s))
-            {
-                csv.Append($",{stateVar}");
-            }
-            csv.AppendLine();
-            
-            // Collect all unique time steps across all assets
-            var allTimes = new SortedSet<double>();
-            foreach (var assetData in stateData.Values)
-            {
-                foreach (var stateVarData in assetData.Values)
-                {
-                    foreach (var time in stateVarData.Keys)
-                    {
-                        allTimes.Add(time);
-                    }
-                }
-            }
-            
-            // Write data rows (one row per asset per time step)
-            foreach (var asset in allAssets.OrderBy(a => a))
-            {
-                if (!stateData.ContainsKey(asset)) continue;
-                
-                foreach (var time in allTimes)
-                {
-                    csv.Append($"{asset},{time}");
-                    
-                    foreach (var stateVar in allStateVars.OrderBy(s => s))
-                    {
-                        // Get value for this state at this time (or repeat last value)
-                        if (stateData[asset].ContainsKey(stateVar))
-                        {
-                            var timeValuePairs = stateData[asset][stateVar];
-                            // Find value at or before this time
-                            double value = 0;
-                            foreach (var kvp in timeValuePairs.Where(t => t.Key <= time).OrderByDescending(t => t.Key))
-                            {
-                                value = kvp.Value;
-                                break;
-                            }
-                            csv.Append($",{value}");
-                        }
-                        else
-                        {
-                            csv.Append(",");  // No data for this state/asset combo
-                        }
-                    }
-                    csv.AppendLine();
-                }
-            }
-            
-            string fileName = $"ScheduleFinal_{schedule._scheduleID.Replace('.', '-')}.csv";
-            File.WriteAllText(Path.Combine(dataDir, fileName), csv.ToString());
-        }
         
         private static void WriteAssetSchedulesCSV(List<SystemSchedule> schedules, string assetName, string dataDir)
         {
@@ -662,7 +586,7 @@ namespace HSFScheduler
         private static Dictionary<string, Dictionary<string, SortedList<double, double>>> ExtractAllStatesWithTime(SystemSchedule schedule)
         {
             var result = new Dictionary<string, Dictionary<string, SortedList<double, double>>>();
-            bool debugStateOutput = Environment.GetEnvironmentVariable("HSF_DEBUG_STATE_OUTPUT") == "1";
+            // bool debugStateOutput = Environment.GetEnvironmentVariable("HSF_DEBUG_STATE_OUTPUT") == "1";
             
             SystemState sysState = null;
             if (schedule.AllStates.Events.Count != 0)
@@ -702,30 +626,30 @@ namespace HSFScheduler
                 sysState = sysState.PreviousState;
             }
             
-            if (debugStateOutput)
-            {
-                Console.WriteLine($"[StateDebug] Schedule {_scheduleDebugId(schedule)} captured state snapshots:");
-                foreach (var assetEntry in result.OrderBy(k => k.Key))
-                {
-                    foreach (var stateEntry in assetEntry.Value.OrderBy(k => k.Key))
-                    {
-                        double lastValue = stateEntry.Value.Count > 0 ? stateEntry.Value.Values.Last() : double.NaN;
-                        Console.WriteLine($"  - {assetEntry.Key}.{stateEntry.Key}: {stateEntry.Value.Count} entries (last={lastValue})");
-                    }
-                }
-            }
+            // if (debugStateOutput)
+            // {
+            //     Console.WriteLine($"[StateDebug] Schedule {_scheduleDebugId(schedule)} captured state snapshots:");
+            //     foreach (var assetEntry in result.OrderBy(k => k.Key))
+            //     {
+            //         foreach (var stateEntry in assetEntry.Value.OrderBy(k => k.Key))
+            //         {
+            //             double lastValue = stateEntry.Value.Count > 0 ? stateEntry.Value.Values.Last() : double.NaN;
+            //             Console.WriteLine($"  - {assetEntry.Key}.{stateEntry.Key}: {stateEntry.Value.Count} entries (last={lastValue})");
+            //         }
+            //     }
+            // }
             
             return result;
         }
 
-        private static string _scheduleDebugId(SystemSchedule schedule)
-        {
-            if (!string.IsNullOrEmpty(schedule._scheduleID))
-            {
-                return schedule._scheduleID;
-            }
-            return $"value{schedule.ScheduleValue:F2}";
-        }
+        // private static string _scheduleDebugId(SystemSchedule schedule)
+        // {
+        //     if (!string.IsNullOrEmpty(schedule._scheduleID))
+        //     {
+        //         return schedule._scheduleID;
+        //     }
+        //     return $"value{schedule.ScheduleValue:F2}";
+        // }
 
         public static void WriteSchedule(SystemSchedule schedule, String scheduleWritePath) //TODO: Unit Test.
         {
