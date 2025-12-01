@@ -2,6 +2,9 @@
 // Authors: Jason Ebeals (jebeals@calpoly.edu)
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using HSFSystem;
 using MissionElements;
 using UserModel;
@@ -43,14 +46,22 @@ namespace HSFSystem
             // Get the last power value from the state
             double numImages = state.GetLastValue(NUM_IMAGE_KEY).Item2; // last power value
             double updateTime = proposedEvent.GetTaskStart(Asset) + 0.1;
+            
             if (taskType == "IMAGING")
             {
                 if (numImages >= maxImages) { return false; } // Fail if max images reached. 
                 state.AddValue(NUM_IMAGE_KEY, updateTime, numImages + 1);
+                
+                // Thread-safe tracking and logging (mutation occurred)
+                SubsystemCallTracker.Track(Asset.Name, "Camera", taskType, mutated: true);
+                
                 return true;
             }
+            
+            // Thread-safe tracking and logging (no mutation case)
+            SubsystemCallTracker.Track(Asset.Name, "Camera", taskType, mutated: false);
+            
             return true; // Return true and do nothing if its not an imaging task. 
- 
         }
         
         public override void SetStateVariableKey(dynamic stateKey)

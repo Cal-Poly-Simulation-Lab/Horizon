@@ -81,24 +81,41 @@ namespace HSFSchedulerUnitTest
             // Power depends on Camera, so Camera must run first
             // IMAGING task: Camera increments images (0 → 1), Power consumes power (75 → 65)
             // If Camera runs before Power, we'll see Camera's state update
+            
+            SubsystemCallTracker.Clear();
+            
             var task = GetTask("IMAGING");
             var state = new SystemState(program.InitialSysState, true);
-            var evt = CreateEvent(task, state);
             
-            // Initial state: 0 images
+            // Track initial state
             var imageKey = new StateVariableKey<double>("asset1.num_images_stored");
             double initialImages = state.GetLastValue(imageKey).Item2;
             Assert.That(initialImages, Is.EqualTo(0.0), "Initial images should be 0");
             
+            var evt = CreateEvent(task, state);
+            
             // Call CheckDependentSubsystems on Power (depends on Camera)
             bool result = _powerSub.CheckDependentSubsystems(evt, _universe);
             
-            // Verify Camera ran before Power by checking Camera's state mutation occurred
+            // Get tracking data
+            var allCalls = SubsystemCallTracker.GetTracking();
+            var cameraCalls = allCalls.Where(c => c.SubsystemName.Equals("Camera", System.StringComparison.OrdinalIgnoreCase) && c.TaskType == "IMAGING").ToList();
+            
+            // Verify Camera ran before Power by checking Camera's state mutation occurred and tracking
             double finalImages = state.GetLastValue(imageKey).Item2;
             Assert.Multiple(() =>
             {
                 Assert.That(result, Is.True, "Power should pass when Camera passes");
-                Assert.That(finalImages, Is.EqualTo(1.0), "Camera should have incremented images (0 → 1) before Power ran");
+                
+                // Verify Camera was called and reported mutation
+                Assert.That(cameraCalls.Count, Is.EqualTo(1), "Camera should have been called exactly once");
+                var cameraCall = cameraCalls[0];
+                Assert.That(cameraCall.AssetName, Is.EqualTo("asset1"), "Camera call should be for asset1");
+                Assert.That(cameraCall.Mutated, Is.True, "Camera should report YES mutation for IMAGING task");
+                
+                // Verify state actually mutated (matches reported YES)
+                Assert.That(finalImages, Is.EqualTo(1.0), 
+                    $"Camera should have incremented images (reported YES mutation: {initialImages} → {finalImages})");
             });
         }
 
@@ -108,24 +125,52 @@ namespace HSFSchedulerUnitTest
             // Antenna depends on Camera, so Camera must run first
             // IMAGING task: Camera increments images (0 → 1), Antenna is no-op for IMAGING
             // If Camera runs before Antenna, we'll see Camera's state update
+            
+            SubsystemCallTracker.Clear();
+            
             var task = GetTask("IMAGING");
             var state = new SystemState(program.InitialSysState, true);
-            var evt = CreateEvent(task, state);
             
-            // Initial state: 0 images
+            // Track initial state
             var imageKey = new StateVariableKey<double>("asset1.num_images_stored");
             double initialImages = state.GetLastValue(imageKey).Item2;
             Assert.That(initialImages, Is.EqualTo(0.0), "Initial images should be 0");
             
+            var evt = CreateEvent(task, state);
+            
             // Call CheckDependentSubsystems on Antenna (depends on Camera)
             bool result = _antennaSub.CheckDependentSubsystems(evt, _universe);
             
-            // Verify Camera ran before Antenna by checking Camera's state mutation occurred
+            // Get tracking data
+            var allCalls = SubsystemCallTracker.GetTracking();
+            var cameraCalls = allCalls.Where(c => c.SubsystemName.Equals("Camera", System.StringComparison.OrdinalIgnoreCase) && c.TaskType == "IMAGING").ToList();
+            var antennaCalls = allCalls.Where(c => c.SubsystemName.Equals("Antenna", System.StringComparison.OrdinalIgnoreCase) && c.TaskType == "IMAGING").ToList();
+            
+            // Verify Camera ran before Antenna by checking Camera's state mutation occurred and tracking
             double finalImages = state.GetLastValue(imageKey).Item2;
             Assert.Multiple(() =>
             {
                 Assert.That(result, Is.True, "Antenna should pass when Camera passes");
-                Assert.That(finalImages, Is.EqualTo(1.0), "Camera should have incremented images (0 → 1) before Antenna ran");
+                
+                // Verify Camera was called and reported mutation
+                Assert.That(cameraCalls.Count, Is.EqualTo(1), "Camera should have been called exactly once");
+                var cameraCall = cameraCalls[0];
+                Assert.That(cameraCall.AssetName, Is.EqualTo("asset1"), "Camera call should be for asset1");
+                Assert.That(cameraCall.Mutated, Is.True, "Camera should report YES mutation for IMAGING task");
+                
+                // Verify Antenna was called and reported NO mutation
+                Assert.That(antennaCalls.Count, Is.EqualTo(1), "Antenna should have been called exactly once");
+                var antennaCall = antennaCalls[0];
+                Assert.That(antennaCall.AssetName, Is.EqualTo("asset1"), "Antenna call should be for asset1");
+                Assert.That(antennaCall.Mutated, Is.False, "Antenna should report NO mutation for IMAGING task");
+                
+                // Verify call order: Camera before Antenna
+                Assert.That(cameraCall.CallOrder, Is.LessThan(antennaCall.CallOrder), 
+                    "Camera should be called before Antenna (dependency order)");
+                
+                // Verify state actually mutated (matches reported YES from Camera)
+                Assert.That(finalImages, Is.EqualTo(1.0), 
+                    $"Camera should have incremented images (reported YES mutation: {initialImages} → {finalImages})");
             });
         }
 
@@ -135,9 +180,11 @@ namespace HSFSchedulerUnitTest
             // Power depends on Camera and Antenna, Antenna depends on Camera
             // Expected order: Camera → Antenna → Power
             // IMAGING task: Camera increments images, Antenna no-op, Power consumes power
+            
+            SubsystemCallTracker.Clear();
+            
             var task = GetTask("IMAGING");
             var state = new SystemState(program.InitialSysState, true);
-            var evt = CreateEvent(task, state);
             
             // Track initial state
             var imageKey = new StateVariableKey<double>("asset1.num_images_stored");
@@ -145,17 +192,109 @@ namespace HSFSchedulerUnitTest
             double initialImages = state.GetLastValue(imageKey).Item2;
             double initialPower = state.GetLastValue(powerKey).Item2;
             
+            var evt = CreateEvent(task, state);
+            
             // Call CheckDependentSubsystems on Power (top of dependency chain)
             bool result = _powerSub.CheckDependentSubsystems(evt, _universe);
             
-            // Verify all subsystems ran in correct order by checking their state mutations
+            // Get tracking data
+            var allCalls = SubsystemCallTracker.GetTracking();
+            var cameraCalls = allCalls.Where(c => c.SubsystemName.Equals("Camera", System.StringComparison.OrdinalIgnoreCase) && c.TaskType == "IMAGING").ToList();
+            var antennaCalls = allCalls.Where(c => c.SubsystemName.Equals("Antenna", System.StringComparison.OrdinalIgnoreCase) && c.TaskType == "IMAGING").ToList();
+            
+            // Verify all subsystems ran in correct order by checking their state mutations and tracking
             double finalImages = state.GetLastValue(imageKey).Item2;
             double finalPower = state.GetLastValue(powerKey).Item2;
             Assert.Multiple(() =>
             {
                 Assert.That(result, Is.True, "Power should pass when all dependencies pass");
-                Assert.That(finalImages, Is.EqualTo(1.0), "Camera should have incremented images (0 → 1)");
-                Assert.That(finalPower, Is.EqualTo(65.0), "Power should have consumed power (75 → 65) after Camera and Antenna ran");
+                
+                // Verify Camera was called and reported mutation
+                Assert.That(cameraCalls.Count, Is.EqualTo(1), "Camera should have been called exactly once");
+                var cameraCall = cameraCalls[0];
+                Assert.That(cameraCall.AssetName, Is.EqualTo("asset1"), "Camera call should be for asset1");
+                Assert.That(cameraCall.Mutated, Is.True, "Camera should report YES mutation for IMAGING task");
+                
+                // Verify Antenna was called and reported NO mutation
+                Assert.That(antennaCalls.Count, Is.EqualTo(1), "Antenna should have been called exactly once");
+                var antennaCall = antennaCalls[0];
+                Assert.That(antennaCall.AssetName, Is.EqualTo("asset1"), "Antenna call should be for asset1");
+                Assert.That(antennaCall.Mutated, Is.False, "Antenna should report NO mutation for IMAGING task");
+                
+                // Verify call order: Camera before Antenna
+                Assert.That(cameraCall.CallOrder, Is.LessThan(antennaCall.CallOrder), 
+                    "Camera should be called before Antenna (dependency order)");
+                
+                // Verify state mutations match reported status
+                Assert.That(finalImages, Is.EqualTo(1.0), 
+                    $"Camera should have incremented images (reported YES mutation: {initialImages} → {finalImages})");
+                Assert.That(finalPower, Is.EqualTo(65.0), 
+                    $"Power should have consumed power (reported YES mutation: {initialPower} → {finalPower}) after Camera and Antenna ran");
+            });
+        }
+
+        #endregion
+
+        #region Test: Both Dependents Evaluated Even When Neither Mutates
+
+        [Test]
+        public void CheckDependentSubsystems_RECHARGE_BothDependentsEvaluated_NeitherMutates()
+        {
+            // RECHARGE task: Camera and Antenna are both evaluated but neither mutates state
+            // Power depends on Camera and Antenna, Antenna depends on Camera
+            // Expected order: Camera → Antenna → Power
+            // This verifies that both dependents are called even when they don't mutate state
+            
+            // Clear tracking from previous tests
+            SubsystemCallTracker.Clear();
+            
+            var task = GetTask("RECHARGE");
+            var state = new SystemState(program.InitialSysState, true);
+            
+            // Track initial state values that Camera and Antenna would mutate
+            var imageKey = new StateVariableKey<double>("asset1.num_images_stored");
+            var transmissionKey = new StateVariableKey<double>("asset1.num_transmissions");
+            double initialImages = state.GetLastValue(imageKey).Item2;
+            double initialTransmissions = state.GetLastValue(transmissionKey).Item2;
+            
+            var evt = CreateEvent(task, state);
+            
+            // Call CheckDependentSubsystems on Power (depends on Camera and Antenna)
+            bool result = _powerSub.CheckDependentSubsystems(evt, _universe);
+            
+            // Get tracking data
+            var allCalls = SubsystemCallTracker.GetTracking();
+            var cameraCalls = allCalls.Where(c => c.SubsystemName.Equals("Camera", System.StringComparison.OrdinalIgnoreCase) && c.TaskType == "RECHARGE").ToList();
+            var antennaCalls = allCalls.Where(c => c.SubsystemName.Equals("Antenna", System.StringComparison.OrdinalIgnoreCase) && c.TaskType == "RECHARGE").ToList();
+            
+            // Verify both were called, order is correct, and state mutations match reported status
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.True, "Power should pass for RECHARGE task");
+                
+                // Verify Camera was called
+                Assert.That(cameraCalls.Count, Is.EqualTo(1), "Camera should have been called exactly once for RECHARGE task");
+                var cameraCall = cameraCalls[0];
+                Assert.That(cameraCall.AssetName, Is.EqualTo("asset1"), "Camera call should be for asset1");
+                Assert.That(cameraCall.Mutated, Is.False, "Camera should report NO mutation for RECHARGE task");
+                
+                // Verify Antenna was called
+                Assert.That(antennaCalls.Count, Is.EqualTo(1), "Antenna should have been called exactly once for RECHARGE task");
+                var antennaCall = antennaCalls[0];
+                Assert.That(antennaCall.AssetName, Is.EqualTo("asset1"), "Antenna call should be for asset1");
+                Assert.That(antennaCall.Mutated, Is.False, "Antenna should report NO mutation for RECHARGE task");
+                
+                // Verify call order: Camera before Antenna (both before Power, but Power doesn't track)
+                Assert.That(cameraCall.CallOrder, Is.LessThan(antennaCall.CallOrder), 
+                    "Camera should be called before Antenna (dependency order)");
+                
+                // Verify state was NOT mutated by Camera or Antenna (matches reported NO)
+                double finalImages = state.GetLastValue(imageKey).Item2;
+                double finalTransmissions = state.GetLastValue(transmissionKey).Item2;
+                Assert.That(finalImages, Is.EqualTo(initialImages), 
+                    $"Images should remain unchanged (Camera reported NO mutation: {initialImages} → {finalImages})");
+                Assert.That(finalTransmissions, Is.EqualTo(initialTransmissions), 
+                    $"Transmissions should remain unchanged (Antenna reported NO mutation: {initialTransmissions} → {finalTransmissions})");
             });
         }
 

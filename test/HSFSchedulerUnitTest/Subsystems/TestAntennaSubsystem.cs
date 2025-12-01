@@ -2,6 +2,9 @@
 // Authors: Jason Ebeals (jebeals@calpoly.edu)
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using HSFSystem;
 using MissionElements;
 using UserModel;
@@ -41,6 +44,7 @@ namespace HSFSystem
 
             double numImages = state.GetLastValue(NUM_IMAGE_KEY).Item2;
             double updateTime = proposedEvent.GetTaskStart(Asset) + 0.1;
+            
             if (taskType == "TRANSMIT")
             {
                 if (numImages <= 0) { return false; } // cannot transmit if nothing stored
@@ -49,8 +53,16 @@ namespace HSFSystem
 
                 double transmissions = state.GetLastValue(TRANSMISSION_KEY).Item2;
                 state.AddValue(TRANSMISSION_KEY, updateTime , transmissions + 1);
+                
+                // Thread-safe tracking and logging (mutation occurred)
+                SubsystemCallTracker.Track(Asset.Name, "Antenna", taskType, mutated: true);
+                
                 return true;
             }
+            
+            // Thread-safe tracking and logging (no mutation case)
+            SubsystemCallTracker.Track(Asset.Name, "Antenna", taskType, mutated: false);
+            
             return true; // Return true and do nothing if its not an imaging task. 
         }
         
