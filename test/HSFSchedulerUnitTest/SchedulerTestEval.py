@@ -22,10 +22,11 @@ from System.Collections.Generic import Dictionary
 from IronPython.Compiler import CallTarget0
 
 
-# Class defintion from time TargetValueEvaluator
-class eval(HSFScheduler.TargetValueEvaluator):
+# Class definition - inherits from Evaluator (not TargetValueEvaluator)
+class eval(HSFScheduler.Evaluator):
     def __init__(self, keychain):
-        keychain = keychain # Is this necesssary?
+        # Evaluator base class doesn't require constructor parameters
+        self.keychain = keychain
         pass 
 
     # These are used to access state variable information

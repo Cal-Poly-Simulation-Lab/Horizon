@@ -340,8 +340,8 @@ namespace HSFSchedulerUnitTest
                     }
                     
                     // Verify StateHashHistory is updated
-                    VerifyStateHashUpdated(passingSchedule);
-                    
+                VerifyStateHashUpdated(passingSchedule);
+                
                     // Verify that state hash changed from initial (if it existed)
                     if (initialStateHashes.TryGetValue(scheduleHash, out string? initialStateHash) && !string.IsNullOrEmpty(initialStateHash))
                     {
@@ -504,11 +504,11 @@ namespace HSFSchedulerUnitTest
                     
                     // Verify that state hash changed from initial (if it existed)
                     if (initialStateHashes.TryGetValue(scheduleHash, out string? initialStateHash) && !string.IsNullOrEmpty(initialStateHash))
-                    {
-                        string finalStateHash = passingSchedule.AllStates.StateHash ?? "";
-                        Assert.That(finalStateHash, Is.Not.EqualTo(initialStateHash),
-                            $"State hash should be updated after CheckAllPotentialSchedules for schedule {scheduleHash.Substring(0, Math.Min(8, scheduleHash.Length))}...");
-                    }
+                {
+                    string finalStateHash = passingSchedule.AllStates.StateHash ?? "";
+                    Assert.That(finalStateHash, Is.Not.EqualTo(initialStateHash),
+                        $"State hash should be updated after CheckAllPotentialSchedules for schedule {scheduleHash.Substring(0, Math.Min(8, scheduleHash.Length))}...");
+                }
                 });
             }
         }

@@ -107,9 +107,9 @@ namespace HSFSchedulerUnitTest
             
             return value;
         }
-
+        
         #endregion
-
+        
         #region Test: Evaluation and Sorting with Toy Example
 
         /// <summary>
@@ -141,8 +141,8 @@ namespace HSFSchedulerUnitTest
             {
                 Assert.That(schedule.ScheduleValue, Is.EqualTo(0.0),
                     "Schedule should have initial value of 0 before evaluation");
-            }
-
+        }
+        
             // 2. Call EvaluateAndSortCanPerformSchedules
             List<SystemSchedule> evaluatedAndSorted = Scheduler.EvaluateAndSortCanPerformSchedules(
                 _ScheduleEvaluator!, passingSchedules);
@@ -182,8 +182,8 @@ namespace HSFSchedulerUnitTest
                 Assert.That(evaluatedAndSorted[i].ScheduleValue, 
                     Is.GreaterThanOrEqualTo(evaluatedAndSorted[i + 1].ScheduleValue),
                     $"Schedule {i} (value: {evaluatedAndSorted[i].ScheduleValue}) should be >= schedule {i + 1} (value: {evaluatedAndSorted[i + 1].ScheduleValue})");
-            }
-
+        }
+        
             // 5. Verify specific expected order: [20, 11, 11, 2]
             Assert.That(evaluatedAndSorted[0].ScheduleValue, Is.EqualTo(20.0),
                 "First schedule should have value 20 (IMAGING + IMAGING)");
@@ -204,11 +204,11 @@ namespace HSFSchedulerUnitTest
                     "Tied schedules should be ordered deterministically by hash (ascending lexicographic order)");
             }
         }
-
+        
         #endregion
-
+        
         #region Test: Edge Cases
-
+        
         [Test]
         public void EvaluateAndSort_EmptyList_ReturnsEmpty()
         {
@@ -220,7 +220,7 @@ namespace HSFSchedulerUnitTest
             Assert.That(result.Count, Is.EqualTo(0),
                 "Should return empty list when input is empty");
         }
-
+        
         [Test]
         public void EvaluateAndSort_SingleSchedule_ReturnsOne()
         {
@@ -542,7 +542,7 @@ namespace HSFSchedulerUnitTest
                     $"values [{info.minValue}, {info.maxValue}], sorted: {info.isSorted}");
             }
         }
-
+        
         #endregion
     }
 }

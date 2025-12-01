@@ -19,7 +19,7 @@ from HSFScheduler import *
 from System.Collections.Generic import Dictionary
 
 class DefaultEvaluator(HSFScheduler.Evaluator):
-    def __init__(self, evaluatorJson, keychain):
+    def __init__(self, keychain):
         # DefaultEvaluator doesn't need any parameters
         pass
     
