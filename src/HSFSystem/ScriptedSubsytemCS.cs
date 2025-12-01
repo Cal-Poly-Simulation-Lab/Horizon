@@ -87,7 +87,7 @@ namespace HSFSystem
             else
             {
                 this.constructorArgs = [scriptedSubsystemJson, this.asset]; // Use the JObject json and Asset by default. 
-                Console.WriteLine($"Loading subsytem of type {this.Type}, using deafault {this.constructorArgTypes}...");
+                // Console.WriteLine($"Loading subsytem of type {this.Type}, using deafault {this.constructorArgTypes}...");
                 
                 //Optional so do not throw an error (assume that there is a JObject, Asset constructor); Error caught later...
             }
@@ -100,7 +100,7 @@ namespace HSFSystem
             // but the actual subsystem type should be the class name (e.g., "ADCS", "Power")
             LoadedSubsystem.Type = LoadedSubsystem.GetType().Name.ToLower();
             
-            Console.WriteLine($"  Loaded subsystem: Name={LoadedSubsystem.Name}, Type={LoadedSubsystem.Type}, Asset={LoadedSubsystem.Asset?.Name ?? "null"}");
+            // Console.WriteLine($"  Loaded subsystem: Name={LoadedSubsystem.Name}, Type={LoadedSubsystem.Type}, Asset={LoadedSubsystem.Asset?.Name ?? "null"}");
             
             LoadedSubsystem.Loader = this; // Could create an infinite loop? idk..
             
@@ -143,7 +143,7 @@ namespace HSFSystem
                 .Distinct()
                 .ToList();
             
-            Console.WriteLine($"  Found {usingDirectives.Count} using directives in source file");
+            // Console.WriteLine($"  Found {usingDirectives.Count} using directives in source file");
             
             // Map common using directives to their assembly locations
             var namespaceToAssemblyMap = new Dictionary<string, string[]>
@@ -172,7 +172,7 @@ namespace HSFSystem
                             try
                             {
                                 references.Add(MetadataReference.CreateFromFile(assemblyPath));
-                                Console.WriteLine($"  Added {assemblyName} for using {usingDirective}");
+                                // Console.WriteLine($"  Added {assemblyName} for using {usingDirective}");
                             }
                             catch { }
                         }
@@ -180,7 +180,7 @@ namespace HSFSystem
                 }
             }
             
-            Console.WriteLine($"  Base references loaded: {references.Count}");
+            // Console.WriteLine($"  Base references loaded: {references.Count}");
             
             // Add all currently loaded assemblies (includes our project DLLs)
             var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies()
@@ -200,7 +200,7 @@ namespace HSFSystem
                 }
             }
             
-            Console.WriteLine($"  Added loaded assemblies: {addedCount}");
+            // Console.WriteLine($"  Added loaded assemblies: {addedCount}");
 
             // Create the compilation with implicit usings enabled (matches .csproj setting)
             var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
@@ -261,63 +261,6 @@ namespace HSFSystem
             return outputDllPath;
         }
     
-        // Not compatible with cross platform / net8.0
-        // public string CompileDllOld(string sourceFilePath, string outputDirectory)
-        // {
-        //     if (!File.Exists(sourceFilePath)) { throw new FileNotFoundException($"Source file not found: {sourceFilePath}"); }
-        //     if (!Directory.Exists(outputDirectory)) {  Directory.CreateDirectory(outputDirectory);}
-
-        //     string outputDllPath = Path.Combine(outputDirectory, Path.GetFileNameWithoutExtension(sourceFilePath) + ".dll");
-
-        //     using (CSharpCodeProvider codeProvider = new CSharpCodeProvider())
-        //     {
-        //         CompilerParameters parameters = new CompilerParameters
-        //         {
-        //             GenerateExecutable = false,
-        //             OutputAssembly = outputDllPath,
-        //             CompilerOptions = "/optimize"
-        //         };
-
-        //         //Example references from SubTest.cs:
-        //         // using HSFUniverse;
-        //         // using MissionElements;
-        //         // using Newtonsoft.Json.Linq;
-        //         // using System;
-        //         // using System.Collections.Generic;
-        //         // using System.Diagnostics.CodeAnalysis;
-        //         // using System.Xml;
-        //         // using Utilities;
-
-        //         // Add necessary references
-        //         parameters.ReferencedAssemblies.Add("System.dll");
-        //         parameters.ReferencedAssemblies.Add("System.Collections.Generic");
-        //         parameters.ReferencedAssemblies.Add("System.Diagnostics.CodeAnalysis");
-        //         parameters.ReferencedAssemblies.Add("System.Newtonsoft.Json.Linq");
-                
-        //         // Add Project references:
-        //         string relBuildDir = "src/HSFSystem/bin/Debug/net8.0"; // Currently hardcoded
-        //         string buildDir = Path.Combine(Utilities.DevEnvironment.RepoDirectory,relBuildDir);
-        //         string[] dllFiles = Directory.GetFiles(buildDir, "*.dll");
-        //         foreach (var dllfp in dllFiles)
-        //         {
-        //             parameters.ReferencedAssemblies.Add(dllfp);
-        //         }
-                
-        //         // Read the source code
-        //         string sourceCode = File.ReadAllText(sourceFilePath);
-
-        //         CompilerResults results = codeProvider.CompileAssemblyFromSource(parameters, sourceCode);
-
-        //         if (results.Errors.HasErrors)
-        //         {
-        //             string errors = string.Join(Environment.NewLine, results.Errors.Cast<CompilerError>().Select(error => error.ToString()));
-        //             throw new InvalidOperationException($"Compilation failed: {errors}");
-        //         }
-
-        //         return outputDllPath;
-        //     }
-        // }
-
         private Subsystem LoadSubsystemFromDll()
         {
             // Ensure the DLL exists

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using HSFSystem;
 using MissionElements;
 using UserModel;
@@ -35,6 +36,25 @@ namespace HSFSystem
             // Time mutation parameters (default to 0 if not provided)
             _taskStartTimeMutation = TryGetParameterByName<double>(subJson, "_taskStartTimeMutation", 0.0);
             _taskEndTimeMutation = TryGetParameterByName<double>(subJson, "_taskEndTimeMutation", 0.0);
+        }
+        
+        // Helper method to safely call SubsystemCallTracker if available (only in test context)
+        private static void SafeTrackCall(string assetName, string subsystemName, string taskType, bool mutated)
+        {
+            try
+            {
+                // Use reflection to check if SubsystemCallTracker exists and call it
+                System.Type? trackerType = System.Type.GetType("HSFSystem.SubsystemCallTracker, HSFSchedulerUnitTest");
+                if (trackerType != null)
+                {
+                    MethodInfo? trackMethod = trackerType.GetMethod("Track", BindingFlags.Public | BindingFlags.Static);
+                    trackMethod?.Invoke(null, new object[] { assetName, subsystemName, taskType, mutated });
+                }
+            }
+            catch
+            {
+                // Silently ignore if SubsystemCallTracker is not available (normal execution context)
+            }
         }
         
         // Helper method for optional parameters
@@ -94,13 +114,13 @@ namespace HSFSystem
                 state.AddValue(TRANSMISSION_KEY, updateTime , transmissions + 1);
                 
                 // Thread-safe tracking and logging (mutation occurred)
-                SubsystemCallTracker.Track(Asset.Name, "Antenna", taskType, mutated: true);
+                SafeTrackCall(Asset.Name, "Antenna", taskType, mutated: true);
                 
                 return true;
             }
             
             // Thread-safe tracking and logging (no mutation case)
-            SubsystemCallTracker.Track(Asset.Name, "Antenna", taskType, mutated: false);
+            SafeTrackCall(Asset.Name, "Antenna", taskType, mutated: false);
             
             return true; // Return true and do nothing if its not an imaging task. 
         }

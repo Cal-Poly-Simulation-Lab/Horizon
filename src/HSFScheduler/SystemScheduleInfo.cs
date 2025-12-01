@@ -683,7 +683,7 @@ namespace HSFScheduler
             
             // Print time step headers
             Console.WriteLine("Time:  " + GenerateTimeStepHeader());
-            Console.WriteLine("Events:" + GenerateEventHeader(schedules));
+            // Console.WriteLine("Events:" + GenerateEventHeader(schedules)); // Commented out - shows erroneous large counts
             Console.WriteLine(new string('-', 80));
 
             // Print each schedule's details
