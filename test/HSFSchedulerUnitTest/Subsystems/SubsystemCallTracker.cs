@@ -17,6 +17,7 @@ namespace HSFSystem
     {
         private static readonly ConcurrentBag<CallRecord> _callTracking = new ConcurrentBag<CallRecord>();
         private static long _callOrderCounter = 0; // Thread-safe counter for call order
+        private static bool _enableConsoleOutput = false; // Default: muted (no console output)
         
         public class CallRecord
         {
@@ -51,8 +52,27 @@ namespace HSFSystem
                 Mutated = mutated
             };
             _callTracking.Add(record);
-            System.Console.WriteLine(record.ToString());
+            
+            // Only write to console if enabled (default: muted)
+            if (_enableConsoleOutput)
+            {
+                System.Console.WriteLine(record.ToString());
+            }
         }
+        
+        /// <summary>
+        /// Enable or disable console output for tracked calls.
+        /// Default is false (muted) to reduce log verbosity.
+        /// </summary>
+        public static void SetConsoleOutput(bool enable)
+        {
+            _enableConsoleOutput = enable;
+        }
+        
+        /// <summary>
+        /// Get current console output setting.
+        /// </summary>
+        public static bool IsConsoleOutputEnabled() => _enableConsoleOutput;
         
         public static List<CallRecord> GetTracking() => _callTracking.OrderBy(r => r.CallOrder).ToList();
         
