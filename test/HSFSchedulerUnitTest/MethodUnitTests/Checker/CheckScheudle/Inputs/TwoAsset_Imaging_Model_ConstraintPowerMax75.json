@@ -43,6 +43,16 @@
                 "name": "minPower",
                 "type": "double",
                 "value":  0.0
+              },
+              {
+                "name": "_taskStartTimeMutation",
+                "type": "double",
+                "value": 0.0
+              },
+              {
+                "name": "_taskEndTimeMutation",
+                "type": "double",
+                "value": 0.0
               }
             ],
             "states": [
@@ -114,10 +124,10 @@
         ],
         "constraints": [
           {
-            "value": 10,
+            "value": 75,
             "subsystemName": "Power",
-            "type": "FAIL_IF_LOWER",
-            "name": "asset1_10W_power_constraint",
+            "type": "FAIL_IF_HIGHER",
+            "name": "asset1_power_max75_constraint",
             "state": {
               "type": "double",
               "key": "checker_power"
@@ -167,6 +177,16 @@
                 "name": "minPower",
                 "type": "double",
                 "value":  0.0
+              },
+              {
+                "name": "_taskStartTimeMutation",
+                "type": "double",
+                "value": 0.0
+              },
+              {
+                "name": "_taskEndTimeMutation",
+                "type": "double",
+                "value": 0.0
               }
             ],
             "states": [
@@ -286,3 +306,4 @@
     }
   }
 }
+

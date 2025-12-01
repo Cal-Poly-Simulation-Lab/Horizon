@@ -90,20 +90,24 @@ namespace HSFSystem
             {
                 if (lastPower + rechargeValue > maxPower) { return false; } // Fail if recharge would exceed max charge. 
                 state.AddValue(CHECKER_POWER_KEY, updateTime, lastPower + rechargeValue);
+                SubsystemCallTracker.Track(Asset.Name, "Power", taskType, mutated: true);
                 return true;
             }
             else if (taskType == "TRANSMIT")
             {
                 if (lastPower < transmitPowerRequired) { return false; } // Fail if not enough power for transmission. 
                 state.AddValue(CHECKER_POWER_KEY, updateTime, lastPower - transmitPowerRequired);
+                SubsystemCallTracker.Track(Asset.Name, "Power", taskType, mutated: true);
                 return true;
             }
             else if (taskType == "IMAGING")
             {
                 if (lastPower < imagePowerRequired) { return false; } // Fail if not enough power for imaging. 
                 state.AddValue(CHECKER_POWER_KEY, updateTime, lastPower - imagePowerRequired);
+                SubsystemCallTracker.Track(Asset.Name, "Power", taskType, mutated: true);
                 return true;
             }
+            SubsystemCallTracker.Track(Asset.Name, "Power", taskType ?? "NULL", mutated: false);
             return false; // Fail if not a valid task type. 
  
         }
