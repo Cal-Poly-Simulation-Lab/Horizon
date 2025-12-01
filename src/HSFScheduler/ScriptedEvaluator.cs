@@ -50,7 +50,8 @@ namespace HSFScheduler
             var ops = engine.Operations;
             engine.ExecuteFile(src, scope);
             var pythonType = scope.GetVariable(className);
-            _pythonInstance = ops.CreateInstance(pythonType, keychain);
+            // Pass both evaluatorJson and keychain to Python constructor
+            _pythonInstance = ops.CreateInstance(pythonType, scriptedJson, keychain);
             //_pythonInstance = ops.CreateInstance(pythonType, deps);
             //Dependencies = deps;
 

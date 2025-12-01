@@ -14,6 +14,7 @@ using Newtonsoft.Json.Linq;
 using UserModel;
 using System.CodeDom;
 using log4net;
+using System.Reflection;
 
 namespace HSFScheduler
 {
@@ -44,8 +45,8 @@ namespace HSFScheduler
 
                 if (evaluatorType.Equals("scripted", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    //List<dynamic> keychain = BuildKeyChain(keyRequests, subsystemList);
-                    //schedEvaluator = new ScriptedEvaluator(keyRequests, initialSysState);
+                    List<dynamic> keychain = BuildKeyChain(statesJson, new List<Subsystem>()); // Empty subsystem list for now
+                    schedEvaluator = new ScriptedEvaluator(evaluatorJson, keychain);
                     Console.WriteLine("Scripted Evaluator Loaded");
                 }
                 else if (evaluatorType.ToLower().Equals("TargetValueEvaluator", StringComparison.InvariantCultureIgnoreCase))
@@ -53,6 +54,11 @@ namespace HSFScheduler
                     //List<dynamic> keychain = BuildKeyChain(keyRequests, subsystemList);
                     schedEvaluator = new TargetValueEvaluator(statesJson, initialSysState);
                     Console.WriteLine("Target Value Evaluator Loaded");
+                }
+                else if (evaluatorType.ToLower().Equals("DefaultEvaluator", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    schedEvaluator = new DefaultEvaluator();
+                    Console.WriteLine("DefaultEvaluator Evaluator Loaded");
                 }
                 else
                 {
