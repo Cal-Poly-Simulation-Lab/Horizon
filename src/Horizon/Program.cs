@@ -991,8 +991,17 @@ namespace Horizon
                     return -valueCompare; // Descending order (higher values first)
                 }
                 // Tie-breaker: Sort by ScheduleHash (ascending, alphabetical)
-                string hashX = x.ScheduleInfo.ScheduleHash ?? "";
-                string hashY = y.ScheduleInfo.ScheduleHash ?? "";
+                // Use ScheduleHash property (blockchain hash) if available, otherwise compute full hash
+                string hashX = x.ScheduleInfo.ScheduleHash;
+                if (string.IsNullOrEmpty(hashX))
+                {
+                    hashX = HSFScheduler.SystemSchedule.ComputeScheduleHash(x);
+                }
+                string hashY = y.ScheduleInfo.ScheduleHash;
+                if (string.IsNullOrEmpty(hashY))
+                {
+                    hashY = HSFScheduler.SystemSchedule.ComputeScheduleHash(y);
+                }
                 return string.CompareOrdinal(hashX, hashY);
             });
             
