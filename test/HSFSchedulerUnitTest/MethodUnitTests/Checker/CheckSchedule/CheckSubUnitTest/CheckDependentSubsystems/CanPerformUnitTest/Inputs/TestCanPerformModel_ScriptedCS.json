@@ -16,7 +16,7 @@
           {
             "type": "scriptedcs",
             "name": "TestCanPerformSubsystem",
-            "src": "test\\HSFSchedulerUnitTest\\MethodUnitTests\\Checker\\CheckScheudle\\CheckSubUnitTest\\CheckDependentSubsystems\\CanPerformUnitTest\\Subsystems\\TestCanPerformSubsystem.cs",
+            "src": "test\\HSFSchedulerUnitTest\\MethodUnitTests\\Checker\\CheckSchedule\\CheckSubUnitTest\\CheckDependentSubsystems\\CanPerformUnitTest\\Subsystems\\TestCanPerformSubsystem.cs",
             "className": "TestCanPerformSubsystem",
             "parameters": [
               {

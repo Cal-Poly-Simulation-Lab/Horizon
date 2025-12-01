@@ -207,7 +207,7 @@ Uses the shared **TwoAsset_Imaging** scenario with `TestPowerSubsystem`, `TestCa
 - `EventTimeManipulator_ScriptedCS.json`: C# event time manipulation
 - `EventTimeManipulator_Scripted.json`: Python event time manipulation
 
-### Toy Example Scenario Files (Shared from `CheckScheudle/Inputs/`)
+### Toy Example Scenario Files (Shared from `CheckSchedule/Inputs/`)
 - `SimInput_CanPerform.json`: Simulation parameters (shared)
 - `TwoAsset_Imaging_Tasks.json`: Task definitions (RECHARGE, IMAGING, TRANSMIT)
 - `TwoAsset_Imaging_Model.json`: System model with Power, Camera, and Antenna subsystems
@@ -258,7 +258,7 @@ dotnet test --filter "FullyQualifiedName~CanPerform_ToyExample"
 - **No external dependencies:** All tests use minimal input files
 - **Deterministic:** Tests use fixed parameters and expected values
 - **Isolated:** Each test uses `SetUp`/`TearDown` for clean state
-- **Toy example tests:** Use shared input files from `CheckScheudle/Inputs/` to validate real subsystem behavior
+- **Toy example tests:** Use shared input files from `CheckSchedule/Inputs/` to validate real subsystem behavior
 - **Time mutation verification:** Toy example tests verify time mutation parameters are 0 to ensure subsystems don't modify task times (preserves test logic)
 
 ## Thesis Relevance

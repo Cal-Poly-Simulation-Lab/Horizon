@@ -35,8 +35,8 @@ namespace HSFSchedulerUnitTest
             SubsystemCallTracker.Clear();
 
             program = new Horizon.Program();
-            // Uses shared input files from CheckScheudle/Inputs (see README.md)
-            var inputsDir = Path.Combine(CurrentTestDir, "CheckScheudle/Inputs");
+            // Uses shared input files from CheckSchedule/Inputs (see README.md)
+            var inputsDir = Path.Combine(CurrentTestDir, "CheckSchedule/Inputs");
             var simPath = Path.Combine(inputsDir, "SimInput_CanPerform.json");
             var taskPath = Path.Combine(inputsDir, "TwoAsset_Imaging_Tasks.json");
             var modelPath = Path.Combine(inputsDir, "TwoAsset_Imaging_Model.json");
@@ -368,7 +368,7 @@ namespace HSFSchedulerUnitTest
 
             // Load the constraint model (power > 75 fails)
             program = new Horizon.Program();
-            var inputsDir = Path.Combine(CurrentTestDir, "CheckScheudle/Inputs");
+            var inputsDir = Path.Combine(CurrentTestDir, "CheckSchedule/Inputs");
             var simPath = Path.Combine(inputsDir, "SimInput_CanPerform.json");
             var taskPath = Path.Combine(inputsDir, "TwoAsset_Imaging_Tasks.json");
             var modelPath = Path.Combine(inputsDir, "TwoAsset_Imaging_Model_ConstraintPowerMax75.json");

@@ -302,7 +302,7 @@ Uses the **TwoAsset_Imaging** scenario with the following dependency structure:
 
 ## Input Files
 
-**Note:** This test suite uses **shared input files** from the `CheckScheudle/Inputs/` directory:
+**Note:** This test suite uses **shared input files** from the `CheckSchedule/Inputs/` directory:
 
 - `../../Inputs/SimInput_CanPerform.json` - Simulation parameters
 - `../../Inputs/TwoAsset_Imaging_Tasks.json` - Task definitions (RECHARGE, IMAGING, TRANSMIT)
@@ -434,7 +434,7 @@ dotnet test --filter "FullyQualifiedName~CheckDependentSubsystems.*TimeMutation_
 ## Notes
 
 - **Test execution time:** ~45s for full suite (33 tests: 9 original + 24 mutation tests)
-- **No external dependencies:** All tests use shared input files from `CheckScheudle/Inputs/` or `TaskMutationInput/`
+- **No external dependencies:** All tests use shared input files from `CheckSchedule/Inputs/` or `TaskMutationInput/`
 - **Deterministic:** Tests use fixed parameters and expected values
 - **Isolated:** Each test creates fresh state and events, clears call tracking
 - **Future-proof:** Tests verify order via state mutations, not `IsEvaluated` flag (will work when flag is removed)

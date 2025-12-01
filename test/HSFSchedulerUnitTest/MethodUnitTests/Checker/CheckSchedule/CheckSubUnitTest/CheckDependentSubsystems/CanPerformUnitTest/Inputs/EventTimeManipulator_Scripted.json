@@ -14,9 +14,9 @@
         },
         "subsystems": [
           {
-            "type": "scriptedcs",
+            "type": "scripted",
             "name": "TaskTimeManipulatorSubsystem",
-            "src": "test\\HSFSchedulerUnitTest\\MethodUnitTests\\Checker\\CheckScheudle\\CheckSubUnitTest\\CheckDependentSubsystems\\CanPerformUnitTest\\Subsystems\\TaskTimeManipulatorSubsystem.cs",
+            "src": "test\\HSFSchedulerUnitTest\\MethodUnitTests\\Checker\\CheckSchedule\\CheckSubUnitTest\\CheckDependentSubsystems\\CanPerformUnitTest\\Subsystems\\TaskTimeManipulatorSubsystem.py",
             "className": "TaskTimeManipulatorSubsystem",
             "parameters": [
               {

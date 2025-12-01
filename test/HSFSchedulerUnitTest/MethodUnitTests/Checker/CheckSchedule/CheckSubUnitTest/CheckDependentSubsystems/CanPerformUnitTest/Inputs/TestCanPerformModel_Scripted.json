@@ -16,7 +16,7 @@
           {
             "type": "scripted",
             "name": "TestCanPerformSubsystem",
-            "src": "test\\HSFSchedulerUnitTest\\MethodUnitTests\\Checker\\CheckScheudle\\CheckSubUnitTest\\CheckDependentSubsystems\\CanPerformUnitTest\\Subsystems\\TestCanPerformSubsystem.py",
+            "src": "test\\HSFSchedulerUnitTest\\MethodUnitTests\\Checker\\CheckSchedule\\CheckSubUnitTest\\CheckDependentSubsystems\\CanPerformUnitTest\\Subsystems\\TestCanPerformSubsystem.py",
             "className": "TestCanPerformSubsystem",
             "parameters": [
               {

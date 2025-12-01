@@ -200,7 +200,7 @@ Uses a modified model with a `FAIL_IF_HIGHER` constraint:
 
 ## Input Files
 
-Located in `CheckScheudle/Inputs/`:
+Located in `CheckSchedule/Inputs/`:
 - `SimInput_CanPerform.json` - Simulation parameters
 - `TwoAsset_Imaging_Tasks.json` - Task definitions (RECHARGE, IMAGING, TRANSMIT)
 - `TwoAsset_Imaging_Model.json` - System model for basic validation test

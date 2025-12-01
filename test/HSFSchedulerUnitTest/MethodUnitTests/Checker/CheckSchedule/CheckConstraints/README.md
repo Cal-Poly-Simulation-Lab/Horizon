@@ -10,7 +10,7 @@ The test suite uses the **TwoAsset_Imaging** scenario which contains a `FAIL_IF_
 
 ## Input Files
 
-**Note:** This test suite uses **shared input files** from the `CheckScheudle/Inputs/` directory:
+**Note:** This test suite uses **shared input files** from the `CheckSchedule/Inputs/` directory:
 
 - `../Inputs/SimInput_CanPerform.json` - Simulation parameters
 - `../Inputs/TwoAsset_Imaging_Tasks.json` - Task definitions

@@ -37,7 +37,7 @@ namespace HSFSchedulerUnitTest
             SubsystemCallTracker.Clear();
 
             program = new Horizon.Program();
-            // Uses shared input files from CheckScheudle/Inputs (see README.md)
+            // Uses shared input files from CheckSchedule/Inputs (see README.md)
             var inputsDir = Path.Combine(CurrentTestDir, "../Inputs");
             var simPath = Path.Combine(inputsDir, "SimInput_CanPerform.json");
             var taskPath = Path.Combine(inputsDir, "TwoAsset_Imaging_Tasks.json");
