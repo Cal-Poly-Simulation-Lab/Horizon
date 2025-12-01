@@ -429,82 +429,50 @@ namespace HSFSchedulerUnitTest
             var tasks = program.SystemTasks;
             var initialState = program.InitialSysState;
 
-            Console.WriteLine("\n=== Method 1: Direct GenerateSchedules Call ===");
+            // Set SimParameters.OutputDirectory to our test output directory
+            // This ensures all hash history files (including combined hash history) write to the correct location
+            // Safe in test context - we control the entire execution
+            UserModel.SimParameters.OutputDirectory = directOutputDir;
             
-            // Method 1: Direct GenerateSchedules call (output will be captured to run_log.txt)
-            var directSchedules = scheduler.GenerateSchedules(system, tasks, initialState);
-            
-            // Stop logging after GenerateSchedules completes
-            directLogger.StopLogging();
-            
-            // Save hash summary for direct GenerateSchedules in runDir/direct_generateschedules/
-            string directSummaryPath = SaveTestHashSummary(directSchedules, "direct_generateschedules", runDir);
-            Console.WriteLine($"Saved hash summary: {directSummaryPath}");
-            
-            Console.WriteLine("\n=== Method 2: MainSchedulingLoopHelper (Iteration-by-Iteration) ===");
-            
-            // Method 2: MainSchedulingLoopHelper iteration-by-iteration
-            // Reset scheduler state
-            Scheduler.SchedulerStep = -1;
-            SchedulerUnitTest.CurrentTime = UserModel.SimParameters.SimStartSeconds;
-            SchedulerUnitTest.NextTime = UserModel.SimParameters.SimStartSeconds + UserModel.SimParameters.SimStepSeconds;
-            
-            // Initialize empty schedule
-            var loopSchedules = new List<SystemSchedule>();
-            loopSchedules = Scheduler.InitializeEmptySchedule(loopSchedules, initialState);
-            var emptySchedule = loopSchedules[0];
-            
-            // Generate exhaustive schedule combos
-            var scheduleCombos = new Stack<Stack<Access>>();
-            scheduleCombos = Scheduler.GenerateExhaustiveSystemSchedules(
-                system, 
-                tasks, 
-                scheduleCombos, 
-                UserModel.SimParameters.SimStartSeconds, 
-                UserModel.SimParameters.SimEndSeconds
-            );
-            
-            // Calculate number of iterations
-            double startTime = UserModel.SimParameters.SimStartSeconds;
-            double timeStep = UserModel.SimParameters.SimStepSeconds;
-            double endTime = UserModel.SimParameters.SimEndSeconds;
-            int totalIterations = (int)Math.Floor((endTime - startTime) / timeStep);
-            
-            Console.WriteLine($"Running {totalIterations} iterations...");
-            
-            // Create iterations subdirectory
-            string iterationsDir = Path.Combine(runDir, "iterations");
-            Directory.CreateDirectory(iterationsDir);
-            
-            // Run iteration-by-iteration, saving hash summary after each
-            for (int iteration = 0; iteration < totalIterations; iteration++)
+            // Initialize hash history files BEFORE GenerateSchedules (so they can be written to during execution)
+            // This ensures the files exist and are ready to receive data during GenerateSchedules
+            if (UserModel.SimParameters.EnableHashTracking)
             {
-                double currentTime = startTime + (iteration * timeStep);
-                
-                // Run one iteration
-                loopSchedules = MainSchedulingLoopHelper(
-                    loopSchedules, 
-                    scheduleCombos, 
-                    system, 
-                    evaluator, 
-                    emptySchedule, 
-                    currentTime, 
-                    timeStep, 
-                    1);
-                
-                // Save hash summary after this iteration in runDir/iterations/iteration_N/
-                string iterSubdir = Path.Combine("iterations", $"iteration_{iteration}");
-                string iterSummaryPath = SaveTestHashSummary(loopSchedules, iterSubdir, runDir);
-                Console.WriteLine($"  Iteration {iteration}: Saved hash summary to {iterSummaryPath}");
+                HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(directOutputDir);
+                HSFScheduler.StateHistory.InitializeStateHashHistoryFile(directOutputDir);
+                HSFScheduler.SystemScheduleInfo.InitializeCombinedHashHistoryFile(directOutputDir);
             }
             
-            Console.WriteLine($"\n=== Complete: All hash summaries saved to {runDir} ===");
+            Console.WriteLine("\n=== Method 1: Direct GenerateSchedules Call ===");
+            
+            // Direct GenerateSchedules call (output will be captured to run_log.txt)
+            // Hash history files will be written to during this execution
+            List<SystemSchedule> directSchedules = scheduler.GenerateSchedules(system, tasks, initialState);
+            
+            // Match Program.cs flow: EvaluateSchedules() is called after GenerateSchedules()
+            // This re-evaluates schedules and sorts them, which writes an additional hash history line
+            program.Schedules = directSchedules;
+            program.EvaluateSchedules();
+            directSchedules = program.Schedules; // Update reference in case it was modified
+            
+            // Stop logging after EvaluateSchedules completes
+            directLogger.StopLogging();
+            
+            // Use Program.cs static method to write hash summary (same as main program does)
+            // Hash history files were already written during GenerateSchedules execution
+            if (UserModel.SimParameters.EnableHashTracking)
+            {
+                Horizon.Program.SaveScheduleHashBlockchainSummary(directSchedules, directOutputDir);
+                Console.WriteLine($"Saved hash summary: {Path.Combine(directOutputDir, "HashData", "scheduleHashBlockchainSummary.txt")}");
+            }
+            
+            Console.WriteLine($"\n=== Complete: Hash summaries saved to {runDir} ===");
         }
 
         /// <summary>
         /// Helper method to save schedule hash blockchain summary to test output directory.
         /// Creates the same hash summary files as the main program, but outputs to test/output/HashData/.
-        /// Also initializes hash history files (FullScheduleHashHistory.txt, FullStateHistoryHash.txt, FullScheduleStateHashHistory.txt)
+        /// Optionally initializes hash history files (FullScheduleHashHistory.txt, FullStateHistoryHash.txt, FullScheduleStateHashHistory.txt)
         /// so they can be written to during scheduler execution.
         /// Can be called between iterations or after GenerateSchedules runs.
         /// </summary>
@@ -512,8 +480,9 @@ namespace HSFSchedulerUnitTest
         /// <param name="subdirectory">Optional subdirectory name (e.g., "iteration_0", "after_generate"). 
         /// If empty, outputs directly to baseOutputDir/HashData/. Defaults to empty string.</param>
         /// <param name="baseOutputDir">Base output directory. If null, defaults to test/HSFSchedulerUnitTest/output/</param>
+        /// <param name="skipHashHistoryInit">If true, skips initializing hash history files (use when they were already initialized before execution)</param>
         /// <returns>Path to the created summary file</returns>
-        protected string SaveTestHashSummary(List<SystemSchedule> schedules, string subdirectory = "", string? baseOutputDir = null)
+        protected string SaveTestHashSummary(List<SystemSchedule> schedules, string subdirectory = "", string? baseOutputDir = null, bool skipHashHistoryInit = false)
         {
             // Get test output directory (default: test/HSFSchedulerUnitTest/output/)
             // Or use provided baseOutputDir
@@ -534,10 +503,12 @@ namespace HSFSchedulerUnitTest
 
             // Initialize hash history files (same as main program does)
             // This creates the files and sets up tracking so they can be written to during execution
-            if (UserModel.SimParameters.EnableHashTracking)
+            // Skip if they were already initialized before GenerateSchedules (to avoid clearing existing data)
+            if (UserModel.SimParameters.EnableHashTracking && !skipHashHistoryInit)
             {
                 HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(outputPath);
                 HSFScheduler.StateHistory.InitializeStateHashHistoryFile(outputPath);
+                // Combined hash history file is initialized automatically when first used
             }
 
             // Call the main program's method to create the summary

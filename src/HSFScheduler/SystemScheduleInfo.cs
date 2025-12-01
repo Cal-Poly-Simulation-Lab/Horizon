@@ -54,6 +54,29 @@ namespace HSFScheduler
         }
         
         /// <summary>
+        /// Initializes the combined hash history file path (called once at program start)
+        /// Sets the file path to FullScheduleStateHashHistory.txt in HashData/ subdirectory
+        /// Can be called multiple times to update the path (useful for test runs)
+        /// </summary>
+        public static void InitializeCombinedHashHistoryFile(string outputDirectory)
+        {
+            lock (_combinedHashHistoryLock)
+            {
+                // Create HashData subdirectory if it doesn't exist
+                string hashDataDir = Path.Combine(outputDirectory, "HashData");
+                Directory.CreateDirectory(hashDataDir);
+                
+                // Always update path (allows re-initialization for test runs with different directories)
+                _combinedHashHistoryFilePath = Path.Combine(hashDataDir, "FullScheduleStateHashHistory.txt");
+                // Clear existing file if it exists (start fresh each run)
+                if (File.Exists(_combinedHashHistoryFilePath))
+                {
+                    File.Delete(_combinedHashHistoryFilePath);
+                }
+            }
+        }
+        
+        /// <summary>
         /// Records schedule hash history after sorting
         /// Writes a line with format: [<iteration>: <context>] <all hashes space delimited>
         /// Context is either "CropToMax" or "EvalSort" (detected from order or previous call)

@@ -1,0 +1,125 @@
+Schedule Number: 0Schedule Value: 444
+asset1:	Any	Task Start:	45	Event Start:	45	Task End:	50	Event End:	50asset2:	Any	Task Start:	45	Event Start:	45	Task End:	50	Event End:	50
+asset1:	Any	Task Start:	40	Event Start:	40	Task End:	45	Event End:	50asset2:	asset	Task Start:	40	Event Start:	40	Task End:	45	Event End:	50
+asset1:	asset	Task Start:	35	Event Start:	35	Task End:	40	Event End:	40asset2:	Any	Task Start:	35	Event Start:	35	Task End:	40	Event End:	40
+asset1:	Any	Task Start:	30	Event Start:	30	Task End:	35	Event End:	35asset2:	Any	Task Start:	30	Event Start:	30	Task End:	35	Event End:	35
+asset1:	Any	Task Start:	25	Event Start:	25	Task End:	30	Event End:	30asset2:	asset	Task Start:	25	Event Start:	25	Task End:	30	Event End:	30
+asset1:	Any	Task Start:	20	Event Start:	20	Task End:	25	Event End:	25asset2:	Any	Task Start:	20	Event Start:	20	Task End:	25	Event End:	25
+asset1:	asset	Task Start:	15	Event Start:	15	Task End:	20	Event End:	20asset2:	Any	Task Start:	15	Event Start:	15	Task End:	20	Event End:	20
+asset1:	Any	Task Start:	10	Event Start:	10	Task End:	15	Event End:	15asset2:	Any	Task Start:	10	Event Start:	10	Task End:	15	Event End:	15
+asset1:	Any	Task Start:	5	Event Start:	5	Task End:	10	Event End:	10asset2:	Any	Task Start:	5	Event Start:	5	Task End:	10	Event End:	10
+asset1:	Any	Task Start:	0	Event Start:	0	Task End:	5	Event End:	5asset2:	Any	Task Start:	0	Event Start:	0	Task End:	5	Event End:	5
+Schedule Number: 1Schedule Value: 444
+asset1:	Any	Task Start:	45	Event Start:	45	Task End:	50	Event End:	50asset2:	Any	Task Start:	45	Event Start:	45	Task End:	50	Event End:	50
+asset1:	Any	Task Start:	40	Event Start:	40	Task End:	45	Event End:	50asset2:	asset	Task Start:	40	Event Start:	40	Task End:	45	Event End:	50
+asset1:	asset	Task Start:	35	Event Start:	35	Task End:	40	Event End:	40asset2:	Any	Task Start:	35	Event Start:	35	Task End:	40	Event End:	40
+asset1:	Any	Task Start:	30	Event Start:	30	Task End:	35	Event End:	35asset2:	Any	Task Start:	30	Event Start:	30	Task End:	35	Event End:	35
+asset1:	Any	Task Start:	25	Event Start:	25	Task End:	30	Event End:	30asset2:	asset	Task Start:	25	Event Start:	25	Task End:	30	Event End:	30
+asset1:	Any	Task Start:	20	Event Start:	20	Task End:	25	Event End:	25asset2:	Any	Task Start:	20	Event Start:	20	Task End:	25	Event End:	25
+asset1:	Any	Task Start:	15	Event Start:	15	Task End:	20	Event End:	20asset2:	Any	Task Start:	15	Event Start:	15	Task End:	20	Event End:	20
+asset1:	Any	Task Start:	10	Event Start:	10	Task End:	15	Event End:	15asset2:	Any	Task Start:	10	Event Start:	10	Task End:	15	Event End:	15
+asset1:	asset	Task Start:	5	Event Start:	5	Task End:	10	Event End:	10asset2:	Any	Task Start:	5	Event Start:	5	Task End:	10	Event End:	10
+asset1:	Any	Task Start:	0	Event Start:	0	Task End:	5	Event End:	5asset2:	Any	Task Start:	0	Event Start:	0	Task End:	5	Event End:	5
+Schedule Number: 2Schedule Value: 444
+asset1:	Any	Task Start:	45	Event Start:	45	Task End:	50	Event End:	50asset2:	Any	Task Start:	45	Event Start:	45	Task End:	50	Event End:	50
+asset1:	Any	Task Start:	40	Event Start:	40	Task End:	45	Event End:	50asset2:	Any	Task Start:	40	Event Start:	40	Task End:	45	Event End:	50
+asset1:	asset	Task Start:	35	Event Start:	35	Task End:	40	Event End:	40asset2:	asset	Task Start:	35	Event Start:	35	Task End:	40	Event End:	40
+asset1:	Any	Task Start:	30	Event Start:	30	Task End:	35	Event End:	35asset2:	Any	Task Start:	30	Event Start:	30	Task End:	35	Event End:	35
+asset1:	Any	Task Start:	25	Event Start:	25	Task End:	30	Event End:	30asset2:	asset	Task Start:	25	Event Start:	25	Task End:	30	Event End:	30
+asset1:	Any	Task Start:	20	Event Start:	20	Task End:	25	Event End:	25asset2:	Any	Task Start:	20	Event Start:	20	Task End:	25	Event End:	25
+asset1:	Any	Task Start:	15	Event Start:	15	Task End:	20	Event End:	20asset2:	Any	Task Start:	15	Event Start:	15	Task End:	20	Event End:	20
+asset1:	asset	Task Start:	10	Event Start:	10	Task End:	15	Event End:	15asset2:	Any	Task Start:	10	Event Start:	10	Task End:	15	Event End:	15
+asset1:	Any	Task Start:	5	Event Start:	5	Task End:	10	Event End:	10asset2:	Any	Task Start:	5	Event Start:	5	Task End:	10	Event End:	10
+asset1:	Any	Task Start:	0	Event Start:	0	Task End:	5	Event End:	5asset2:	Any	Task Start:	0	Event Start:	0	Task End:	5	Event End:	5
+Schedule Number: 3Schedule Value: 444
+asset1:	Any	Task Start:	45	Event Start:	45	Task End:	50	Event End:	50asset2:	Any	Task Start:	45	Event Start:	45	Task End:	50	Event End:	50
+asset1:	Any	Task Start:	40	Event Start:	40	Task End:	45	Event End:	50asset2:	asset	Task Start:	40	Event Start:	40	Task End:	45	Event End:	50
+asset1:	asset	Task Start:	35	Event Start:	35	Task End:	40	Event End:	40asset2:	Any	Task Start:	35	Event Start:	35	Task End:	40	Event End:	40
+asset1:	Any	Task Start:	30	Event Start:	30	Task End:	35	Event End:	35asset2:	Any	Task Start:	30	Event Start:	30	Task End:	35	Event End:	35
+asset1:	Any	Task Start:	25	Event Start:	25	Task End:	30	Event End:	30asset2:	asset	Task Start:	25	Event Start:	25	Task End:	30	Event End:	30
+asset1:	Any	Task Start:	20	Event Start:	20	Task End:	25	Event End:	25asset2:	Any	Task Start:	20	Event Start:	20	Task End:	25	Event End:	25
+asset1:	Any	Task Start:	15	Event Start:	15	Task End:	20	Event End:	20asset2:	Any	Task Start:	15	Event Start:	15	Task End:	20	Event End:	20
+asset1:	asset	Task Start:	10	Event Start:	10	Task End:	15	Event End:	15asset2:	Any	Task Start:	10	Event Start:	10	Task End:	15	Event End:	15
+asset1:	Any	Task Start:	5	Event Start:	5	Task End:	10	Event End:	10asset2:	Any	Task Start:	5	Event Start:	5	Task End:	10	Event End:	10
+asset1:	Any	Task Start:	0	Event Start:	0	Task End:	5	Event End:	5asset2:	Any	Task Start:	0	Event Start:	0	Task End:	5	Event End:	5
+Schedule Number: 4Schedule Value: 444
+asset1:	Any	Task Start:	45	Event Start:	45	Task End:	50	Event End:	50asset2:	Any	Task Start:	45	Event Start:	45	Task End:	50	Event End:	50
+asset1:	Any	Task Start:	40	Event Start:	40	Task End:	45	Event End:	50asset2:	asset	Task Start:	40	Event Start:	40	Task End:	45	Event End:	50
+asset1:	asset	Task Start:	35	Event Start:	35	Task End:	40	Event End:	40asset2:	Any	Task Start:	35	Event Start:	35	Task End:	40	Event End:	40
+asset1:	Any	Task Start:	30	Event Start:	30	Task End:	35	Event End:	35asset2:	Any	Task Start:	30	Event Start:	30	Task End:	35	Event End:	35
+asset1:	Any	Task Start:	25	Event Start:	25	Task End:	30	Event End:	30asset2:	asset	Task Start:	25	Event Start:	25	Task End:	30	Event End:	30
+asset1:	asset	Task Start:	20	Event Start:	20	Task End:	25	Event End:	25asset2:	Any	Task Start:	20	Event Start:	20	Task End:	25	Event End:	25
+asset1:	Any	Task Start:	15	Event Start:	15	Task End:	20	Event End:	20asset2:	Any	Task Start:	15	Event Start:	15	Task End:	20	Event End:	20
+asset1:	Any	Task Start:	10	Event Start:	10	Task End:	15	Event End:	15asset2:	Any	Task Start:	10	Event Start:	10	Task End:	15	Event End:	15
+asset1:	Any	Task Start:	5	Event Start:	5	Task End:	10	Event End:	10asset2:	Any	Task Start:	5	Event Start:	5	Task End:	10	Event End:	10
+asset1:	Any	Task Start:	0	Event Start:	0	Task End:	5	Event End:	5asset2:	Any	Task Start:	0	Event Start:	0	Task End:	5	Event End:	5
+Schedule Number: 5Schedule Value: 444
+Schedule Number: 6Schedule Value: 444
+Schedule Number: 7Schedule Value: 444
+Schedule Number: 8Schedule Value: 444
+Schedule Number: 9Schedule Value: 444
+Schedule Number: 10Schedule Value: 435
+Schedule Number: 11Schedule Value: 435
+Schedule Number: 12Schedule Value: 435
+Schedule Number: 13Schedule Value: 435
+Schedule Number: 14Schedule Value: 435
+Schedule Number: 15Schedule Value: 435
+Schedule Number: 16Schedule Value: 435
+Schedule Number: 17Schedule Value: 435
+Schedule Number: 18Schedule Value: 435
+Schedule Number: 19Schedule Value: 435
+Schedule Number: 20Schedule Value: 404
+Schedule Number: 21Schedule Value: 404
+Schedule Number: 22Schedule Value: 404
+Schedule Number: 23Schedule Value: 404
+Schedule Number: 24Schedule Value: 404
+Schedule Number: 25Schedule Value: 404
+Schedule Number: 26Schedule Value: 404
+Schedule Number: 27Schedule Value: 404
+Schedule Number: 28Schedule Value: 404
+Schedule Number: 29Schedule Value: 404
+Schedule Number: 30Schedule Value: 395
+Schedule Number: 31Schedule Value: 395
+Schedule Number: 32Schedule Value: 395
+Schedule Number: 33Schedule Value: 395
+Schedule Number: 34Schedule Value: 395
+Schedule Number: 35Schedule Value: 395
+Schedule Number: 36Schedule Value: 395
+Schedule Number: 37Schedule Value: 395
+Schedule Number: 38Schedule Value: 395
+Schedule Number: 39Schedule Value: 395
+Schedule Number: 40Schedule Value: 395
+Schedule Number: 41Schedule Value: 395
+Schedule Number: 42Schedule Value: 395
+Schedule Number: 43Schedule Value: 395
+Schedule Number: 44Schedule Value: 395
+Schedule Number: 45Schedule Value: 395
+Schedule Number: 46Schedule Value: 395
+Schedule Number: 47Schedule Value: 395
+Schedule Number: 48Schedule Value: 395
+Schedule Number: 49Schedule Value: 395
+Schedule Number: 50Schedule Value: 386
+Schedule Number: 51Schedule Value: 386
+Schedule Number: 52Schedule Value: 386
+Schedule Number: 53Schedule Value: 386
+Schedule Number: 54Schedule Value: 386
+Schedule Number: 55Schedule Value: 386
+Schedule Number: 56Schedule Value: 386
+Schedule Number: 57Schedule Value: 386
+Schedule Number: 58Schedule Value: 386
+Schedule Number: 59Schedule Value: 386
+Schedule Number: 60Schedule Value: 384
+Schedule Number: 61Schedule Value: 384
+Schedule Number: 62Schedule Value: 384
+Schedule Number: 63Schedule Value: 384
+Schedule Number: 64Schedule Value: 384
+Schedule Number: 65Schedule Value: 384
+Schedule Number: 66Schedule Value: 384
+Schedule Number: 67Schedule Value: 384
+Schedule Number: 68Schedule Value: 384
+Schedule Number: 69Schedule Value: 384
+Schedule Number: 70Schedule Value: 20
+Schedule Number: 71Schedule Value: 11
+Schedule Number: 72Schedule Value: 11
+Schedule Number: 73Schedule Value: 2
+Schedule Number: 74Schedule Value: 0
