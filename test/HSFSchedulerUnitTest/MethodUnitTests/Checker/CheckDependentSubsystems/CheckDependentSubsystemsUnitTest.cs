@@ -33,7 +33,7 @@ namespace HSFSchedulerUnitTest
         private TestAntennaSubsystem _asset2Antenna = null!;
         private Domain _environment = null!;
         private SystemClass _system = null!;
-        private Dictionary<string, Task> _tasksByType = null!;
+        private Dictionary<string, MissionElements.Task> _tasksByType = null!;
 
         private static readonly MethodInfo CheckSubsMethod =
             typeof(Checker).GetMethod("checkSubs", BindingFlags.NonPublic | BindingFlags.Static)
@@ -81,14 +81,14 @@ namespace HSFSchedulerUnitTest
         }
 
         private (Event evt, SystemSchedule schedule, SystemState state) BuildSchedule(
-            Task asset1Task,
-            Task asset2Task,
+            MissionElements.Task asset1Task,
+            MissionElements.Task asset2Task,
             Action<SystemState>? stateSetup = null)
         {
             var stateCopy = new SystemState(program.InitialSysState, true);
             stateSetup?.Invoke(stateCopy);
 
-            var tasks = new Dictionary<Asset, Task>
+            var tasks = new Dictionary<Asset, MissionElements.Task>
             {
                 { _asset1, asset1Task },
                 { _asset2, asset2Task }
@@ -117,7 +117,7 @@ namespace HSFSchedulerUnitTest
             return (evt, schedule, stateCopy);
         }
 
-        private Task TaskOf(string type) => _tasksByType[type.ToUpperInvariant()];
+        private MissionElements.Task TaskOf(string type) => _tasksByType[type.ToUpperInvariant()];
 
         private void ResetAllSubsystems()
         {
