@@ -2,6 +2,7 @@
 // Authors: Jason Ebeals (jebeals@calpoly.edu)
 
 using System;
+using System.Collections.Generic;
 using HSFSystem;
 using MissionElements;
 using UserModel;
@@ -23,6 +24,8 @@ namespace HSFSystem
         protected double minPower;
         protected double transmitPowerRequired;
         protected double imagePowerRequired;
+        protected double _taskStartTimeMutation;
+        protected double _taskEndTimeMutation;
         // State key (reference to where state lives in SystemState)
         protected StateVariableKey<double> CHECKER_POWER_KEY = null!;
         
@@ -33,7 +36,30 @@ namespace HSFSystem
             GetParameterByName<double>(subJson, nameof(minPower), out minPower);
             GetParameterByName<double>(subJson, nameof(transmitPowerRequired), out transmitPowerRequired);
             GetParameterByName<double>(subJson, nameof(imagePowerRequired), out imagePowerRequired);
-
+            
+            // Time mutation parameters (default to 0 if not provided)
+            _taskStartTimeMutation = TryGetParameterByName<double>(subJson, "_taskStartTimeMutation", 0.0);
+            _taskEndTimeMutation = TryGetParameterByName<double>(subJson, "_taskEndTimeMutation", 0.0);
+        }
+        
+        // Helper method for optional parameters
+        private T TryGetParameterByName<T>(JObject subsysJson, string name, T defaultValue)
+        {
+            if (JsonLoader<JArray>.TryGetValue("parameters", subsysJson, out JArray parameters))
+            {
+                foreach (JObject parameter in parameters)
+                {
+                    if (JsonLoader<string>.TryGetValue("name", parameter, out string varName))
+                    {
+                        if (varName == name)
+                        {
+                            JsonLoader<double>.TryGetValue("value", parameter, out double value);
+                            return (T)(object)value;
+                        }
+                    }
+                }
+            }
+            return defaultValue;
         }
         
         public override bool CanPerform(Event proposedEvent, Domain environment)
@@ -42,6 +68,19 @@ namespace HSFSystem
             var state = proposedEvent.State; // current system state
             var task = proposedEvent.GetAssetTask(Asset);
             var taskType = task.Type.ToUpper();
+
+            // Apply time mutations if configured
+            double currentTaskStart = proposedEvent.GetTaskStart(Asset);
+            double currentTaskEnd = proposedEvent.GetTaskEnd(Asset);
+            double mutatedTaskStart = currentTaskStart + _taskStartTimeMutation;
+            double mutatedTaskEnd = currentTaskEnd + _taskEndTimeMutation;
+            
+            // Update task times if mutations are non-zero
+            if (_taskStartTimeMutation != 0.0 || _taskEndTimeMutation != 0.0)
+            {
+                proposedEvent.SetTaskStart(new Dictionary<Asset, double> { { Asset, mutatedTaskStart } });
+                proposedEvent.SetTaskEnd(new Dictionary<Asset, double> { { Asset, mutatedTaskEnd } });
+            }
 
             // Get the last power value from the state
             double lastPower = state.GetLastValue(CHECKER_POWER_KEY).Item2; // last power value
@@ -81,6 +120,10 @@ namespace HSFSystem
                 throw new ArgumentException($"Attempting to set unknown TestPower state variable key '{stateKey.VariableName}'.", nameof(stateKey));
             }
         }
+        
+        // Public getters for testing
+        public double GetTaskStartTimeMutation() => _taskStartTimeMutation;
+        public double GetTaskEndTimeMutation() => _taskEndTimeMutation;
 
     }
 }

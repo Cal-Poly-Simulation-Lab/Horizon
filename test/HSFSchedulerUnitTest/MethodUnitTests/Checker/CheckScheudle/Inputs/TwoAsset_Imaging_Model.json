@@ -59,7 +59,18 @@
             "src": "test/HSFSchedulerUnitTest/Subsystems/TestAntennaSubsystem.cs",
             "className": "TestAntennaSubsystem",
             "name": "Antenna",
-            "parameters": [],
+            "parameters": [
+              {
+                "name": "_taskStartTimeMutation",
+                "type": "double",
+                "value": 0.0
+              },
+              {
+                "name": "_taskEndTimeMutation",
+                "type": "double",
+                "value": 0.0
+              }
+            ],
             "states": [
               {
                 "type": "double",
@@ -79,6 +90,16 @@
                 "name": "maxImages",
                 "type": "double",
                 "value": 10.0
+              },
+              {
+                "name": "_taskStartTimeMutation",
+                "type": "double",
+                "value": 0.0
+              },
+              {
+                "name": "_taskEndTimeMutation",
+                "type": "double",
+                "value": 0.0
               }
             ],
             "states": [
@@ -162,7 +183,18 @@
             "src": "test/HSFSchedulerUnitTest/Subsystems/TestAntennaSubsystem.cs",
             "className": "TestAntennaSubsystem",
             "name": "Antenna",
-            "parameters": [],
+            "parameters": [
+              {
+                "name": "_taskStartTimeMutation",
+                "type": "double",
+                "value": 0.0
+              },
+              {
+                "name": "_taskEndTimeMutation",
+                "type": "double",
+                "value": 0.0
+              }
+            ],
             "states": [
               {
                 "type": "double",
@@ -182,6 +214,16 @@
                 "name": "maxImages",
                 "type": "double",
                 "value": 10.0
+              },
+              {
+                "name": "_taskStartTimeMutation",
+                "type": "double",
+                "value": 0.0
+              },
+              {
+                "name": "_taskEndTimeMutation",
+                "type": "double",
+                "value": 0.0
               }
             ],
             "states": [

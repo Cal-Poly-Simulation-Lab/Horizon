@@ -10,6 +10,7 @@ using Utilities;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Reflection;
 using HSFUniverse;
 
 namespace HSFSchedulerUnitTest
@@ -70,6 +71,56 @@ namespace HSFSchedulerUnitTest
         {
             return program.SystemTasks.ToList().First(t => t.Type.ToUpper() == type.ToUpper());
         }
+        
+        /// <summary>
+        /// Verifies that all test subsystems have time mutation parameters set to 0.
+        /// This ensures existing tests are not affected by time mutations.
+        /// Uses reflection to access methods on dynamically compiled subsystems.
+        /// </summary>
+        private void VerifyTimeMutationParametersAreZero()
+        {
+            Assert.Multiple(() =>
+            {
+                // Use reflection to call GetTaskStartTimeMutation and GetTaskEndTimeMutation
+                // (subsystems are dynamically compiled, so direct casting won't work)
+                var cameraType = _cameraSub.GetType();
+                var antennaType = _antennaSub.GetType();
+                var powerType = _powerSub.GetType();
+                
+                var getStartMethod = cameraType.GetMethod("GetTaskStartTimeMutation");
+                var getEndMethod = cameraType.GetMethod("GetTaskEndTimeMutation");
+                
+                if (getStartMethod != null && getEndMethod != null)
+                {
+                    double cameraStart = (double)getStartMethod.Invoke(_cameraSub, null)!;
+                    double cameraEnd = (double)getEndMethod.Invoke(_cameraSub, null)!;
+                    Assert.That(cameraStart, Is.EqualTo(0.0), "Camera task start time mutation should be 0");
+                    Assert.That(cameraEnd, Is.EqualTo(0.0), "Camera task end time mutation should be 0");
+                }
+                
+                getStartMethod = antennaType.GetMethod("GetTaskStartTimeMutation");
+                getEndMethod = antennaType.GetMethod("GetTaskEndTimeMutation");
+                
+                if (getStartMethod != null && getEndMethod != null)
+                {
+                    double antennaStart = (double)getStartMethod.Invoke(_antennaSub, null)!;
+                    double antennaEnd = (double)getEndMethod.Invoke(_antennaSub, null)!;
+                    Assert.That(antennaStart, Is.EqualTo(0.0), "Antenna task start time mutation should be 0");
+                    Assert.That(antennaEnd, Is.EqualTo(0.0), "Antenna task end time mutation should be 0");
+                }
+                
+                getStartMethod = powerType.GetMethod("GetTaskStartTimeMutation");
+                getEndMethod = powerType.GetMethod("GetTaskEndTimeMutation");
+                
+                if (getStartMethod != null && getEndMethod != null)
+                {
+                    double powerStart = (double)getStartMethod.Invoke(_powerSub, null)!;
+                    double powerEnd = (double)getEndMethod.Invoke(_powerSub, null)!;
+                    Assert.That(powerStart, Is.EqualTo(0.0), "Power task start time mutation should be 0");
+                    Assert.That(powerEnd, Is.EqualTo(0.0), "Power task end time mutation should be 0");
+                }
+            });
+        }
 
         #endregion
 
@@ -103,6 +154,7 @@ namespace HSFSchedulerUnitTest
             
             // Verify Camera ran before Power by checking Camera's state mutation occurred and tracking
             double finalImages = state.GetLastValue(imageKey).Item2;
+            
             Assert.Multiple(() =>
             {
                 Assert.That(result, Is.True, "Power should pass when Camera passes");
@@ -116,6 +168,9 @@ namespace HSFSchedulerUnitTest
                 // Verify state actually mutated (matches reported YES)
                 Assert.That(finalImages, Is.EqualTo(1.0), 
                     $"Camera should have incremented images (reported YES mutation: {initialImages} → {finalImages})");
+                
+                // Verify time mutation parameters are 0 (no time mutations in this test)
+                VerifyTimeMutationParametersAreZero();
             });
         }
 
@@ -171,6 +226,9 @@ namespace HSFSchedulerUnitTest
                 // Verify state actually mutated (matches reported YES from Camera)
                 Assert.That(finalImages, Is.EqualTo(1.0), 
                     $"Camera should have incremented images (reported YES mutation: {initialImages} → {finalImages})");
+                
+                // Verify time mutation parameters are 0 (no time mutations in this test)
+                VerifyTimeMutationParametersAreZero();
             });
         }
 
@@ -230,6 +288,9 @@ namespace HSFSchedulerUnitTest
                     $"Camera should have incremented images (reported YES mutation: {initialImages} → {finalImages})");
                 Assert.That(finalPower, Is.EqualTo(65.0), 
                     $"Power should have consumed power (reported YES mutation: {initialPower} → {finalPower}) after Camera and Antenna ran");
+                
+                // Verify time mutation parameters are 0 (no time mutations in this test)
+                VerifyTimeMutationParametersAreZero();
             });
         }
 
@@ -295,6 +356,9 @@ namespace HSFSchedulerUnitTest
                     $"Images should remain unchanged (Camera reported NO mutation: {initialImages} → {finalImages})");
                 Assert.That(finalTransmissions, Is.EqualTo(initialTransmissions), 
                     $"Transmissions should remain unchanged (Antenna reported NO mutation: {initialTransmissions} → {finalTransmissions})");
+                
+                // Verify time mutation parameters are 0 (no time mutations in this test)
+                VerifyTimeMutationParametersAreZero();
             });
         }
 
@@ -312,7 +376,11 @@ namespace HSFSchedulerUnitTest
             
             bool result = _powerSub.CheckDependentSubsystems(evt, _universe);
             
-            Assert.That(result, Is.True, "Power subsystem should pass when Camera and Antenna pass for IMAGING task");
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.True, "Power subsystem should pass when Camera and Antenna pass for IMAGING task");
+                VerifyTimeMutationParametersAreZero();
+            });
         }
 
         [Test]
@@ -328,7 +396,11 @@ namespace HSFSchedulerUnitTest
             
             bool result = _powerSub.CheckDependentSubsystems(evt, _universe);
             
-            Assert.That(result, Is.True, "Power subsystem should pass when Camera and Antenna pass for TRANSMIT task");
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.True, "Power subsystem should pass when Camera and Antenna pass for TRANSMIT task");
+                VerifyTimeMutationParametersAreZero();
+            });
         }
 
         #endregion
@@ -347,7 +419,11 @@ namespace HSFSchedulerUnitTest
             
             bool result = _powerSub.CheckDependentSubsystems(evt, _universe);
             
-            Assert.That(result, Is.False, "Power subsystem should fail when Camera fails (buffer full)");
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.False, "Power subsystem should fail when Camera fails (buffer full)");
+                VerifyTimeMutationParametersAreZero();
+            });
         }
 
         [Test]
@@ -361,7 +437,11 @@ namespace HSFSchedulerUnitTest
             
             bool result = _powerSub.CheckDependentSubsystems(evt, _universe);
             
-            Assert.That(result, Is.False, "Power subsystem should fail when Antenna fails (no images to transmit)");
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.False, "Power subsystem should fail when Antenna fails (no images to transmit)");
+                VerifyTimeMutationParametersAreZero();
+            });
         }
 
         [Test]
@@ -378,7 +458,11 @@ namespace HSFSchedulerUnitTest
             
             bool result = _powerSub.CheckDependentSubsystems(evt, _universe);
             
-            Assert.That(result, Is.False, "Power subsystem should fail when it has insufficient power");
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.False, "Power subsystem should fail when it has insufficient power");
+                VerifyTimeMutationParametersAreZero();
+            });
         }
 
         #endregion

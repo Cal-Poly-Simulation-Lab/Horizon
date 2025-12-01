@@ -22,6 +22,8 @@ namespace HSFSystem
     {
         // Parameters (configuration, not state!)
         protected double maxImages;
+        protected double _taskStartTimeMutation;
+        protected double _taskEndTimeMutation;
         
         // State key (reference to where state lives in SystemState)
         protected StateVariableKey<double> NUM_IMAGE_KEY;
@@ -30,6 +32,29 @@ namespace HSFSystem
         {
             this.GetParameterByName<double>(subJson, nameof(maxImages), out maxImages);
             
+            // Time mutation parameters (default to 0 if not provided)
+            _taskStartTimeMutation = TryGetParameterByName<double>(subJson, "_taskStartTimeMutation", 0.0);
+            _taskEndTimeMutation = TryGetParameterByName<double>(subJson, "_taskEndTimeMutation", 0.0);
+        }
+        
+        // Helper method for optional parameters
+        private T TryGetParameterByName<T>(JObject subsysJson, string name, T defaultValue)
+        {
+            if (JsonLoader<JArray>.TryGetValue("parameters", subsysJson, out JArray parameters))
+            {
+                foreach (JObject parameter in parameters)
+                {
+                    if (JsonLoader<string>.TryGetValue("name", parameter, out string varName))
+                    {
+                        if (varName == name)
+                        {
+                            JsonLoader<double>.TryGetValue("value", parameter, out double value);
+                            return (T)(object)value;
+                        }
+                    }
+                }
+            }
+            return defaultValue;
         }
         
         // Public getter for testing
@@ -42,6 +67,19 @@ namespace HSFSystem
             var state = proposedEvent.State; // current system state
             var task = proposedEvent.GetAssetTask(Asset);
             var taskType = task.Type.ToUpper();
+
+            // Apply time mutations if configured
+            double currentTaskStart = proposedEvent.GetTaskStart(Asset);
+            double currentTaskEnd = proposedEvent.GetTaskEnd(Asset);
+            double mutatedTaskStart = currentTaskStart + _taskStartTimeMutation;
+            double mutatedTaskEnd = currentTaskEnd + _taskEndTimeMutation;
+            
+            // Update task times if mutations are non-zero
+            if (_taskStartTimeMutation != 0.0 || _taskEndTimeMutation != 0.0)
+            {
+                proposedEvent.SetTaskStart(new Dictionary<Asset, double> { { Asset, mutatedTaskStart } });
+                proposedEvent.SetTaskEnd(new Dictionary<Asset, double> { { Asset, mutatedTaskEnd } });
+            }
 
             // Get the last power value from the state
             double numImages = state.GetLastValue(NUM_IMAGE_KEY).Item2; // last power value
@@ -76,6 +114,10 @@ namespace HSFSystem
                 throw new ArgumentException($"Attempting to set unknown TestCamera state variable key '{stateKey.VariableName}'.", nameof(stateKey));
             }
         }
+        
+        // Public getters for testing
+        public double GetTaskStartTimeMutation() => _taskStartTimeMutation;
+        public double GetTaskEndTimeMutation() => _taskEndTimeMutation;
 
     }
 }

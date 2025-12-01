@@ -11,6 +11,7 @@ using Utilities;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace HSFSchedulerUnitTest
 {
@@ -232,6 +233,58 @@ namespace HSFSchedulerUnitTest
             return (asset1, powerSub, cameraSub, antennaSub, program.SystemUniverse);
         }
         
+        /// <summary>
+        /// Verifies that test subsystems have time mutation parameters set to 0.
+        /// Uses reflection to access methods on dynamically compiled subsystems.
+        /// </summary>
+        private void VerifyTimeMutationParametersAreZero(Subsystem? powerSub, Subsystem? cameraSub, Subsystem? antennaSub)
+        {
+            Assert.Multiple(() =>
+            {
+                if (powerSub != null)
+                {
+                    var powerType = powerSub.GetType();
+                    var getStartMethod = powerType.GetMethod("GetTaskStartTimeMutation");
+                    var getEndMethod = powerType.GetMethod("GetTaskEndTimeMutation");
+                    if (getStartMethod != null && getEndMethod != null)
+                    {
+                        double powerStart = (double)getStartMethod.Invoke(powerSub, null)!;
+                        double powerEnd = (double)getEndMethod.Invoke(powerSub, null)!;
+                        Assert.That(powerStart, Is.EqualTo(0.0), "Power task start time mutation should be 0");
+                        Assert.That(powerEnd, Is.EqualTo(0.0), "Power task end time mutation should be 0");
+                    }
+                }
+                
+                if (cameraSub != null)
+                {
+                    var cameraType = cameraSub.GetType();
+                    var getStartMethod = cameraType.GetMethod("GetTaskStartTimeMutation");
+                    var getEndMethod = cameraType.GetMethod("GetTaskEndTimeMutation");
+                    if (getStartMethod != null && getEndMethod != null)
+                    {
+                        double cameraStart = (double)getStartMethod.Invoke(cameraSub, null)!;
+                        double cameraEnd = (double)getEndMethod.Invoke(cameraSub, null)!;
+                        Assert.That(cameraStart, Is.EqualTo(0.0), "Camera task start time mutation should be 0");
+                        Assert.That(cameraEnd, Is.EqualTo(0.0), "Camera task end time mutation should be 0");
+                    }
+                }
+                
+                if (antennaSub != null)
+                {
+                    var antennaType = antennaSub.GetType();
+                    var getStartMethod = antennaType.GetMethod("GetTaskStartTimeMutation");
+                    var getEndMethod = antennaType.GetMethod("GetTaskEndTimeMutation");
+                    if (getStartMethod != null && getEndMethod != null)
+                    {
+                        double antennaStart = (double)getStartMethod.Invoke(antennaSub, null)!;
+                        double antennaEnd = (double)getEndMethod.Invoke(antennaSub, null)!;
+                        Assert.That(antennaStart, Is.EqualTo(0.0), "Antenna task start time mutation should be 0");
+                        Assert.That(antennaEnd, Is.EqualTo(0.0), "Antenna task end time mutation should be 0");
+                    }
+                }
+            });
+        }
+        
         [Test]
         public void CanPerform_ToyExample_Power_FirstIteration_Passes()
         {
@@ -254,6 +307,7 @@ namespace HSFSchedulerUnitTest
             {
                 Assert.That(result, Is.True, "Power subsystem should pass first IMAGING (75.0 >= 10.0)");
                 Assert.That(newPower, Is.EqualTo(65.0), "Power should be 75.0 - 10.0 = 65.0");
+                VerifyTimeMutationParametersAreZero(powerSub, null, null);
             });
         }
         
@@ -275,7 +329,11 @@ namespace HSFSchedulerUnitTest
             
             // Should fail: 15.0 < 20.0
             bool result = powerSub.CanPerform(evt, universe);
-            Assert.That(result, Is.False, "Power subsystem should fail TRANSMIT when power (15.0) < required (20.0)");
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.False, "Power subsystem should fail TRANSMIT when power (15.0) < required (20.0)");
+                VerifyTimeMutationParametersAreZero(powerSub, null, null);
+            });
         }
         
         [Test]
@@ -300,6 +358,7 @@ namespace HSFSchedulerUnitTest
             {
                 Assert.That(result, Is.True, "Camera subsystem should pass first IMAGING (0 < 10)");
                 Assert.That(numImages, Is.EqualTo(1.0), "Images should be 0 + 1 = 1");
+                VerifyTimeMutationParametersAreZero(null, cameraSub, null);
             });
         }
         
@@ -321,7 +380,11 @@ namespace HSFSchedulerUnitTest
             
             // Should fail: 10 >= 10
             bool result = cameraSub.CanPerform(evt, universe);
-            Assert.That(result, Is.False, "Camera subsystem should fail when numImages (10) >= maxImages (10)");
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.False, "Camera subsystem should fail when numImages (10) >= maxImages (10)");
+                VerifyTimeMutationParametersAreZero(null, cameraSub, null);
+            });
         }
         
         [Test]
@@ -338,7 +401,11 @@ namespace HSFSchedulerUnitTest
             
             // First iteration should fail: 0 <= 0 (no images to transmit)
             bool result = antennaSub.CanPerform(evt, universe);
-            Assert.That(result, Is.False, "Antenna subsystem should fail TRANSMIT when numImages (0) <= 0");
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.False, "Antenna subsystem should fail TRANSMIT when numImages (0) <= 0");
+                VerifyTimeMutationParametersAreZero(null, null, antennaSub);
+            });
         }
         
         [Test]
@@ -370,6 +437,7 @@ namespace HSFSchedulerUnitTest
                 Assert.That(result, Is.True, "Antenna subsystem should pass TRANSMIT when numImages (5.0) > 0");
                 Assert.That(numImages, Is.EqualTo(4.0), "Images should be 5.0 - 1 = 4.0");
                 Assert.That(transmissions, Is.EqualTo(1.0), "Transmissions should be 0 + 1 = 1.0");
+                VerifyTimeMutationParametersAreZero(null, null, antennaSub);
             });
         }
         

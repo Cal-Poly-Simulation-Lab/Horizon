@@ -99,6 +99,11 @@ Thread-safe static tracking class used by test subsystems to record `CanPerform`
   - Retrieves a task from `program.SystemTasks` by type (case-insensitive)
   - Returns the first matching task
 
+- **`VerifyTimeMutationParametersAreZero()`**
+  - Verifies that all test subsystems have time mutation parameters (`_taskStartTimeMutation`, `_taskEndTimeMutation`) set to 0
+  - Uses reflection to access methods on dynamically compiled subsystems
+  - Ensures existing tests are not affected by time mutations (subsystems won't change task times)
+
 ### Test Scenario
 Uses the **TwoAsset_Imaging** scenario with the following dependency structure:
 - **Power** depends on **Camera** and **Antenna**
@@ -190,6 +195,7 @@ dotnet test --filter "FullyQualifiedName~CheckDependentSubsystems_TRANSMIT"
 - **Future-proof:** Tests verify order via state mutations, not `IsEvaluated` flag (will work when flag is removed)
 - **Thread-safe tracking:** `SubsystemCallTracker` uses thread-safe collections for parallel execution support
 - **Dual verification:** Tests verify both call order (via tracking) and state mutations (via state values)
+- **Time mutation verification:** All tests verify time mutation parameters are 0 to ensure subsystems don't modify task times (preserves test logic)
 
 ## Future Work (TODO)
 

@@ -120,6 +120,11 @@ Uses the shared **TwoAsset_Imaging** scenario with `TestPowerSubsystem`, `TestCa
   - Used for toy example subsystem tests
   - Accesses subsystems via `program.SubList` filtered by asset
 
+- **`VerifyTimeMutationParametersAreZero(powerSub, cameraSub, antennaSub)`**
+  - Verifies that test subsystems have time mutation parameters (`_taskStartTimeMutation`, `_taskEndTimeMutation`) set to 0
+  - Uses reflection to access methods on dynamically compiled subsystems
+  - Ensures existing tests are not affected by time mutations (subsystems won't change task times)
+
 ### Test Subsystems
 
 #### `TestCanPerformSubsystem` (C# & Python)
@@ -254,6 +259,7 @@ dotnet test --filter "FullyQualifiedName~CanPerform_ToyExample"
 - **Deterministic:** Tests use fixed parameters and expected values
 - **Isolated:** Each test uses `SetUp`/`TearDown` for clean state
 - **Toy example tests:** Use shared input files from `CheckScheudle/Inputs/` to validate real subsystem behavior
+- **Time mutation verification:** Toy example tests verify time mutation parameters are 0 to ensure subsystems don't modify task times (preserves test logic)
 
 ## Thesis Relevance
 
