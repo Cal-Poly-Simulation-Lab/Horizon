@@ -23,6 +23,7 @@ namespace HSFSchedulerUnitTest
         private SystemClass _system = null!;
         private Asset _asset1 = null!;
         private Asset _asset2 = null!;
+        
 
         public override void Setup()
         {

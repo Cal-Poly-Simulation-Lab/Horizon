@@ -100,7 +100,7 @@ Tests include explicit failure conditions for:
 
 **Evaluator Used:**
 
-- `SchedulerTestEval.py` - Python-based test evaluator
+- `DefaultEvaluator` - C# default evaluator
 - **Configuration:** Loaded but not actively used in these tests
 - **Purpose:** Maintains consistency with other test suites
 
@@ -110,7 +110,6 @@ Tests include explicit failure conditions for:
 2. `SchedulerTestTasks.json` - Task definitions
 3. `SchedulerTestModel.json` - System model with assets and subsystems
 4. `SchedulerSubTest.cs` - Test subsystem implementation
-5. `SchedulerTestEval.py` - Test evaluator (loaded but not used)
 
    **Required Files Filepaths (Repository-root-relative):**
 
@@ -118,7 +117,6 @@ Tests include explicit failure conditions for:
    2. `test/HSFSchedulerUnitTest/InputFiles/SchedulerTestTasks.json`
    3. `test/HSFSchedulerUnitTest/InputFiles/SchedulerTestModel.json`
    4. `test/HSFSchedulerUnitTest/Subsystems/SchedulerSubTest.cs`
-   5. `test/HSFSchedulerUnitTest/SchedulerTestEval.py`
 
 ## Maintenance Notes
 
