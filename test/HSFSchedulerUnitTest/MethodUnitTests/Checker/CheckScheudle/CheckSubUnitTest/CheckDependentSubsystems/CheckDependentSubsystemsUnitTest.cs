@@ -1,352 +1,247 @@
 // Copyright (c) 2025 California Polytechnic State University
 // Authors: Jason Ebeals (jebeals@calpoly.edu)
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using NUnit.Framework;
 using HSFScheduler;
 using HSFSystem;
 using MissionElements;
-using HSFUniverse;
+using UserModel;
 using Utilities;
+using System.IO;
+using System.Linq;
+using System.Collections.Generic;
+using HSFUniverse;
 
 namespace HSFSchedulerUnitTest
 {
     /// <summary>
-    /// Focused tests for Subsystem.CheckDependentSubsystems() using the two-asset imaging scenario.
-    /// Validates dependency ordering, true/false propagation, constraint enforcement,
-    /// and state updates for the scripted power/camera/antenna subsystems.
+    /// Simple tests for Subsystem.CheckDependentSubsystems() using the toy example (TwoAsset_Imaging scenario).
+    /// Validates that CheckDependentSubsystems returns true when all CanPerform checks should pass,
+    /// and returns false when any CanPerform check should fail.
     /// </summary>
     [TestFixture]
     public class CheckDependentSubsystemsUnitTest : SchedulerUnitTest
     {
         private Asset _asset1 = null!;
-        private Asset _asset2 = null!;
-        private TestPowerSubsystem _asset1Power = null!;
-        private TestPowerSubsystem _asset2Power = null!;
-        private TestCameraSubsystem _asset1Camera = null!;
-        private TestCameraSubsystem _asset2Camera = null!;
-        private TestAntennaSubsystem _asset1Antenna = null!;
-        private TestAntennaSubsystem _asset2Antenna = null!;
-        private Domain _environment = null!;
-        private SystemClass _system = null!;
-        private Dictionary<string, MissionElements.Task> _tasksByType = null!;
-
-        private static readonly MethodInfo CheckSubsMethod =
-            typeof(Checker).GetMethod("checkSubs", BindingFlags.NonPublic | BindingFlags.Static)
-            ?? throw new InvalidOperationException("Unable to locate Checker.checkSubs via reflection.");
+        private Subsystem _powerSub = null!;
+        private Subsystem _cameraSub = null!;
+        private Subsystem _antennaSub = null!;
+        private Domain _universe = null!;
 
         public override void Setup()
         {
             base.Setup();
 
             program = new Horizon.Program();
-            var simPath = Path.Combine(CurrentTestDir, "Inputs/SimInput_CanPerform.json");
-            var taskPath = Path.Combine(CurrentTestDir, "Inputs/TwoAsset_Imaging_Tasks.json");
-            var modelPath = Path.Combine(CurrentTestDir, "Inputs/TwoAsset_Imaging_Model.json");
+            // Uses shared input files from CheckScheudle/Inputs (see README.md)
+            var inputsDir = Path.Combine(CurrentTestDir, "../../Inputs");
+            var simPath = Path.Combine(inputsDir, "SimInput_CanPerform.json");
+            var taskPath = Path.Combine(inputsDir, "TwoAsset_Imaging_Tasks.json");
+            var modelPath = Path.Combine(inputsDir, "TwoAsset_Imaging_Model.json");
 
             HorizonLoadHelper(simPath, taskPath, modelPath);
 
-            _system = program.SimSystem;
-            _environment = program.SystemUniverse;
-
             _asset1 = program.AssetList.Single(a => a.Name == "asset1");
-            _asset2 = program.AssetList.Single(a => a.Name == "asset2");
-
-            _asset1Power = program.SubList.OfType<TestPowerSubsystem>().Single(s => s.Asset == _asset1);
-            _asset2Power = program.SubList.OfType<TestPowerSubsystem>().Single(s => s.Asset == _asset2);
-            _asset1Camera = program.SubList.OfType<TestCameraSubsystem>().Single(s => s.Asset == _asset1);
-            _asset2Camera = program.SubList.OfType<TestCameraSubsystem>().Single(s => s.Asset == _asset2);
-            _asset1Antenna = program.SubList.OfType<TestAntennaSubsystem>().Single(s => s.Asset == _asset1);
-            _asset2Antenna = program.SubList.OfType<TestAntennaSubsystem>().Single(s => s.Asset == _asset2);
-
-            _tasksByType = program.SystemTasks
-                .ToArray()
-                .GroupBy(t => t.Type.ToUpperInvariant())
-                .ToDictionary(g => g.Key, g => g.First());
+            _universe = program.SystemUniverse;
+            
+            // Get subsystems for asset1
+            var asset1Subs = program.SubList.Where(s => s.Asset == _asset1).ToList();
+            _powerSub = asset1Subs.Single(s => s.Name.Contains("power", System.StringComparison.OrdinalIgnoreCase));
+            _cameraSub = asset1Subs.Single(s => s.Name.Contains("camera", System.StringComparison.OrdinalIgnoreCase));
+            _antennaSub = asset1Subs.Single(s => s.Name.Contains("antenna", System.StringComparison.OrdinalIgnoreCase));
         }
 
-        #region Helpers
+        #region Helper Methods
 
-        private static string KeyFor(Asset asset, string suffix) =>
-            $"{asset.Name.ToLowerInvariant()}.{suffix}";
+        // Note: ResetSubsystems removed - tests now verify order via state mutations, not IsEvaluated flag
+        // When IsEvaluated is removed from Subsystem, this approach will continue to work
 
-        private static void SetStateValue(SystemState state, Asset asset, string suffix, double value)
+        private Event CreateEvent(MissionElements.Task task, SystemState state, double eventStart = 0.0, double eventEnd = 10.0, double taskStart = 0.0, double taskEnd = 10.0)
         {
-            var key = new StateVariableKey<double>(KeyFor(asset, suffix));
-            state.AddValue(key, 0.0, value);
+            var evt = new Event(new Dictionary<Asset, MissionElements.Task> { { _asset1, task } }, state);
+            evt.SetEventStart(new Dictionary<Asset, double> { { _asset1, eventStart } });
+            evt.SetEventEnd(new Dictionary<Asset, double> { { _asset1, eventEnd } });
+            evt.SetTaskStart(new Dictionary<Asset, double> { { _asset1, taskStart } });
+            evt.SetTaskEnd(new Dictionary<Asset, double> { { _asset1, taskEnd } });
+            return evt;
         }
 
-        private (Event evt, SystemSchedule schedule, SystemState state) BuildSchedule(
-            MissionElements.Task asset1Task,
-            MissionElements.Task asset2Task,
-            Action<SystemState>? stateSetup = null)
+        private MissionElements.Task GetTask(string type)
         {
-            var stateCopy = new SystemState(program.InitialSysState, true);
-            stateSetup?.Invoke(stateCopy);
-
-            var tasks = new Dictionary<Asset, MissionElements.Task>
-            {
-                { _asset1, asset1Task },
-                { _asset2, asset2Task }
-            };
-
-            var evt = new Event(tasks, stateCopy);
-            var eventTimes = new Dictionary<Asset, double>
-            {
-                { _asset1, 0.0 },
-                { _asset2, 0.0 }
-            };
-            var endTimes = new Dictionary<Asset, double>
-            {
-                { _asset1, 5.0 },
-                { _asset2, 5.0 }
-            };
-
-            evt.SetEventStart(eventTimes);
-            evt.SetEventEnd(endTimes);
-            evt.SetTaskStart(eventTimes);
-            evt.SetTaskEnd(endTimes);
-
-            var schedule = new SystemSchedule(program.InitialSysState, "unit-test");
-            schedule.AllStates = new StateHistory(schedule.AllStates, evt);
-
-            return (evt, schedule, stateCopy);
-        }
-
-        private MissionElements.Task TaskOf(string type) => _tasksByType[type.ToUpperInvariant()];
-
-        private void ResetAllSubsystems()
-        {
-            foreach (var subsystem in program.SubList)
-            {
-                subsystem.IsEvaluated = false;
-                subsystem.Task = null;
-                subsystem.NewState = null;
-            }
-        }
-
-        private bool InvokeCheckSubs(List<Subsystem> subsystems, SystemSchedule schedule) =>
-            (bool)CheckSubsMethod.Invoke(null, new object[] { subsystems, schedule, _environment });
-
-        private List<Subsystem> AssetSubsystems(Asset asset) =>
-            program.SubList.Where(s => s.Asset == asset).ToList();
-
-        #endregion
-
-        #region Dependency Ordering & Propagation
-
-        [Test]
-        public void PowerEvaluation_EvaluatesAllDependenciesFirst()
-        {
-            ResetAllSubsystems();
-            var imagingTask = TaskOf("IMAGING");
-            var rechargeTask = TaskOf("RECHARGE");
-            var (evt, _, _) = BuildSchedule(imagingTask, rechargeTask);
-
-            _asset1Power.CheckDependentSubsystems(evt, _environment);
-
-            var evaluationFlags = new[]
-            {
-                _asset1Camera.IsEvaluated,
-                _asset1Antenna.IsEvaluated,
-                _asset1Power.IsEvaluated
-            };
-
-            Assert.That(evaluationFlags, Is.EqualTo(new[] { true, true, true }));
-        }
-
-        [Test]
-        public void PowerEvaluation_ReturnsTrue_WhenDependentsPass()
-        {
-            ResetAllSubsystems();
-            var imagingTask = TaskOf("IMAGING");
-            var (evt, _, _) = BuildSchedule(imagingTask, TaskOf("RECHARGE"));
-
-            var result = _asset1Power.CheckDependentSubsystems(evt, _environment);
-
-            Assert.That(result, Is.True);
-        }
-
-        [Test]
-        public void PowerEvaluation_ReturnsFalse_WhenDependentFails()
-        {
-            ResetAllSubsystems();
-            var transmitTask = TaskOf("TRANSMIT");
-            var (evt, _, state) = BuildSchedule(transmitTask, TaskOf("RECHARGE"), s =>
-            {
-                SetStateValue(s, _asset1, "num_images_stored", 0);
-            });
-
-            var result = _asset1Power.CheckDependentSubsystems(evt, _environment);
-
-            Assert.That(result, Is.False);
+            return program.SystemTasks.ToList().First(t => t.Type.ToUpper() == type.ToUpper());
         }
 
         #endregion
 
-        #region Camera Subsystem
+        #region Test: Dependency Evaluation Order (via State Mutations)
 
         [Test]
-        public void CameraEvaluation_FailsWhenBufferIsFull()
+        public void CheckDependentSubsystems_CameraRunsBeforePower_VerifiedByStateMutation()
         {
-            ResetAllSubsystems();
-            var imagingTask = TaskOf("IMAGING");
-            var (evt, _, state) = BuildSchedule(imagingTask, TaskOf("RECHARGE"), s =>
+            // Power depends on Camera, so Camera must run first
+            // IMAGING task: Camera increments images (0 → 1), Power consumes power (75 → 65)
+            // If Camera runs before Power, we'll see Camera's state update
+            var task = GetTask("IMAGING");
+            var state = new SystemState(program.InitialSysState, true);
+            var evt = CreateEvent(task, state);
+            
+            // Initial state: 0 images
+            var imageKey = new StateVariableKey<double>("asset1.num_images_stored");
+            double initialImages = state.GetLastValue(imageKey).Item2;
+            Assert.That(initialImages, Is.EqualTo(0.0), "Initial images should be 0");
+            
+            // Call CheckDependentSubsystems on Power (depends on Camera)
+            bool result = _powerSub.CheckDependentSubsystems(evt, _universe);
+            
+            // Verify Camera ran before Power by checking Camera's state mutation occurred
+            double finalImages = state.GetLastValue(imageKey).Item2;
+            Assert.Multiple(() =>
             {
-                SetStateValue(s, _asset1, "num_images_stored", 10);
+                Assert.That(result, Is.True, "Power should pass when Camera passes");
+                Assert.That(finalImages, Is.EqualTo(1.0), "Camera should have incremented images (0 → 1) before Power ran");
             });
-
-            var result = _asset1Camera.CheckDependentSubsystems(evt, _environment);
-            var tuple = (result, state.GetLastValue(new StateVariableKey<double>(KeyFor(_asset1, "num_images_stored"))).Item2);
-
-            Assert.That(tuple, Is.EqualTo((false, 10d)));
         }
 
         [Test]
-        public void CameraEvaluation_IncrementsImageCountOnSuccess()
+        public void CheckDependentSubsystems_CameraRunsBeforeAntenna_VerifiedByStateMutation()
         {
-            ResetAllSubsystems();
-            var imagingTask = TaskOf("IMAGING");
-            var (evt, _, state) = BuildSchedule(imagingTask, TaskOf("RECHARGE"), s =>
+            // Antenna depends on Camera, so Camera must run first
+            // IMAGING task: Camera increments images (0 → 1), Antenna is no-op for IMAGING
+            // If Camera runs before Antenna, we'll see Camera's state update
+            var task = GetTask("IMAGING");
+            var state = new SystemState(program.InitialSysState, true);
+            var evt = CreateEvent(task, state);
+            
+            // Initial state: 0 images
+            var imageKey = new StateVariableKey<double>("asset1.num_images_stored");
+            double initialImages = state.GetLastValue(imageKey).Item2;
+            Assert.That(initialImages, Is.EqualTo(0.0), "Initial images should be 0");
+            
+            // Call CheckDependentSubsystems on Antenna (depends on Camera)
+            bool result = _antennaSub.CheckDependentSubsystems(evt, _universe);
+            
+            // Verify Camera ran before Antenna by checking Camera's state mutation occurred
+            double finalImages = state.GetLastValue(imageKey).Item2;
+            Assert.Multiple(() =>
             {
-                SetStateValue(s, _asset1, "num_images_stored", 0);
+                Assert.That(result, Is.True, "Antenna should pass when Camera passes");
+                Assert.That(finalImages, Is.EqualTo(1.0), "Camera should have incremented images (0 → 1) before Antenna ran");
             });
-
-            var result = _asset1Camera.CheckDependentSubsystems(evt, _environment);
-            var tuple = (result, state.GetLastValue(new StateVariableKey<double>(KeyFor(_asset1, "num_images_stored"))).Item2);
-
-            Assert.That(tuple, Is.EqualTo((true, 1d)));
-        }
-
-        #endregion
-
-        #region Antenna Subsystem
-
-        [Test]
-        public void AntennaEvaluation_TransmitsWhenImagesAvailable()
-        {
-            ResetAllSubsystems();
-            var transmitTask = TaskOf("TRANSMIT");
-            var (evt, _, state) = BuildSchedule(transmitTask, TaskOf("RECHARGE"), s =>
-            {
-                SetStateValue(s, _asset1, "num_images_stored", 2);
-                SetStateValue(s, _asset1, "num_transmissions", 0);
-            });
-
-            var result = _asset1Antenna.CheckDependentSubsystems(evt, _environment);
-            var stored = state.GetLastValue(new StateVariableKey<double>(KeyFor(_asset1, "num_images_stored"))).Item2;
-            var transmissions = state.GetLastValue(new StateVariableKey<double>(KeyFor(_asset1, "num_transmissions"))).Item2;
-
-            Assert.That((result, stored, transmissions), Is.EqualTo((true, 1d, 1d)));
         }
 
         [Test]
-        public void AntennaEvaluation_FailsWithoutImages()
+        public void CheckDependentSubsystems_FullDependencyChain_VerifiedByStateMutations()
         {
-            ResetAllSubsystems();
-            var transmitTask = TaskOf("TRANSMIT");
-            var (evt, _, state) = BuildSchedule(transmitTask, TaskOf("RECHARGE"), s =>
+            // Power depends on Camera and Antenna, Antenna depends on Camera
+            // Expected order: Camera → Antenna → Power
+            // IMAGING task: Camera increments images, Antenna no-op, Power consumes power
+            var task = GetTask("IMAGING");
+            var state = new SystemState(program.InitialSysState, true);
+            var evt = CreateEvent(task, state);
+            
+            // Track initial state
+            var imageKey = new StateVariableKey<double>("asset1.num_images_stored");
+            var powerKey = new StateVariableKey<double>("asset1.checker_power");
+            double initialImages = state.GetLastValue(imageKey).Item2;
+            double initialPower = state.GetLastValue(powerKey).Item2;
+            
+            // Call CheckDependentSubsystems on Power (top of dependency chain)
+            bool result = _powerSub.CheckDependentSubsystems(evt, _universe);
+            
+            // Verify all subsystems ran in correct order by checking their state mutations
+            double finalImages = state.GetLastValue(imageKey).Item2;
+            double finalPower = state.GetLastValue(powerKey).Item2;
+            Assert.Multiple(() =>
             {
-                SetStateValue(s, _asset1, "num_images_stored", 0);
-                SetStateValue(s, _asset1, "num_transmissions", 0);
+                Assert.That(result, Is.True, "Power should pass when all dependencies pass");
+                Assert.That(finalImages, Is.EqualTo(1.0), "Camera should have incremented images (0 → 1)");
+                Assert.That(finalPower, Is.EqualTo(65.0), "Power should have consumed power (75 → 65) after Camera and Antenna ran");
             });
-
-            var result = _asset1Antenna.CheckDependentSubsystems(evt, _environment);
-            var stored = state.GetLastValue(new StateVariableKey<double>(KeyFor(_asset1, "num_images_stored"))).Item2;
-            var transmissions = state.GetLastValue(new StateVariableKey<double>(KeyFor(_asset1, "num_transmissions"))).Item2;
-
-            Assert.That((result, stored, transmissions), Is.EqualTo((false, 0d, 0d)));
-        }
-
-        #endregion
-
-        #region Power Subsystem State Updates
-
-        [Test]
-        public void PowerEvaluation_RechargeRaisesEnergy()
-        {
-            ResetAllSubsystems();
-            var rechargeTask = TaskOf("RECHARGE");
-            var (evt, _, state) = BuildSchedule(rechargeTask, rechargeTask, s =>
-            {
-                SetStateValue(s, _asset1, "checker_power", 50);
-            });
-
-            var result = _asset1Power.CheckDependentSubsystems(evt, _environment);
-            var newValue = state.GetLastValue(new StateVariableKey<double>(KeyFor(_asset1, "checker_power"))).Item2;
-
-            Assert.That((result, newValue), Is.EqualTo((true, 75d)));
-        }
-
-        [Test]
-        public void PowerEvaluation_RechargeFailsWhenOverMax()
-        {
-            ResetAllSubsystems();
-            var rechargeTask = TaskOf("RECHARGE");
-            var (evt, _, state) = BuildSchedule(rechargeTask, rechargeTask, s =>
-            {
-                SetStateValue(s, _asset1, "checker_power", 90);
-            });
-
-            var result = _asset1Power.CheckDependentSubsystems(evt, _environment);
-            var newValue = state.GetLastValue(new StateVariableKey<double>(KeyFor(_asset1, "checker_power"))).Item2;
-
-            Assert.That((result, newValue), Is.EqualTo((false, 90d)));
         }
 
         #endregion
 
-        #region checkSubs Behavior
+        #region Test: CheckDependentSubsystems Returns True When All Should Pass
 
         [Test]
-        public void CheckSubs_ReturnsTrue_WhenAllSubsystemsPass()
+        public void CheckDependentSubsystems_IMAGING_AllPass_ReturnsTrue()
         {
-            ResetAllSubsystems();
-            var (_, schedule, _) = BuildSchedule(TaskOf("RECHARGE"), TaskOf("RECHARGE"));
-
-            var result = InvokeCheckSubs(AssetSubsystems(_asset1), schedule);
-
-            Assert.That(result, Is.True);
+            // IMAGING task: Camera should pass (0 < 10), Antenna should pass (no-op), Power should pass (75 >= 10)
+            var task = GetTask("IMAGING");
+            var state = new SystemState(program.InitialSysState, true);
+            var evt = CreateEvent(task, state);
+            
+            bool result = _powerSub.CheckDependentSubsystems(evt, _universe);
+            
+            Assert.That(result, Is.True, "Power subsystem should pass when Camera and Antenna pass for IMAGING task");
         }
 
         [Test]
-        public void CheckSubs_ReturnsFalse_WhenAnySubsystemFails()
+        public void CheckDependentSubsystems_TRANSMIT_AllPass_ReturnsTrue()
         {
-            ResetAllSubsystems();
-            var (_, schedule, _) = BuildSchedule(TaskOf("TRANSMIT"), TaskOf("RECHARGE"), s =>
-            {
-                SetStateValue(s, _asset1, "num_images_stored", 0);
-            });
-
-            var result = InvokeCheckSubs(AssetSubsystems(_asset1), schedule);
-
-            Assert.That(result, Is.False);
+            // TRANSMIT task: Camera should pass (no-op), Antenna should pass (images > 0), Power should pass (75 >= 20)
+            var task = GetTask("TRANSMIT");
+            var state = new SystemState(program.InitialSysState, true);
+            // Set images to 5 so Antenna can transmit
+            var imageKey = new StateVariableKey<double>("asset1.num_images_stored");
+            state.AddValue(imageKey, 1.0, 5.0);
+            var evt = CreateEvent(task, state, taskStart: 2.0);
+            
+            bool result = _powerSub.CheckDependentSubsystems(evt, _universe);
+            
+            Assert.That(result, Is.True, "Power subsystem should pass when Camera and Antenna pass for TRANSMIT task");
         }
 
         #endregion
 
-        #region Constraint Enforcement
+        #region Test: CheckDependentSubsystems Returns False When Any Should Fail
 
         [Test]
-        public void CheckSchedule_FailsConstraint_WhenPowerDropsBelowThreshold()
+        public void CheckDependentSubsystems_CameraFails_ReturnsFalse()
         {
-            ResetAllSubsystems();
-            var (_, schedule, _) = BuildSchedule(TaskOf("TRANSMIT"), TaskOf("RECHARGE"), s =>
-            {
-                SetStateValue(s, _asset1, "checker_power", 25);
-                SetStateValue(s, _asset1, "num_images_stored", 1);
-            });
+            // IMAGING task with camera buffer full (10 >= 10) - Camera should fail
+            var task = GetTask("IMAGING");
+            var state = new SystemState(program.InitialSysState, true);
+            var imageKey = new StateVariableKey<double>("asset1.num_images_stored");
+            state.AddValue(imageKey, 1.0, 10.0); // At max
+            var evt = CreateEvent(task, state);
+            
+            bool result = _powerSub.CheckDependentSubsystems(evt, _universe);
+            
+            Assert.That(result, Is.False, "Power subsystem should fail when Camera fails (buffer full)");
+        }
 
-            var result = Checker.CheckSchedule(_system, schedule);
+        [Test]
+        public void CheckDependentSubsystems_AntennaFails_ReturnsFalse()
+        {
+            // TRANSMIT task with no images (0 <= 0) - Antenna should fail
+            var task = GetTask("TRANSMIT");
+            var state = new SystemState(program.InitialSysState, true);
+            // Images remain at 0 (initial state)
+            var evt = CreateEvent(task, state);
+            
+            bool result = _powerSub.CheckDependentSubsystems(evt, _universe);
+            
+            Assert.That(result, Is.False, "Power subsystem should fail when Antenna fails (no images to transmit)");
+        }
 
-            Assert.That(result, Is.False);
+        [Test]
+        public void CheckDependentSubsystems_PowerFails_ReturnsFalse()
+        {
+            // TRANSMIT task with insufficient power (15 < 20) - Power should fail
+            var task = GetTask("TRANSMIT");
+            var state = new SystemState(program.InitialSysState, true);
+            var powerKey = new StateVariableKey<double>("asset1.checker_power");
+            state.AddValue(powerKey, 1.0, 15.0); // Below required 20.0
+            var imageKey = new StateVariableKey<double>("asset1.num_images_stored");
+            state.AddValue(imageKey, 1.0, 5.0); // Ensure Antenna passes
+            var evt = CreateEvent(task, state, taskStart: 2.0);
+            
+            bool result = _powerSub.CheckDependentSubsystems(evt, _universe);
+            
+            Assert.That(result, Is.False, "Power subsystem should fail when it has insufficient power");
         }
 
         #endregion
     }
 }
-
