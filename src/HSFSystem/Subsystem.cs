@@ -168,14 +168,20 @@ namespace HSFSystem
         }
         private bool CheckTaskStartAndEnd(Event proposedEvent, Asset asset)
         {
-                    if (proposedEvent.GetTaskStart(Asset) < proposedEvent.GetEventStart(Asset) || 
-                        proposedEvent.GetTaskEnd(Asset)   < proposedEvent.GetEventStart(Asset) ||
-                        proposedEvent.GetTaskStart(Asset) > proposedEvent.GetEventEnd(Asset)   ||
-                        proposedEvent.GetTaskEnd(Asset)   > proposedEvent.GetEventEnd(Asset)   )
+                    double taskStart = proposedEvent.GetTaskStart(Asset);
+                    double taskEnd = proposedEvent.GetTaskEnd(Asset);
+                    double eventStart = proposedEvent.GetEventStart(Asset);
+                    double eventEnd = proposedEvent.GetEventEnd(Asset);
+                    
+                    if (taskStart < eventStart || 
+                        taskEnd < eventStart ||
+                        taskStart > eventEnd ||
+                        taskEnd > eventEnd ||
+                        taskStart > taskEnd)  // Task start must be <= task end
                     {
                         log.Info($"Task Start and End are not within Event Start and End for subsystem {Name}"
-                                + $"Task Start: {proposedEvent.GetTaskStart(Asset)}, Event Start: {proposedEvent.GetEventStart(Asset)},"
-                                + $"Task End: {proposedEvent.GetTaskEnd(Asset)}, Event End: {proposedEvent.GetEventEnd(Asset)}");
+                                + $"Task Start: {taskStart}, Event Start: {eventStart},"
+                                + $"Task End: {taskEnd}, Event End: {eventEnd}");
                         return false;
                     }
                     return true;

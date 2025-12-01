@@ -33,6 +33,9 @@ namespace HSFSchedulerUnitTest
         {
             base.Setup();
 
+            // Clear static tracking state before each test
+            SubsystemCallTracker.Clear();
+
             program = new Horizon.Program();
             // Uses shared input files from CheckScheudle/Inputs (see README.md)
             var inputsDir = Path.Combine(CurrentTestDir, "../../Inputs");
@@ -50,6 +53,15 @@ namespace HSFSchedulerUnitTest
             _powerSub = asset1Subs.Single(s => s.Name.Contains("power", System.StringComparison.OrdinalIgnoreCase));
             _cameraSub = asset1Subs.Single(s => s.Name.Contains("camera", System.StringComparison.OrdinalIgnoreCase));
             _antennaSub = asset1Subs.Single(s => s.Name.Contains("antenna", System.StringComparison.OrdinalIgnoreCase));
+        }
+
+        [TearDown]
+        public override void TearDown()
+        {
+            // Clear static tracking state after each test
+            SubsystemCallTracker.Clear();
+            
+            base.TearDown();
         }
 
         #region Helper Methods
@@ -463,6 +475,152 @@ namespace HSFSchedulerUnitTest
                 Assert.That(result, Is.False, "Power subsystem should fail when it has insufficient power");
                 VerifyTimeMutationParametersAreZero();
             });
+        }
+
+        #endregion
+
+        #region Test: Task Time Mutations
+
+        /// <summary>
+        /// Helper to load a mutation input file and get subsystems
+        /// </summary>
+        private (Subsystem powerSub, Subsystem cameraSub, Subsystem antennaSub, Domain universe, Asset asset1) LoadMutationInput(string mutationFileName)
+        {
+            program = new Horizon.Program();
+            var inputsDir = Path.Combine(CurrentTestDir, "../../Inputs");
+            var simPath = Path.Combine(inputsDir, "SimInput_CanPerform.json");
+            var taskPath = Path.Combine(inputsDir, "TwoAsset_Imaging_Tasks.json");
+            var modelPath = Path.Combine(inputsDir, "TaskMutationInput", mutationFileName);
+
+            HorizonLoadHelper(simPath, taskPath, modelPath);
+
+            var asset1 = program.AssetList.Single(a => a.Name == "asset1");
+            var universe = program.SystemUniverse;
+            var asset1Subs = program.SubList.Where(s => s.Asset == asset1).ToList();
+            var powerSub = asset1Subs.Single(s => s.Name.Contains("power", System.StringComparison.OrdinalIgnoreCase));
+            var cameraSub = asset1Subs.Single(s => s.Name.Contains("camera", System.StringComparison.OrdinalIgnoreCase));
+            var antennaSub = asset1Subs.Single(s => s.Name.Contains("antenna", System.StringComparison.OrdinalIgnoreCase));
+
+            return (powerSub, cameraSub, antennaSub, universe, asset1);
+        }
+
+        /// <summary>
+        /// Helper to create an event with a specific asset (for mutation tests)
+        /// </summary>
+        private Event CreateEventWithAsset(MissionElements.Task task, SystemState state, Asset asset, double eventStart = 0.0, double eventEnd = 10.0, double taskStart = 0.0, double taskEnd = 10.0)
+        {
+            var evt = new Event(new Dictionary<Asset, MissionElements.Task> { { asset, task } }, state);
+            evt.SetEventStart(new Dictionary<Asset, double> { { asset, eventStart } });
+            evt.SetEventEnd(new Dictionary<Asset, double> { { asset, eventEnd } });
+            evt.SetTaskStart(new Dictionary<Asset, double> { { asset, taskStart } });
+            evt.SetTaskEnd(new Dictionary<Asset, double> { { asset, taskEnd } });
+            return evt;
+        }
+
+        // Camera mutations - Out of Bounds (Should Fail)
+        [TestCase("Camera_StartOutOfBounds_BeforeEventStart.json", "Camera mutates task start before event start")]
+        [TestCase("Camera_StartOutOfBounds_AfterEventEnd.json", "Camera mutates task start after event end")]
+        [TestCase("Camera_EndOutOfBounds_BeforeEventStart.json", "Camera mutates task end before event start")]
+        [TestCase("Camera_EndOutOfBounds_AfterEventEnd.json", "Camera mutates task end after event end")]
+        [TestCase("Camera_StartAfterEnd.json", "Camera mutates task start after task end")]
+        public void CheckDependentSubsystems_Camera_TimeMutation_OutOfBounds_ReturnsFalse(string mutationFile, string description)
+        {
+            var (powerSub, _, _, universe, asset1) = LoadMutationInput(mutationFile);
+            var task = GetTask("IMAGING");
+            var state = new SystemState(program.InitialSysState, true);
+            var evt = CreateEventWithAsset(task, state, asset1);
+            
+            bool result = powerSub.CheckDependentSubsystems(evt, universe);
+            
+            Assert.That(result, Is.False, $"Should fail when {description}");
+        }
+
+        // Camera mutations - In Bounds (Should Pass)
+        [TestCase("Camera_StartInBounds_Changed.json", "Camera mutates task start within bounds")]
+        [TestCase("Camera_EndInBounds_Changed.json", "Camera mutates task end within bounds")]
+        [TestCase("Camera_BothInBounds.json", "Camera mutates both start and end within bounds")]
+        public void CheckDependentSubsystems_Camera_TimeMutation_InBounds_ReturnsTrue(string mutationFile, string description)
+        {
+            var (powerSub, _, _, universe, asset1) = LoadMutationInput(mutationFile);
+            var task = GetTask("IMAGING");
+            var state = new SystemState(program.InitialSysState, true);
+            var evt = CreateEventWithAsset(task, state, asset1);
+            
+            bool result = powerSub.CheckDependentSubsystems(evt, universe);
+            
+            Assert.That(result, Is.True, $"Should pass when {description}");
+        }
+
+        // Antenna mutations - Out of Bounds (Should Fail)
+        [TestCase("Antenna_StartOutOfBounds_BeforeEventStart.json", "Antenna mutates task start before event start")]
+        [TestCase("Antenna_StartOutOfBounds_AfterEventEnd.json", "Antenna mutates task start after event end")]
+        [TestCase("Antenna_EndOutOfBounds_BeforeEventStart.json", "Antenna mutates task end before event start")]
+        [TestCase("Antenna_EndOutOfBounds_AfterEventEnd.json", "Antenna mutates task end after event end")]
+        [TestCase("Antenna_StartAfterEnd.json", "Antenna mutates task start after task end")]
+        public void CheckDependentSubsystems_Antenna_TimeMutation_OutOfBounds_ReturnsFalse(string mutationFile, string description)
+        {
+            var (powerSub, _, _, universe, asset1) = LoadMutationInput(mutationFile);
+            var task = GetTask("TRANSMIT");
+            var state = new SystemState(program.InitialSysState, true);
+            var imageKey = new StateVariableKey<double>("asset1.num_images_stored");
+            state.AddValue(imageKey, 1.0, 5.0);
+            var evt = CreateEventWithAsset(task, state, asset1, taskStart: 2.0);
+            
+            bool result = powerSub.CheckDependentSubsystems(evt, universe);
+            
+            Assert.That(result, Is.False, $"Should fail when {description}");
+        }
+
+        // Antenna mutations - In Bounds (Should Pass)
+        [TestCase("Antenna_StartInBounds_Changed.json", "Antenna mutates task start within bounds")]
+        [TestCase("Antenna_EndInBounds_Changed.json", "Antenna mutates task end within bounds")]
+        [TestCase("Antenna_BothInBounds.json", "Antenna mutates both start and end within bounds")]
+        public void CheckDependentSubsystems_Antenna_TimeMutation_InBounds_ReturnsTrue(string mutationFile, string description)
+        {
+            var (powerSub, _, _, universe, asset1) = LoadMutationInput(mutationFile);
+            var task = GetTask("TRANSMIT");
+            var state = new SystemState(program.InitialSysState, true);
+            var imageKey = new StateVariableKey<double>("asset1.num_images_stored");
+            state.AddValue(imageKey, 1.0, 5.0);
+            var evt = CreateEventWithAsset(task, state, asset1, taskStart: 2.0);
+            
+            bool result = powerSub.CheckDependentSubsystems(evt, universe);
+            
+            Assert.That(result, Is.True, $"Should pass when {description}");
+        }
+
+        // Power mutations - Out of Bounds (Should Fail)
+        [TestCase("Power_StartOutOfBounds_BeforeEventStart.json", "Power mutates task start before event start")]
+        [TestCase("Power_StartOutOfBounds_AfterEventEnd.json", "Power mutates task start after event end")]
+        [TestCase("Power_EndOutOfBounds_BeforeEventStart.json", "Power mutates task end before event start")]
+        [TestCase("Power_EndOutOfBounds_AfterEventEnd.json", "Power mutates task end after event end")]
+        [TestCase("Power_StartAfterEnd.json", "Power mutates task start after task end")]
+        public void CheckDependentSubsystems_Power_TimeMutation_OutOfBounds_ReturnsFalse(string mutationFile, string description)
+        {
+            var (powerSub, _, _, universe, asset1) = LoadMutationInput(mutationFile);
+            var task = GetTask("IMAGING");
+            var state = new SystemState(program.InitialSysState, true);
+            var evt = CreateEventWithAsset(task, state, asset1);
+            
+            bool result = powerSub.CheckDependentSubsystems(evt, universe);
+            
+            Assert.That(result, Is.False, $"Should fail when {description}");
+        }
+
+        // Power mutations - In Bounds (Should Pass)
+        [TestCase("Power_StartInBounds_Changed.json", "Power mutates task start within bounds")]
+        [TestCase("Power_EndInBounds_Changed.json", "Power mutates task end within bounds")]
+        [TestCase("Power_BothInBounds.json", "Power mutates both start and end within bounds")]
+        public void CheckDependentSubsystems_Power_TimeMutation_InBounds_ReturnsTrue(string mutationFile, string description)
+        {
+            var (powerSub, _, _, universe, asset1) = LoadMutationInput(mutationFile);
+            var task = GetTask("IMAGING");
+            var state = new SystemState(program.InitialSysState, true);
+            var evt = CreateEventWithAsset(task, state, asset1);
+            
+            bool result = powerSub.CheckDependentSubsystems(evt, universe);
+            
+            Assert.That(result, Is.True, $"Should pass when {description}");
         }
 
         #endregion

@@ -1,0 +1,300 @@
+{
+  "model": {
+    "assets": [
+      {
+        "name": "asset1",
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "stateData": [
+            7378.137,
+            0,
+            0,
+            0,
+            6.02088,
+            4.215866
+          ],
+          "Eoms": {
+            "type": "None"
+          },
+          "integratorOptions": {},
+          "integratorParameters": []
+        },
+        "subsystems": [
+          {
+            "type": "scriptedcs",
+            "src": "test/HSFSchedulerUnitTest/Subsystems/TestPowerSubsystem.cs",
+            "className": "TestPowerSubsystem",
+            "name": "Power",
+            "parameters": [
+              {
+                "name": "imagePowerRequired",
+                "type": "double",
+                "value": 10.0
+              },
+              {
+                "name": "transmitPowerRequired",
+                "type": "double",
+                "value": 20.0
+              },
+              {
+                "name": "rechargeValue",
+                "type": "double",
+                "value": 25.0
+              },
+              {
+                "name": "maxPower",
+                "type": "double",
+                "value": 100.0
+              },
+              {
+                "name": "minPower",
+                "type": "double",
+                "value": 0.0
+              }
+            ],
+            "states": [
+              {
+                "type": "double",
+                "name": "checker_power_key",
+                "key": "checker_power",
+                "value": 75.0
+              }
+            ]
+          },
+          {
+            "type": "scriptedcs",
+            "src": "test/HSFSchedulerUnitTest/Subsystems/TestAntennaSubsystem.cs",
+            "className": "TestAntennaSubsystem",
+            "name": "Antenna",
+            "parameters": [
+              {
+                "name": "_taskStartTimeMutation",
+                "type": "double",
+                "value": 0.0
+              },
+              {
+                "name": "_taskEndTimeMutation",
+                "type": "double",
+                "value": 0.0
+              }
+            ],
+            "states": [
+              {
+                "type": "double",
+                "name": "transmission_key",
+                "key": "num_transmissions",
+                "value": 0.0
+              }
+            ]
+          },
+          {
+            "type": "scriptedcs",
+            "src": "test/HSFSchedulerUnitTest/Subsystems/TestCameraSubsystem.cs",
+            "className": "TestCameraSubsystem",
+            "name": "Camera",
+            "parameters": [
+              {
+                "name": "maxImages",
+                "type": "double",
+                "value": 10.0
+              },
+              {
+                "name": "_taskStartTimeMutation",
+                "type": "double",
+                "value": 0.0
+              },
+              {
+                "name": "_taskEndTimeMutation",
+                "type": "double",
+                "value": 1.0
+              }
+            ],
+            "states": [
+              {
+                "type": "double",
+                "name": "num_image_key",
+                "key": "num_images_stored",
+                "value": 0.0
+              }
+            ]
+          }
+        ],
+        "constraints": [
+          {
+            "value": 10,
+            "subsystemName": "Power",
+            "type": "FAIL_IF_LOWER",
+            "name": "asset1_10W_power_constraint",
+            "state": {
+              "type": "double",
+              "key": "checker_power"
+            }
+          }
+        ]
+      },
+      {
+        "name": "asset2",
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "stateData": [
+            7378.137,
+            0,
+            0,
+            0,
+            6.02088,
+            4.215866
+          ],
+          "Eoms": {
+            "type": "None"
+          },
+          "integratorOptions": {},
+          "integratorParameters": []
+        },
+        "subsystems": [
+          {
+            "type": "scriptedcs",
+            "src": "test/HSFSchedulerUnitTest/Subsystems/TestPowerSubsystem.cs",
+            "className": "TestPowerSubsystem",
+            "name": "Power",
+            "parameters": [
+              {
+                "name": "rechargeValue",
+                "type": "double",
+                "value": 25.0
+              },
+              {
+                "name": "requiredPowerImage",
+                "type": "double",
+                "value": 10.0
+              },
+              {
+                "name": "transmitPowerRequired",
+                "type": "double",
+                "value": 20.0
+              },
+              {
+                "name": "maxPower",
+                "type": "double",
+                "value": 100.0
+              },
+              {
+                "name": "minPower",
+                "type": "double",
+                "value": 0.0
+              }
+            ],
+            "states": [
+              {
+                "type": "double",
+                "name": "checker_power_key",
+                "key": "checker_power",
+                "value": 75.0
+              }
+            ]
+          },
+          {
+            "type": "scriptedcs",
+            "src": "test/HSFSchedulerUnitTest/Subsystems/TestAntennaSubsystem.cs",
+            "className": "TestAntennaSubsystem",
+            "name": "Antenna",
+            "parameters": [
+              {
+                "name": "_taskStartTimeMutation",
+                "type": "double",
+                "value": 0.0
+              },
+              {
+                "name": "_taskEndTimeMutation",
+                "type": "double",
+                "value": 0.0
+              }
+            ],
+            "states": [
+              {
+                "type": "double",
+                "name": "transmission_key",
+                "key": "num_transmissions",
+                "value": 0.0
+              }
+            ]
+          },
+          {
+            "type": "scriptedcs",
+            "src": "test/HSFSchedulerUnitTest/Subsystems/TestCameraSubsystem.cs",
+            "className": "TestCameraSubsystem",
+            "name": "Camera",
+            "parameters": [
+              {
+                "name": "maxImages",
+                "type": "double",
+                "value": 10.0
+              },
+              {
+                "name": "_taskStartTimeMutation",
+                "type": "double",
+                "value": 0.0
+              },
+              {
+                "name": "_taskEndTimeMutation",
+                "type": "double",
+                "value": 0.0
+              }
+            ],
+            "states": [
+              {
+                "type": "double",
+                "name": "num_image_key",
+                "key": "num_images_stored",
+                "value": 0.0
+              }
+            ]
+          }
+        ],
+        "constraints": []
+      }
+    ],
+    "dependencies": [
+      {
+        "subsystemName": "Antenna",
+        "assetName": "asset1",
+        "depSubsystemName": "Camera",
+        "depAssetName": "asset1"
+      },
+      {
+        "subsystemName": "Power",
+        "assetName": "asset1",
+        "depSubsystemName": "Camera",
+        "depAssetName": "asset1"
+      },
+      {
+        "subsystemName": "Power",
+        "assetName": "asset1",
+        "depSubsystemName": "Antenna",
+        "depAssetName": "asset1"
+      },
+      {
+        "subsystemName": "Antenna",
+        "assetName": "asset2",
+        "depSubsystemName": "Camera",
+        "depAssetName": "asset2"
+      },
+      {
+        "subsystemName": "Power",
+        "assetName": "asset2",
+        "depSubsystemName": "Camera",
+        "depAssetName": "asset2"
+      },
+      {
+        "subsystemName": "Power",
+        "assetName": "asset2",
+        "depSubsystemName": "Antenna",
+        "depAssetName": "asset2"
+      }
+    ],
+    "evaluator": {
+      "type": "TargetValueEvaluator",
+      "className": "EVAL",
+      "states": []
+    }
+  }
+}
