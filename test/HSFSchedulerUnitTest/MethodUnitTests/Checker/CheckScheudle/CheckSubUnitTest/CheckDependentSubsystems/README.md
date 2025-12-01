@@ -132,6 +132,122 @@ If any of these conditions are violated, `CheckDependentSubsystems` returns `fal
 
 **Impact:** This bug fix ensures that time boundary validation works correctly even when `CanPerform()` throws exceptions due to invalid state update times. Without this fix, subsystems could mutate task times to out-of-bounds values without being caught, potentially causing scheduling errors.
 
+#### Code Refactoring: Eliminating Duplication in CheckDependentSubsystems
+
+**Refactoring Applied:** The `CheckDependentSubsystems` method was refactored to eliminate code duplication while maintaining the exact same execution logic.
+
+**Before (Old Code):**
+```csharp
+public bool CheckDependentSubsystems(Event proposedEvent, Domain environment)
+{
+    if (DependentSubsystems.Count == 0)
+    {
+        IsEvaluated = true;
+        Task = proposedEvent.GetAssetTask(Asset);
+        NewState = proposedEvent.State;
+        bool result = false;
+        try
+        {   
+            result = this.CanPerform(proposedEvent, environment);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"CanPerform threw exception for {Name}: {ex.Message}");
+        }
+        if (CheckTaskStartAndEnd(proposedEvent, Asset)){
+            return result;
+        }
+        return false;
+    }
+    else
+    {
+        foreach (var sub in DependentSubsystems)
+        {
+            if (!sub.IsEvaluated)
+            {
+                if (!sub.CheckDependentSubsystems(proposedEvent, environment))
+                {
+                    return false;
+                }
+            }
+        }
+
+        IsEvaluated = true;
+        Task = proposedEvent.GetAssetTask(Asset);
+        NewState = proposedEvent.State;
+        bool resultParent = false;
+        try
+        {
+            resultParent = CanPerform(proposedEvent, environment);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"CanPerform threw exception for {Name}: {ex.Message}");
+        }
+        if (CheckTaskStartAndEnd(proposedEvent, Asset)){
+            return resultParent;
+        }
+        return false;
+    }
+}
+```
+
+**After (Refactored Code):**
+```csharp
+public bool CheckDependentSubsystems(Event proposedEvent, Domain environment)
+{
+    // First, recursively evaluate all dependent subsystems (depth-first)
+    // If any dependency fails, propagate failure up immediately
+    foreach (var sub in DependentSubsystems)
+    {
+        if (!sub.IsEvaluated)
+        {
+            if (!sub.CheckDependentSubsystems(proposedEvent, environment))
+            {
+                return false;
+            }
+        }
+    }
+
+    // Now evaluate this subsystem (common logic for both leaf and parent nodes)
+    IsEvaluated = true;
+    Task = proposedEvent.GetAssetTask(Asset);
+    NewState = proposedEvent.State;
+    
+    bool result = false;
+    try
+    {   
+        result = this.CanPerform(proposedEvent, environment);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"CanPerform threw exception for {Name}: {ex.Message}");
+    }
+    
+    if (CheckTaskStartAndEnd(proposedEvent, Asset))
+    {
+        return result;
+    }
+    return false;
+}
+```
+
+**Key Changes:**
+- Removed the `if (DependentSubsystems.Count == 0)` / `else` branching structure
+- The `foreach` loop for dependent subsystems now runs for all cases (empty list = no-op)
+- Common logic (IsEvaluated, Task, NewState, CanPerform, task time check) appears only once
+
+**Why It's Better:**
+1. **Eliminates Duplication:** Common logic is written once instead of twice, reducing maintenance burden
+2. **Same Execution Logic:** The refactored code maintains identical execution order and behavior:
+   - Dependencies are still evaluated first (depth-first recursion)
+   - Parent subsystem evaluation follows dependency evaluation
+   - All error handling and validation logic remains unchanged
+3. **Improved Readability:** The code flow is clearer - dependencies first, then this subsystem
+4. **Easier Maintenance:** Future changes to the common logic only need to be made in one place
+
+**Test Verification:** All 33 tests passed both before and after the refactoring, confirming that the execution logic remains identical. The refactoring was purely structural - no functional changes were made.
+
 ## Test Infrastructure
 
 ### SubsystemCallTracker
