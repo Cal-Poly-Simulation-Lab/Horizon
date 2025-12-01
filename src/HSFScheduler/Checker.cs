@@ -58,12 +58,6 @@ namespace HSFScheduler
 
             var events = proposedSchedule.AllStates.Events;
 
-            //if (events.Count != 0)
-            //{
-            //if (events.Count > 1)
-            //    subsystem._oldState = events.ElementAt(events.Count - 2).State;
-            //else
-            //    subsystem._oldState = null;
             bool result = false;
             try
             {
@@ -76,20 +70,6 @@ namespace HSFScheduler
                 Console.WriteLine(ex.ToString());
             }
             return result;
-                //if (!subsystem.CheckDependentSubsystems(events.Peek(), environment))
-                //{
-                //    return false;
-                //}
-
-                //if (!subsystem.CanPerform(events.Peek(), environment))
-                //{
-                //    return false;
-                //}
-                //events.Peek().TimesEvaluated += 1;
-
-                //}
-                //return true;
-            //}
         }
         /// <summary>
         /// See if all the subsystems can perform the most recent task that was added to the schedule
