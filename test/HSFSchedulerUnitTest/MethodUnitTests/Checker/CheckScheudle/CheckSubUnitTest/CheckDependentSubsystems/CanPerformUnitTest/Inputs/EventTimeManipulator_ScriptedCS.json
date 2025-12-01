@@ -16,7 +16,7 @@
           {
             "type": "scriptedcs",
             "name": "TaskTimeManipulatorSubsystem",
-            "src": "test\\HSFSchedulerUnitTest\\MethodUnitTests\\Checker\\CanPerformUnitTest\\Subsystems\\TaskTimeManipulatorSubsystem.cs",
+            "src": "test\\HSFSchedulerUnitTest\\MethodUnitTests\\Checker\\CheckScheudle\\CheckSubUnitTest\\CheckDependentSubsystems\\CanPerformUnitTest\\Subsystems\\TaskTimeManipulatorSubsystem.cs",
             "className": "TaskTimeManipulatorSubsystem",
             "parameters": [
               {
