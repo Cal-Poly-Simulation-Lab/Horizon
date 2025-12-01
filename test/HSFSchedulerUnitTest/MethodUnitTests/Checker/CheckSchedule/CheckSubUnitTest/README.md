@@ -27,7 +27,7 @@ Uses the **TwoAsset_Imaging** toy example scenario:
 ## Input Files
 
 Located in `../Inputs/`:
-- `SimInput_CanPerform.json` - Simulation parameters
+- `SimInput_TwoAssetImaging_ToyExample.json` - Simulation parameters
 - `TwoAsset_Imaging_Tasks.json` - Task definitions (RECHARGE, IMAGING, TRANSMIT)
 - `TwoAsset_Imaging_Model.json` - System model with Power, Camera, and Antenna subsystems
 

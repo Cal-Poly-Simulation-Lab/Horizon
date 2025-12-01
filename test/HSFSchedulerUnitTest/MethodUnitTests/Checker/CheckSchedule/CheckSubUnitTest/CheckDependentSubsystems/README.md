@@ -304,7 +304,7 @@ Uses the **TwoAsset_Imaging** scenario with the following dependency structure:
 
 **Note:** This test suite uses **shared input files** from the `CheckSchedule/Inputs/` directory:
 
-- `../../Inputs/SimInput_CanPerform.json` - Simulation parameters
+- `../../Inputs/SimInput_TwoAssetImaging_ToyExample.json` - Simulation parameters
 - `../../Inputs/TwoAsset_Imaging_Tasks.json` - Task definitions (RECHARGE, IMAGING, TRANSMIT)
 - `../../Inputs/TwoAsset_Imaging_Model.json` - System model with Power, Camera, and Antenna subsystems (time mutations = 0.0)
 

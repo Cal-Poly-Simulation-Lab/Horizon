@@ -81,7 +81,7 @@ This method is called after `EvaluateAndSortCanPerformSchedules()` to merge newl
 ## Test Input Files
 
 Uses shared input files from `Checker/CheckSchedule/Inputs`:
-- `SimInput_CanPerform.json` - Simulation parameters
+- `SimInput_TwoAssetImaging_ToyExample.json` - Simulation parameters
 - `TwoAsset_Imaging_Tasks.json` - Task definitions
 - `TwoAsset_Imaging_Model.json` - Model with assets, subsystems, constraints
 

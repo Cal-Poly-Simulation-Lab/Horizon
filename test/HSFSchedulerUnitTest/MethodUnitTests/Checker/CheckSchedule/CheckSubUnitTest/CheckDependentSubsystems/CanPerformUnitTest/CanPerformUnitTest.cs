@@ -63,7 +63,7 @@ namespace HSFSchedulerUnitTest
         {
             // Load using base class helper
             program = HorizonLoadHelper(
-                Path.Combine(CurrentTestDir, "Inputs/SimInput_CanPerform.json"),
+                Path.Combine(CurrentTestDir, "Inputs/SimInput_TwoAssetImaging_ToyExample.json"),
                 Path.Combine(CurrentTestDir, "Inputs/OneTaskInput.json"), 
                 Path.Combine(CurrentTestDir, modelFile)
             );
@@ -151,7 +151,7 @@ namespace HSFSchedulerUnitTest
         {
             // SETUP: Load TaskTimeManipulator (taskStart +5.0, taskEnd -3.0)
             var prog = HorizonLoadHelper(
-                Path.Combine(CurrentTestDir, "Inputs/SimInput_CanPerform.json"),
+                Path.Combine(CurrentTestDir, "Inputs/SimInput_TwoAssetImaging_ToyExample.json"),
                 Path.Combine(CurrentTestDir, "Inputs/OneTaskInput.json"),
                 Path.Combine(CurrentTestDir, modelFile)
             );
@@ -181,7 +181,7 @@ namespace HSFSchedulerUnitTest
         {
             // SETUP: Load TaskTimeManipulator (eventStart +7.0, eventEnd -2.5, task shifts=0)
             var prog = HorizonLoadHelper(
-                Path.Combine(CurrentTestDir, "Inputs/SimInput_CanPerform.json"),
+                Path.Combine(CurrentTestDir, "Inputs/SimInput_TwoAssetImaging_ToyExample.json"),
                 Path.Combine(CurrentTestDir, "Inputs/OneTaskInput.json"),
                 Path.Combine(CurrentTestDir, modelFile)
             );
@@ -218,7 +218,7 @@ namespace HSFSchedulerUnitTest
             // Load toy example from shared inputs
             var inputsDir = Path.Combine(CurrentTestDir, "../../../Inputs");
             program = HorizonLoadHelper(
-                Path.Combine(inputsDir, "SimInput_CanPerform.json"),
+                Path.Combine(inputsDir, "SimInput_TwoAssetImaging_ToyExample.json"),
                 Path.Combine(inputsDir, "TwoAsset_Imaging_Tasks.json"),
                 Path.Combine(inputsDir, "TwoAsset_Imaging_Model.json")
             );

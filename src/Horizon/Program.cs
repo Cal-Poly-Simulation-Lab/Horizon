@@ -276,9 +276,25 @@ namespace Horizon
                 switch (input)
                 {
                     case "-scen":
-                        switch (argsList[i])
+                        // Case-insensitive scenario name comparison
+                        string scenarioName = argsList[i];
+                        string scenarioNameLower = scenarioName.ToLower();
+                        
+                        switch (scenarioNameLower)
                         {
-                            case "Aeolus_scriptedpy":
+                            case "toy":
+                            case "twoassetimaging_toyexample":
+                                // Toy example (TwoAsset_Imaging scenario)
+                                // Use relative paths from repo root
+                                subPath = Path.Combine(DevEnvironment.RepoDirectory, "test", "HSFSchedulerUnitTest", "MethodUnitTests", "Checker", "CheckSchedule", "Inputs");
+                                SimulationFilePath = Path.Combine(subPath, "SimInput_TwoAssetImaging_ToyExample.json");
+                                TaskDeckFilePath = Path.Combine(subPath, "TwoAsset_Imaging_Tasks.json");
+                                ModelFilePath = Path.Combine(subPath, "TwoAsset_Imaging_Model.json");
+                                simulationSet = true;
+                                targetSet = true;
+                                modelSet = true;
+                                break;
+                            case "aeolus_scriptedpy":
                                 // Set Defaults
                                 //subpath = @"..\..\..\..\samples\Aeolus\";
                                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
@@ -293,7 +309,7 @@ namespace Horizon
                                 modelSet = true;
                                 outputSet = true;
                                 break;
-                            case "Aeolus_CS":
+                            case "aeolus_cs":
                                 // Set Defaults
                                 //subpath = @"..\..\..\..\samples\Aeolus\";
                                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
@@ -310,7 +326,7 @@ namespace Horizon
                                 targetSet = true;
                                 modelSet = true;
                                 break;
-                            case "myFirstHSFProject":
+                            case "myfirsthsfproject":
                                 // Set myFirstHSFProject file paths
                                 //subpath = @"..\..\..\..\samples\myFirstHSFProject\";
                                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
@@ -322,7 +338,7 @@ namespace Horizon
                                 targetSet = true;
                                 modelSet = true;
                                 break;
-                            case "myFirstHSFProjectConstraint":
+                            case "myfirsthsfprojectconstraint":
                                 // Set myFirstHSFProjectConstraint file paths
                                 //subpath = @"..\..\..\..\samples\myFirstHSFProjectConstraint\";
                                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
@@ -334,7 +350,7 @@ namespace Horizon
                                 targetSet = true;
                                 modelSet = true;
                                 break;
-                            case "myFirstHSFProjectDependency":
+                            case "myfirsthsfprojectdependency":
                                 // Set myFirstHSFProjectDependency file paths
                                 //subpath = @"..\..\..\..\samples\myFirstHSFProjectDependency\";
                                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
@@ -964,15 +980,31 @@ namespace Horizon
             string hashDataDir = Path.Combine(outputPath, "HashData");
             Directory.CreateDirectory(hashDataDir);
             
+            // Sort schedules deterministically: by Value (descending), then by ScheduleHash (ascending)
+            // This ensures reproducible output for git diff
+            var sortedSchedules = schedules.ToList(); // Create a copy to avoid modifying original list
+            sortedSchedules.Sort((x, y) => 
+            {
+                int valueCompare = x.ScheduleValue.CompareTo(y.ScheduleValue);
+                if (valueCompare != 0)
+                {
+                    return -valueCompare; // Descending order (higher values first)
+                }
+                // Tie-breaker: Sort by ScheduleHash (ascending, alphabetical)
+                string hashX = x.ScheduleInfo.ScheduleHash ?? "";
+                string hashY = y.ScheduleInfo.ScheduleHash ?? "";
+                return string.CompareOrdinal(hashX, hashY);
+            });
+            
             string summaryPath = Path.Combine(hashDataDir, "scheduleHashBlockchainSummary.txt");
             using (StreamWriter sw = File.CreateText(summaryPath))
             {
-                sw.WriteLine($"ScheduleHash Blockchain Summary - {schedules.Count} schedules");
+                sw.WriteLine($"ScheduleHash Blockchain Summary - {sortedSchedules.Count} schedules");
                 sw.WriteLine(new string('=', 120));
                 sw.WriteLine($"{"ScheduleID",-20} {"Value",-12} {"Events",-8} {"ScheduleHash",-20} {"StateHash",-20} {"CombinedHash",-20}");
                 sw.WriteLine(new string('-', 120));
                 
-                foreach (var schedule in schedules)
+                foreach (var schedule in sortedSchedules)
                 {
                     string scheduleHash = schedule.ScheduleInfo.ScheduleHash;
                     

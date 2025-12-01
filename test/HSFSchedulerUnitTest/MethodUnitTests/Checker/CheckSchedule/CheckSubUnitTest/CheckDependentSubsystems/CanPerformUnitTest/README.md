@@ -196,7 +196,7 @@ Uses the shared **TwoAsset_Imaging** scenario with `TestPowerSubsystem`, `TestCa
 ## Input Files
 
 ### Scenario Files (Shared)
-- `SimInput_CanPerform.json`: Minimal simulation config (1 asset, 1 task, 5 timesteps)
+- `SimInput_TwoAssetImaging_ToyExample.json`: Minimal simulation config (1 asset, 1 task, 5 timesteps)
 - `OneTaskInput.json`: Single task definition
 
 ### Model Files (Subsystem-Specific)
@@ -208,7 +208,7 @@ Uses the shared **TwoAsset_Imaging** scenario with `TestPowerSubsystem`, `TestCa
 - `EventTimeManipulator_Scripted.json`: Python event time manipulation
 
 ### Toy Example Scenario Files (Shared from `CheckSchedule/Inputs/`)
-- `SimInput_CanPerform.json`: Simulation parameters (shared)
+- `SimInput_TwoAssetImaging_ToyExample.json`: Simulation parameters (shared)
 - `TwoAsset_Imaging_Tasks.json`: Task definitions (RECHARGE, IMAGING, TRANSMIT)
 - `TwoAsset_Imaging_Model.json`: System model with Power, Camera, and Antenna subsystems
 

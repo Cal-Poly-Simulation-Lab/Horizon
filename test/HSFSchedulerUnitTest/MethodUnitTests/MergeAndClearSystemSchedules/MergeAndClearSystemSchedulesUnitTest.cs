@@ -32,7 +32,7 @@ namespace HSFSchedulerUnitTest
             program = new Horizon.Program();
             // Uses shared input files from CheckSchedule/Inputs
             var inputsDir = Path.Combine(CurrentTestDir, "../Checker/CheckSchedule/Inputs");
-            var simPath = Path.Combine(inputsDir, "SimInput_CanPerform.json");
+            var simPath = Path.Combine(inputsDir, "SimInput_TwoAssetImaging_ToyExample.json");
             var taskPath = Path.Combine(inputsDir, "TwoAsset_Imaging_Tasks.json");
             var modelPath = Path.Combine(inputsDir, "TwoAsset_Imaging_Model.json");
 

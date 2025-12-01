@@ -40,7 +40,7 @@ Uses a modified model with a `FAIL_IF_HIGHER` constraint:
 ## Input Files
 
 Located in `../Inputs/`:
-- `SimInput_CanPerform.json` - Simulation parameters
+- `SimInput_TwoAssetImaging_ToyExample.json` - Simulation parameters
 - `TwoAsset_Imaging_Tasks.json` - Task definitions (RECHARGE, IMAGING, TRANSMIT)
 - `TwoAsset_Imaging_Model.json` - System model for basic validation test
 - `TwoAsset_Imaging_Model_ConstraintPowerMax75.json` - System model with FAIL_IF_HIGHER constraint
