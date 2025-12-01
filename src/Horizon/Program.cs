@@ -25,13 +25,14 @@ using Newtonsoft.Json.Linq;
 //using System.Web.Configuration;
 using IronPython.Compiler.Ast;
 using System.Diagnostics.Eventing.Reader;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 //using System.Net.Configuration;
 
 namespace Horizon
 {
     public class Program
     {
-        public ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        public ILog? log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public string SimulationFilePath { get; set; }
         public string TaskDeckFilePath { get; set; }
@@ -73,92 +74,49 @@ namespace Horizon
         public List<SystemSchedule> Schedules { get; set; }
         public SystemClass SimSystem { get; set; }
         public Stack<Task> SystemTasks { get; set; } = new Stack<Task>();
+        private System.Diagnostics.Stopwatch programStopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-        /// <summary>
-        /// Parse run version string (e.g., "00A", "99Z") and increment to next version
-        /// Format: XXY where XX = 00-99, Y = A-Z
-        /// </summary>
-        private static string IncrementRunVersion(string currentVersion)
+
+        public static int Main(string[] args) // The Horizon Simulation Framework (HSF) main entry point
         {
-            if (string.IsNullOrEmpty(currentVersion) || currentVersion.Length != 3)
-                return "00A";
-            
-            int number = int.Parse(currentVersion.Substring(0, 2));
-            char letter = currentVersion[2];
-            
-            number++;
-            if (number > 99)
-            {
-                number = 0;
-                letter++;
-                if (letter > 'Z')
-                    throw new InvalidOperationException("Run version overflow! Exceeded 99Z.");
-            }
-            
-            return $"{number:D2}{letter}";
-        }
         
-        /// <summary>
-        /// Get the next run version by scanning existing Run_* directories
-        /// </summary>
-        private static string GetNextRunVersion(string outputDir)
-        {
-            if (!Directory.Exists(outputDir))
-                return "00A";
-            
-            var runDirs = Directory.GetDirectories(outputDir, "Run_*");
-            if (runDirs.Length == 0)
-                return "00A";
-            
-            string maxVersion = "00A";
-            foreach (var dir in runDirs)
-            {
-                string dirName = Path.GetFileName(dir);
-                // Extract version: "Run_00A_..." → "00A"
-                if (dirName.StartsWith("Run_") && dirName.Length > 8)
-                {
-                    string version = dirName.Substring(4, 3);
-                    if (string.Compare(version, maxVersion) > 0)
-                        maxVersion = version;
-                }
-            }
-            
-            return IncrementRunVersion(maxVersion);
-        }
-
-        public static int Main(string[] args) //
-        {
-            var programStopwatch = System.Diagnostics.Stopwatch.StartNew();
-            
-            Program program = new Program();
-            program._runDateTime = DateTime.Now;
+            Program program = new Program(); // Instantiate program object
+            program._runDateTime = DateTime.Now; // Set run date and time
 
             // Begin the Logger
-            program.log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-            program.log.Info("STARTING HSF RUN"); //Do not delete
+            program.log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()?.DeclaringType);
+            program.log.Info("STARTING HSF RUN"); // Log start of run
             
-            List<string> argsList = args.ToList();
-            program.InitInput(argsList);
-            program.LoadScenario();  // Load scenario FIRST to get the name for output directory
-            program.InitOutput(argsList);  // Creates output dir AND starts console logging
-            program.LoadTasks();
-            program.LoadSubsystems();
-            program.LoadEvaluator();
-            program.CreateSchedules();
-            
+            List<string> argsList = args.ToList(); // Obtain command line arguments
+            program.InitInput(argsList); // Initialize input files
+            program.LoadScenario();  // Load simulation scenario, environment
+            program.InitOutput(argsList);  // Init output dir and start logging
+            program.LoadTasks(); // Load tasks: objectives, constraints, etc
+            program.LoadSubsystems(); // Load subsystems: power, communication, etc
+            program.LoadEvaluator(); // Load scheule evaluator
+            program.CreateSchedules(); // MAIN SCHEDULING ALGORITHM: Generate schedules
+            program.LogDataOut(); // Log schedule summaries, state history data, visualization metadata
+
+            // Return success code: 0 indicates successful execution
+            return 0;
+        }
+        #region Program.Main() Method Calls
+        public void LogDataOut()
+        {
+                        
             // Generate hash outputs if enabled (right after GenerateSchedules() returns, before EvaluateSchedules() sorts them)
             if (SimParameters.EnableHashTracking)
             {
-                SaveScheduleHashBlockchainSummary(program.Schedules, program.OutputPath);
+                SaveScheduleHashBlockchainSummary(this.Schedules, this.OutputPath);
             }
             
-            double maxSched = program.EvaluateSchedules();
+            double maxSched = this.EvaluateSchedules();
 
             int i = 0;
             
             // Write schedule summary text file
-            string summaryPath = Path.Combine(program.OutputPath, "schedules_summary.txt");
-            Console.WriteLine($"Publishing simulation results to {program.OutputPath}");
+            string summaryPath = Path.Combine(this.OutputPath, "schedules_summary.txt");
+            Console.WriteLine($"Publishing simulation results to {this.OutputPath}");
             
             // MERGE RESOLUTION: Kept enhanced version (jebeals)
             // - Uses Path.Combine for cross-platform compatibility (vs Eric's hardcoded "\\" backslash)
@@ -167,9 +125,9 @@ namespace Horizon
             // Eric's version: OutputPath + "\\ScheduleResults.txt" (simpler, but Windows-only path)
             using (StreamWriter sw = File.CreateText(summaryPath))
             {
-            foreach (SystemSchedule sched in program.Schedules)
+            foreach (SystemSchedule sched in this.Schedules)
             {
-                sw.WriteLine("Schedule Number: " + i + "Schedule Value: " + program.Schedules[i].ScheduleValue);
+                sw.WriteLine("Schedule Number: " + i + "Schedule Value: " + this.Schedules[i].ScheduleValue);
                 foreach (var eit in sched.AllStates.Events)
                 {
                     if (i < 5)//just compare the first 5 schedules for now
@@ -181,7 +139,7 @@ namespace Horizon
             }
             } // StreamWriter auto-closes here
             
-            program.log.Info("Max Schedule Value: " + maxSched);
+            this.log.Info("Max Schedule Value: " + maxSched);
 
             // MERGE RESOLUTION: Kept enhanced version (jebeals)
             // New approach:
@@ -191,11 +149,11 @@ namespace Horizon
             //   - Heritage format kept in data/heritage/ for backward compatibility
             // Eric's version: Single WriteSchedule() call to OutputPath (simpler, less organized)
             // Write detailed state data using new clean CSV format
-            SystemSchedule.WriteScheduleData(program.Schedules, program.OutputPath, SimParameters.NumSchedulesForStateOutput);
+            SystemSchedule.WriteScheduleData(this.Schedules, this.OutputPath, SimParameters.NumSchedulesForStateOutput);
             
             // Also keep old format for backward compatibility (best schedule only, in data/heritage/)
-            string heritageDir = Path.Combine(program.OutputPath, "data", "heritage");
-            SystemSchedule.WriteSchedule(program.Schedules[0], heritageDir);
+            string heritageDir = Path.Combine(this.OutputPath, "data", "heritage");
+            SystemSchedule.WriteSchedule(this.Schedules[0], heritageDir);
 
             //  Move this to a method that always writes out data about the dynamic state of assets, the target dynamic state data, other data?
             //var csv = new StringBuilder();
@@ -212,21 +170,13 @@ namespace Horizon
             //   - Formatted output confirmation message
             // Eric's version: Just "return 0;" (simpler, no timing or logging)
             //Console.ReadKey()
-            programStopwatch.Stop();
-            Console.WriteLine($"Simulation results published to {program.OutputPath}"); // Not an actual verification? 
+            this.programStopwatch.Stop();
+            Console.WriteLine($"Simulation results published to {this.OutputPath}"); // Not an actual verification? 
             Console.WriteLine($"TOTAL PROGRAM TIME: {programStopwatch.Elapsed.TotalSeconds:F3} seconds\n");
             
             // Stop console logging before exiting
-            program.StopConsoleLogging();
-            
-            return 0;
+            this._consoleLogger?.StopLogging();
         }
-        
-        private void StopConsoleLogging()
-        {
-            _consoleLogger?.StopLogging();
-        }
-
         public void InitInput(List<string> argsList)
         {
             // This would be in a config file - not used right now (4/26/24) -EM
@@ -545,7 +495,6 @@ namespace Horizon
                                                SimulationFilePath, ModelFilePath, TaskDeckFilePath, _runDateTime);
             _consoleLogger.StartLogging();
         }
-
         public void LoadScenario()
         {
             StreamReader jsonStream = new StreamReader(SimulationFilePath);
@@ -760,7 +709,6 @@ namespace Horizon
                 throw new ArgumentException(msg);
             }
         }
-
         public void LoadEvaluator()
         {
             StreamReader jsonStream = new StreamReader(ModelFilePath);
@@ -837,7 +785,9 @@ namespace Horizon
             double maxSched = Schedules[0].ScheduleValue;
             return maxSched;
         }
-
+        #endregion
+        
+        #region Helper Methods
         /// <summary>
         /// Test output: auto-detects test project root, simple "last_test_run" (no versioning)
         /// </summary>
@@ -940,6 +890,58 @@ namespace Horizon
                 _consoleLogger = new ConsoleLogger(OutputPath, scenarioName, SimulationFilePath, ModelFilePath, TaskDeckFilePath, _runDateTime);
                 _consoleLogger.StartLogging();
             }
+        }
+
+        /// <summary>
+        /// Parse run version string (e.g., "00A", "99Z") and increment to next version
+        /// Format: XXY where XX = 00-99, Y = A-Z
+        /// </summary>
+        private static string IncrementRunVersion(string currentVersion)
+        {
+            if (string.IsNullOrEmpty(currentVersion) || currentVersion.Length != 3)
+                return "00A";
+            
+            int number = int.Parse(currentVersion.Substring(0, 2));
+            char letter = currentVersion[2];
+            
+            number++;
+            if (number > 99)
+            {
+                number = 0;
+                letter++;
+                if (letter > 'Z')
+                    throw new InvalidOperationException("Run version overflow! Exceeded 99Z.");
+            }
+            
+            return $"{number:D2}{letter}";
+        }
+        
+        /// <summary>
+        /// Get the next run version by scanning existing Run_* directories
+        /// </summary>
+        private static string GetNextRunVersion(string outputDir)
+        {
+            if (!Directory.Exists(outputDir))
+                return "00A";
+            
+            var runDirs = Directory.GetDirectories(outputDir, "Run_*");
+            if (runDirs.Length == 0)
+                return "00A";
+            
+            string maxVersion = "00A";
+            foreach (var dir in runDirs)
+            {
+                string dirName = Path.GetFileName(dir);
+                // Extract version: "Run_00A_..." → "00A"
+                if (dirName.StartsWith("Run_") && dirName.Length > 8)
+                {
+                    string version = dirName.Substring(4, 3);
+                    if (string.Compare(version, maxVersion) > 0)
+                        maxVersion = version;
+                }
+            }
+            
+            return IncrementRunVersion(maxVersion);
         }
 
         /// <summary>
@@ -1052,7 +1054,7 @@ namespace Horizon
                 }
             }
         }
-
+        #endregion
     }
 }
 
