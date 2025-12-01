@@ -57,6 +57,50 @@ Unit tests for `Subsystem.CanPerform()` method across C# (`ScriptedCS`) and Pyth
 
 **Design Note:** Event time manipulation inside `CanPerform()` is currently allowed. Future constraint tests will verify event times are NOT manipulated outside `CanPerform()` (e.g., in `CheckDependentSubsystems`).
 
+### 4. Toy Example Subsystems (TwoAsset_Imaging Scenario)
+**Tests:** `CanPerform_ToyExample_*` (6 tests)
+
+Uses the shared **TwoAsset_Imaging** scenario with `TestPowerSubsystem`, `TestCameraSubsystem`, and `TestAntennaSubsystem` to validate real-world subsystem behavior.
+
+#### Power Subsystem Tests
+- **`CanPerform_ToyExample_Power_FirstIteration_Passes`**
+  - ✅ Verifies Power subsystem passes first IMAGING task (75.0 >= 10.0 required)
+  - ✅ Confirms power is correctly decremented (75.0 → 65.0)
+  - ✅ Validates state update occurs at correct time
+
+- **`CanPerform_ToyExample_Power_FailsWhenInsufficient`**
+  - ✅ Verifies Power subsystem fails TRANSMIT when power (15.0) < required (20.0)
+  - ✅ Confirms failure condition is correctly detected
+  - ✅ Tests power constraint enforcement
+
+#### Camera Subsystem Tests
+- **`CanPerform_ToyExample_Camera_FirstIteration_Passes`**
+  - ✅ Verifies Camera subsystem passes first IMAGING task (0 < 10 max)
+  - ✅ Confirms images are correctly incremented (0 → 1)
+  - ✅ Validates state update occurs at correct time
+
+- **`CanPerform_ToyExample_Camera_FailsAtMaxImages`**
+  - ✅ Verifies Camera subsystem fails when numImages (10) >= maxImages (10)
+  - ✅ Confirms capacity limit is correctly enforced
+  - ✅ Tests buffer overflow prevention
+
+#### Antenna Subsystem Tests
+- **`CanPerform_ToyExample_Antenna_FailsWithNoImages`**
+  - ✅ Verifies Antenna subsystem fails TRANSMIT when numImages (0) <= 0
+  - ✅ Confirms dependency on camera buffer is enforced
+  - ✅ Tests prerequisite validation
+
+- **`CanPerform_ToyExample_Antenna_PassesWithImages`**
+  - ✅ Verifies Antenna subsystem passes TRANSMIT when numImages (5.0) > 0
+  - ✅ Confirms images are correctly decremented (5.0 → 4.0)
+  - ✅ Confirms transmissions are correctly incremented (0 → 1.0)
+  - ✅ Validates dual state variable updates
+
+**Key Verification:** Each subsystem correctly:
+- Passes on first iteration when conditions are met
+- Fails at the right time/iteration when constraints are violated
+- Updates state values correctly and deterministically
+
 ## Test Infrastructure
 
 ### Helper Methods
@@ -69,6 +113,12 @@ Unit tests for `Subsystem.CanPerform()` method across C# (`ScriptedCS`) and Pyth
   - Loads scenario and generates initial potential schedules
   - Returns `(asset, subsystem, potentialSchedules, universe)` tuple
   - Used for tests requiring pre-existing schedules with events
+
+- **`LoadToyExampleScenario()`**
+  - Loads the TwoAsset_Imaging scenario from shared inputs
+  - Returns `(asset1, powerSub, cameraSub, antennaSub, universe)` tuple
+  - Used for toy example subsystem tests
+  - Accesses subsystems via `program.SubList` filtered by asset
 
 ### Test Subsystems
 
@@ -105,6 +155,39 @@ Unit tests for `Subsystem.CanPerform()` method across C# (`ScriptedCS`) and Pyth
 - **Task tests:** `taskStartShift=5.0, taskEndShift=-3.0, eventShifts=0.0`
 - **Event tests:** `taskShifts=0.0, eventStartShift=7.0, eventEndShift=-2.5`
 
+#### Toy Example Subsystems (TestPowerSubsystem, TestCameraSubsystem, TestAntennaSubsystem)
+**Purpose:** Real-world subsystem behavior validation using the TwoAsset_Imaging scenario
+
+**TestPowerSubsystem:**
+- **Parameters:**
+  - `imagePowerRequired` (double, default=10.0): Power required for IMAGING task
+  - `transmitPowerRequired` (double, default=20.0): Power required for TRANSMIT task
+  - `rechargeValue` (double, default=25.0): Power added during RECHARGE task
+  - `maxPower` (double, default=100.0): Maximum power capacity
+  - `minPower` (double, default=0.0): Minimum power capacity
+- **State:** `checker_power` (double, initial=75.0)
+- **Behavior:**
+  - IMAGING: Consumes `imagePowerRequired`, fails if insufficient power
+  - TRANSMIT: Consumes `transmitPowerRequired`, fails if insufficient power
+  - RECHARGE: Adds `rechargeValue`, fails if would exceed `maxPower`
+
+**TestCameraSubsystem:**
+- **Parameters:**
+  - `maxImages` (double, default=10.0): Maximum number of images that can be stored
+- **State:** `num_images_stored` (double, initial=0.0)
+- **Behavior:**
+  - IMAGING: Increments image count, fails if `numImages >= maxImages`
+  - Other tasks: Returns `true` (no-op)
+
+**TestAntennaSubsystem:**
+- **Parameters:** None
+- **State:** 
+  - `num_images_stored` (double, shared with Camera, initial=0.0)
+  - `num_transmissions` (double, initial=0.0)
+- **Behavior:**
+  - TRANSMIT: Decrements image count, increments transmission count, fails if `numImages <= 0`
+  - Other tasks: Returns `true` (no-op)
+
 ## Input Files
 
 ### Scenario Files (Shared)
@@ -118,6 +201,11 @@ Unit tests for `Subsystem.CanPerform()` method across C# (`ScriptedCS`) and Pyth
 - `TaskTimeManipulator_Scripted.json`: Python task time manipulation
 - `EventTimeManipulator_ScriptedCS.json`: C# event time manipulation
 - `EventTimeManipulator_Scripted.json`: Python event time manipulation
+
+### Toy Example Scenario Files (Shared from `CheckScheudle/Inputs/`)
+- `SimInput_CanPerform.json`: Simulation parameters (shared)
+- `TwoAsset_Imaging_Tasks.json`: Task definitions (RECHARGE, IMAGING, TRANSMIT)
+- `TwoAsset_Imaging_Model.json`: System model with Power, Camera, and Antenna subsystems
 
 ## Future Work (TODO)
 
@@ -149,18 +237,23 @@ dotnet test --filter "FullyQualifiedName~CanPerformUnitTest"
 dotnet test --filter "FullyQualifiedName~CanPerform_IterationLoop"
 dotnet test --filter "FullyQualifiedName~CanModifyTaskTimes"
 dotnet test --filter "FullyQualifiedName~CanModifyEventTimes"
+dotnet test --filter "FullyQualifiedName~CanPerform_ToyExample"
 
 # Specific subsystem type
 dotnet test --filter "FullyQualifiedName~CanPerformUnitTest.ScriptedCS"
 dotnet test --filter "FullyQualifiedName~CanPerformUnitTest.Scripted"
+
+# Toy example tests only
+dotnet test --filter "FullyQualifiedName~CanPerform_ToyExample"
 ```
 
 ## Notes
 
-- **Test execution time:** ~2s for full suite (6 tests)
+- **Test execution time:** ~10s for full suite (12 tests)
 - **No external dependencies:** All tests use minimal input files
 - **Deterministic:** Tests use fixed parameters and expected values
 - **Isolated:** Each test uses `SetUp`/`TearDown` for clean state
+- **Toy example tests:** Use shared input files from `CheckScheudle/Inputs/` to validate real subsystem behavior
 
 ## Thesis Relevance
 
