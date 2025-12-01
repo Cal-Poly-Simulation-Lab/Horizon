@@ -119,23 +119,22 @@ namespace HSFSystem
                 try
                 {   
                     result = this.CanPerform(proposedEvent, environment);
-                    // Enforce that Task Start and End are within EVENT task start and end
-                    // Also report this out. Where to report? --> 
-                    if (CheckTaskStartAndEnd(proposedEvent, Asset)){
-                        return result;
-                    }
-                    return false; // Task Start and End are not within Event Start and End so return false
-
+                    // CanPerform may mutate task times (via SetTaskStart/SetTaskEnd)
+                    // It may also throw if mutations cause invalid state update times
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
+                    // CanPerform may throw (e.g., if mutation causes invalid state update time)
+                    // Still need to check task times even if CanPerform failed
+                    Console.WriteLine($"CanPerform threw exception for {Name}: {ex.Message}");
                 }
-                //  Need to deal with this issue in next update
-                //double te = proposedEvent.GetTaskEnd(Asset);
-                //double ee = proposedEvent.GetEventEnd(Asset);
-                //proposedEvent.SetEventEnd(Asset, Math.Max(te, ee));
-                return result;
+                // Always check task times AFTER CanPerform, even if it threw an exception
+                // This ensures mutations that cause out-of-bounds times are caught
+                // Enforce that Task Start and End are within EVENT task start and end
+                if (CheckTaskStartAndEnd(proposedEvent, Asset)){
+                    return result;
+                }
+                return false; // Task Start and End are not within Event Start and End so return false
             }
             else
             {
@@ -153,7 +152,19 @@ namespace HSFSystem
                 IsEvaluated = true;
                 Task = proposedEvent.GetAssetTask(Asset); //Find the correct task for the subsystem
                 NewState = proposedEvent.State;
-                bool resultParent = CanPerform(proposedEvent, environment);
+                bool resultParent = false;
+                try
+                {
+                    resultParent = CanPerform(proposedEvent, environment);
+                }
+                catch (Exception ex)
+                {
+                    // CanPerform may throw (e.g., if mutation causes invalid state update time)
+                    // Still need to check task times even if CanPerform failed
+                    Console.WriteLine($"CanPerform threw exception for {Name}: {ex.Message}");
+                }
+                // Always check task times, even if CanPerform threw an exception
+                // This ensures mutations that cause out-of-bounds times are caught
                 if (CheckTaskStartAndEnd(proposedEvent, Asset)){
                     return resultParent;
                 }
