@@ -133,7 +133,7 @@ All tests use the standard test input files and verify the CanAddTasks method be
 ## Evaluator Configuration
 
 **Evaluator Used:**
-- `SchedulerTestEval.py` - Python-based test evaluator
+- `DefaultEvaluator` - C# default evaluator
 - **Configuration:** Loaded but not actively used in these tests
 - **Purpose:** Maintains consistency with other test suites
 
@@ -145,17 +145,15 @@ All tests use the standard test input files and verify the CanAddTasks method be
 4. `ThreeTaskTestInput.json` - Three task definitions
 5. `SixTaskTestInput.json` - Six task definitions (for count testing)
 6. `SchedulerSubTest.cs` - Test subsystem implementation
-7. `SchedulerTestEval.py` - Test evaluator (loaded but not used)
 
    **Required Files Filepaths (Repository-root-relative):**
 
      1. `test/HSFSchedulerUnitTest/InputFiles/SchedulerTestSimulationInput.json`
- 	2. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/CanAddTasks/OneAssetTestModel.json`
- 	3. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/CanAddTasks/TwoAssetTestModel.json`
- 	4. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/CanAddTasks/ThreeTaskTestInput.json`
- 	5. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/CanAddTasks/SixTaskTestInput.json`
- 	6. `test/HSFSchedulerUnitTest/Subsystems/SchedulerSubTest.cs`
- 	7. `test/HSFSchedulerUnitTest/SchedulerTestEval.py`
+	2. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/CanAddTasks/OneAssetTestModel.json`
+	3. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/CanAddTasks/TwoAssetTestModel.json`
+	4. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/CanAddTasks/ThreeTaskTestInput.json`
+	5. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/CanAddTasks/SixTaskTestInput.json`
+	6. `test/HSFSchedulerUnitTest/Subsystems/SchedulerSubTest.cs`
 
 ## Maintenance Notes
 

@@ -1,0 +1,20 @@
+{
+  "name": "TwoAssetImaging_ToyExample",
+  "version": 1.0,
+  "simulationParameters": {
+    "startJD": 2454680.0,
+    "startSeconds": 0.0,
+    "endSeconds": 50.0,
+    "stepSeconds": 5.0,
+    "enableHashTracking": true
+  },
+  "schedulerParameters": {
+    "maxSchedules": 100,
+    "cropTo": 10,
+    "ConsoleLog": "on"
+  },
+  "dependencies": {
+    "baseSrc": "../../../../"
+  }
+}
+

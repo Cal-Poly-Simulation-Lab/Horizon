@@ -190,6 +190,18 @@ namespace HSFScheduler
 
             // Informational Use Only:
             ScheduleInfo = new SystemScheduleInfo(AllStates, Scheduler.SchedulerStep);
+            
+            // Update schedule hash: inherit from old schedule if it exists, then add new event (blockchain-style)
+            if (oldSystemSchedule != null)
+            {
+                // Copy hash history from old schedule (preserves traceability, uses deterministic iteration numbering)
+                SystemScheduleInfo.CopyHashHistoryFromOldSchedule(this, oldSystemSchedule);
+            }
+            
+            // Update schedule hash with new event (schedule value is 0 initially, will be set later)
+            // Iteration number is determined automatically (0, 1, 2, ...) based on hash history count
+            SystemScheduleInfo.UpdateHashAfterEvent(this, eventToAdd, ScheduleValue);
+            
             _scheduleID = UpdateScheduleID(oldSystemSchedule);
             UpdateInfoStrings();
 
@@ -304,6 +316,341 @@ namespace HSFScheduler
         /// </summary>
         /// <param name="schedule"></param>
         /// <param name="scheduleWritePath"></param>
+        /// <summary>
+        /// Write state data for multiple schedules in clean CSV format
+        /// Creates: 1) TopSchedule_{value}_{asset}_Data.csv (best schedule, one per asset)
+        ///          2) additional_schedule_data/{rank}_Schedule_{value}_{schedID}.csv (top X schedules, all assets)
+        /// </summary>
+        public static void WriteScheduleData(List<SystemSchedule> schedules, string outputDir, int maxSchedules = 5)
+        {
+            if (schedules == null || schedules.Count == 0) return;
+            
+            // Sort by value descending (best first)
+            var sortedSchedules = schedules.OrderByDescending(s => s.ScheduleValue).ToList();
+            
+            int numToWrite = Math.Min(sortedSchedules.Count, maxSchedules == int.MaxValue ? sortedSchedules.Count : maxSchedules);
+            string dataDir = Path.Combine(outputDir, "data");
+            Directory.CreateDirectory(dataDir);
+            
+            // Get all unique assets from all schedules
+            var allAssets = new HashSet<string>();
+            foreach (var schedule in sortedSchedules.Take(numToWrite))
+            {
+                foreach (var evt in schedule.AllStates.Events)
+                {
+                    foreach (var assetTaskPair in evt.Tasks)
+                    {
+                        allAssets.Add(assetTaskPair.Key.Name);
+                    }
+                }
+            }
+            
+            // 1. ALWAYS write top schedule data, one CSV per asset
+            if (sortedSchedules.Count > 0)
+            {
+                var topSchedule = sortedSchedules[0];
+                int topValue = (int)topSchedule.ScheduleValue;  // Truncate to integer
+                
+                foreach (var assetName in allAssets.OrderBy(a => a))
+                {
+                    WriteTopScheduleAssetCSV(topSchedule, assetName, dataDir, topValue);
+                }
+            }
+            
+            // 2. Write additional schedule data (rank 0 to X) in subdirectory
+            if (numToWrite > 0)
+            {
+                string additionalDir = Path.Combine(dataDir, "additional_schedule_data");
+                Directory.CreateDirectory(additionalDir);
+                
+                for (int rank = 0; rank < numToWrite; rank++)
+                {
+                    var schedule = sortedSchedules[rank];
+                    WriteRankedScheduleCSV(schedule, rank, additionalDir, allAssets.ToList());
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Write top schedule data for a single asset: TopSchedule_{value}_{asset}_Data.csv
+        /// Format: Time, state1, state2, ... (asset data only, headers are state names)
+        /// </summary>
+        private static void WriteTopScheduleAssetCSV(SystemSchedule schedule, string assetName, string dataDir, int scheduleValue)
+        {
+            var csv = new StringBuilder();
+            var stateData = ExtractAllStatesWithTime(schedule);
+            
+            if (!stateData.ContainsKey(assetName)) return;
+            
+            var assetData = stateData[assetName];
+            if (assetData.Count == 0) return;
+            
+            // Build header: Time, then all state variables for this asset
+            csv.Append("Time");
+            foreach (var stateVar in assetData.Keys.OrderBy(s => s))
+            {
+                csv.Append($",{stateVar}");
+            }
+            csv.AppendLine();
+            
+            // Collect all unique time steps for this asset
+            var allTimes = new SortedSet<double>();
+            foreach (var stateVarData in assetData.Values)
+            {
+                foreach (var time in stateVarData.Keys)
+                {
+                    allTimes.Add(time);
+                }
+            }
+            
+            // Write data rows (one row per time step)
+            foreach (var time in allTimes)
+            {
+                csv.Append($"{time}");
+                
+                foreach (var stateVar in assetData.Keys.OrderBy(s => s))
+                {
+                    var timeValuePairs = assetData[stateVar];
+                    // Find value at or before this time
+                    double value = 0;
+                    foreach (var kvp in timeValuePairs.Where(t => t.Key <= time).OrderByDescending(t => t.Key))
+                    {
+                        value = kvp.Value;
+                        break;
+                    }
+                    csv.Append($",{value}");
+                }
+                csv.AppendLine();
+            }
+            
+            string fileName = $"TopSchedule_value{scheduleValue}_{assetName}_Data.csv";
+            File.WriteAllText(Path.Combine(dataDir, fileName), csv.ToString());
+        }
+        
+        /// <summary>
+        /// Write ranked schedule data for all assets: {rank}_Schedule_{value}_{schedID}.csv
+        /// Format: Asset, Time, state1, state2, ... (all assets, asset as column)
+        /// </summary>
+        private static void WriteRankedScheduleCSV(SystemSchedule schedule, int rank, string additionalDir, List<string> allAssets)
+        {
+            var csv = new StringBuilder();
+            var stateData = ExtractAllStatesWithTime(schedule);
+            
+            if (stateData.Count == 0) return;
+            
+            // Build header: Asset, Time, then all state variables across all assets
+            var allStateVars = new HashSet<string>();
+            foreach (var assetData in stateData.Values)
+            {
+                foreach (var stateVar in assetData.Keys)
+                {
+                    allStateVars.Add(stateVar);
+                }
+            }
+            
+            csv.Append("Asset,Time");
+            foreach (var stateVar in allStateVars.OrderBy(s => s))
+            {
+                csv.Append($",{stateVar}");
+            }
+            csv.AppendLine();
+            
+            // Collect all unique time steps across all assets
+            var allTimes = new SortedSet<double>();
+            foreach (var assetData in stateData.Values)
+            {
+                foreach (var stateVarData in assetData.Values)
+                {
+                    foreach (var time in stateVarData.Keys)
+                    {
+                        allTimes.Add(time);
+                    }
+                }
+            }
+            
+            // Write data rows (one row per asset per time step)
+            foreach (var asset in allAssets.OrderBy(a => a))
+            {
+                if (!stateData.ContainsKey(asset)) continue;
+                
+                foreach (var time in allTimes)
+                {
+                    csv.Append($"{asset},{time}");
+                    
+                    foreach (var stateVar in allStateVars.OrderBy(s => s))
+                    {
+                        // Get value for this state at this time (or repeat last value)
+                        if (stateData[asset].ContainsKey(stateVar))
+                        {
+                            var timeValuePairs = stateData[asset][stateVar];
+                            // Find value at or before this time
+                            double value = 0;
+                            foreach (var kvp in timeValuePairs.Where(t => t.Key <= time).OrderByDescending(t => t.Key))
+                            {
+                                value = kvp.Value;
+                                break;
+                            }
+                            csv.Append($",{value}");
+                        }
+                        else
+                        {
+                            csv.Append(",");  // No data for this state/asset combo
+                        }
+                    }
+                    csv.AppendLine();
+                }
+            }
+            
+            int scheduleValue = (int)schedule.ScheduleValue;
+            string fileName = $"{rank}_Schedule_value{scheduleValue}_{schedule._scheduleID.Replace('.', '-')}.csv";
+            File.WriteAllText(Path.Combine(additionalDir, fileName), csv.ToString());
+        }
+        
+        
+        private static void WriteAssetSchedulesCSV(List<SystemSchedule> schedules, string assetName, string dataDir)
+        {
+            var csv = new StringBuilder();
+            
+            // Build header: ScheduleID, Value, Time, then all state variables for this asset
+            var allStateVars = new HashSet<string>();
+            foreach (var schedule in schedules)
+            {
+                var stateData = ExtractAllStatesWithTime(schedule);
+                if (stateData.ContainsKey(assetName))
+                {
+                    foreach (var stateVar in stateData[assetName].Keys)
+                    {
+                        allStateVars.Add(stateVar);
+                    }
+                }
+            }
+            
+            csv.Append("ScheduleID,Value,Time");
+            foreach (var stateVar in allStateVars.OrderBy(s => s))
+            {
+                csv.Append($",{stateVar}");
+            }
+            csv.AppendLine();
+            
+            // Write data (one row per schedule per time step)
+            foreach (var schedule in schedules.OrderByDescending(s => s.ScheduleValue))
+            {
+                var stateData = ExtractAllStatesWithTime(schedule);
+                if (!stateData.ContainsKey(assetName)) continue;
+                
+                // Collect all times for this schedule/asset
+                var allTimes = new SortedSet<double>();
+                foreach (var stateVarData in stateData[assetName].Values)
+                {
+                    foreach (var time in stateVarData.Keys)
+                    {
+                        allTimes.Add(time);
+                    }
+                }
+                
+                foreach (var time in allTimes)
+                {
+                    csv.Append($"{schedule._scheduleID},{schedule.ScheduleValue},{time}");
+                    
+                    foreach (var stateVar in allStateVars.OrderBy(s => s))
+                    {
+                        if (stateData[assetName].ContainsKey(stateVar))
+                        {
+                            var timeValuePairs = stateData[assetName][stateVar];
+                            // Find value at or before this time
+                            double value = 0;
+                            foreach (var kvp in timeValuePairs.Where(t => t.Key <= time).OrderByDescending(t => t.Key))
+                            {
+                                value = kvp.Value;
+                                break;
+                            }
+                            csv.Append($",{value}");
+                        }
+                        else
+                        {
+                            csv.Append(",");
+                        }
+                    }
+                    csv.AppendLine();
+                }
+            }
+            
+            string fileName = $"{assetName}_{schedules.Count}scheds_data.csv";
+            File.WriteAllText(Path.Combine(dataDir, fileName), csv.ToString());
+        }
+        
+        /// <summary>
+        /// Extract all state data with time from a schedule
+        /// Returns: Dictionary[AssetName][StateVariableName][Time] = Value
+        /// </summary>
+        private static Dictionary<string, Dictionary<string, SortedList<double, double>>> ExtractAllStatesWithTime(SystemSchedule schedule)
+        {
+            var result = new Dictionary<string, Dictionary<string, SortedList<double, double>>>();
+            // bool debugStateOutput = Environment.GetEnvironmentVariable("HSF_DEBUG_STATE_OUTPUT") == "1";
+            
+            SystemState sysState = null;
+            if (schedule.AllStates.Events.Count != 0)
+            {
+                sysState = schedule.AllStates.Events.Peek().State;
+            }
+            
+            while (sysState != null)
+            {
+                // Extract all double states (most common: DOD, databuffer, pixels, etc.)
+                foreach (var kvpDoubleProfile in sysState.Ddata)
+                {
+                    // Parse state variable name: "asset1.depthofdischarge" → asset="asset1", var="depthofdischarge"
+                    string fullName = kvpDoubleProfile.Key.VariableName;
+                    string[] parts = fullName.Split('.');
+                    if (parts.Length < 2) continue;
+                    
+                    string assetName = parts[0];
+                    string stateName = string.Join(".", parts.Skip(1));  // Rejoin if there are more dots
+                    
+                    if (!result.ContainsKey(assetName))
+                        result[assetName] = new Dictionary<string, SortedList<double, double>>();
+                    
+                    if (!result[assetName].ContainsKey(stateName))
+                        result[assetName][stateName] = new SortedList<double, double>();
+                    
+                    foreach (var data in kvpDoubleProfile.Value.Data)
+                    {
+                        if (!result[assetName][stateName].ContainsKey(data.Key))
+                            result[assetName][stateName].Add(data.Key, data.Value);
+                    }
+                }
+                
+                // TODO: Add Idata, Bdata, Mdata, Qdata extraction if needed
+                // For now, focusing on Ddata (covers Power DOD, SSDR buffer, EOSensor pixels, etc.)
+                
+                sysState = sysState.PreviousState;
+            }
+            
+            // if (debugStateOutput)
+            // {
+            //     Console.WriteLine($"[StateDebug] Schedule {_scheduleDebugId(schedule)} captured state snapshots:");
+            //     foreach (var assetEntry in result.OrderBy(k => k.Key))
+            //     {
+            //         foreach (var stateEntry in assetEntry.Value.OrderBy(k => k.Key))
+            //         {
+            //             double lastValue = stateEntry.Value.Count > 0 ? stateEntry.Value.Values.Last() : double.NaN;
+            //             Console.WriteLine($"  - {assetEntry.Key}.{stateEntry.Key}: {stateEntry.Value.Count} entries (last={lastValue})");
+            //         }
+            //     }
+            // }
+            
+            return result;
+        }
+
+        // private static string _scheduleDebugId(SystemSchedule schedule)
+        // {
+        //     if (!string.IsNullOrEmpty(schedule._scheduleID))
+        //     {
+        //         return schedule._scheduleID;
+        //     }
+        //     return $"value{schedule.ScheduleValue:F2}";
+        // }
+
         public static void WriteSchedule(SystemSchedule schedule, String scheduleWritePath) //TODO: Unit Test.
         {
             var csv = new StringBuilder();
@@ -425,8 +772,127 @@ namespace HSFScheduler
             foreach (var k in list.Value)
                 csv.AppendLine(k.Key + "," + k.Value);
 
-            System.IO.File.WriteAllText(scheduleWritePath + "\\" + fileName + ".csv", csv.ToString());
+            System.IO.File.WriteAllText(Path.Combine(scheduleWritePath, fileName + ".csv"), csv.ToString());
             csv.Clear();
+        }
+
+        /// <summary>
+        /// Static helper: Computes hash representation for a single event (blockchain-style building block)
+        /// Returns event hash string: "e{eventStart:F2}:{eventEnd:F2}|{asset:task:start:end|...}"
+        /// All double times truncated to 2 decimals to avoid precision errors.
+        /// </summary>
+        private static string ComputeEventHashString(Event evt)
+        {
+            var eventTasks = new List<string>();
+            
+            // Extract asset->task pairs with times (truncated to 2 decimals to avoid precision errors)
+            // Preserve order as they exist in evt.Tasks (Dictionary iteration order)
+            foreach (var assetTaskPair in evt.Tasks)
+            {
+                double taskStart = evt.GetTaskStart(assetTaskPair.Key);
+                double taskEnd = evt.GetTaskEnd(assetTaskPair.Key);
+                eventTasks.Add($"{assetTaskPair.Key.Name}:{assetTaskPair.Value.Name}:{taskStart:F2}:{taskEnd:F2}");
+            }
+            
+            // DO NOT SORT - preserve object order to allow different hashes for reflective symmetry
+            
+            // Event representation: tasks separated by '|'
+            // All double times truncated to 2 decimals to avoid precision errors in hash calculation
+            double eventStart = 0;
+            double eventEnd = 0;
+            if (evt.Tasks.Count > 0)
+            {
+                var firstAsset = evt.Tasks.Keys.First();
+                eventStart = evt.GetEventStart(firstAsset);
+                eventEnd = evt.GetEventEnd(firstAsset);
+            }
+            
+            return $"e{eventStart:F2}:{eventEnd:F2}|{string.Join("|", eventTasks)}";
+        }
+
+        /// <summary>
+        /// Static method: Computes a hash for a schedule based on schedule data only (NOT ScheduleID).
+        /// Includes: schedule value, all events in chronological order, event times, and asset->task pairs (preserving object iteration order).
+        /// All double times truncated to 2 decimals to avoid precision errors.
+        /// ScheduleID is explicitly NOT included in the hash computation.
+        /// Uses ComputeEventHashString helper for each event.
+        /// </summary>
+        public static string ComputeScheduleHash(SystemSchedule schedule)
+        {
+            // Extract ALL events in chronological order (repeatable order)
+            var eventsList = schedule.AllStates.Events.ToList();
+            eventsList.Reverse();  // Chronological order (oldest first) - ensures deterministic ordering
+            
+            // Build hash for all events: preserve object order (do NOT sort - allows different hashes for reflective symmetry)
+            var allEventHashes = new List<string>();
+            foreach (var evt in eventsList)
+            {
+                allEventHashes.Add(ComputeEventHashString(evt));
+            }
+            
+            // Combine schedule value (truncated to 2 decimals) + all events
+            // Order: value first, then events in chronological order (ensures repeatable hash)
+            // NOTE: ScheduleID is NOT included in hash computation - only schedule data
+            string eventsCombined = string.Join("||", allEventHashes);
+            string combined = $"value{schedule.ScheduleValue:F2}||{eventsCombined}";
+            
+            // Compute SHA256 hash
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                byte[] hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(combined));
+                return BitConverter.ToString(hashBytes).Replace("-", "").ToLower().Substring(0, 16);  // 16 char hash
+            }
+        }
+
+        /// <summary>
+        /// Static method: Computes incremental hash for a schedule (blockchain-style)
+        /// Combines previous hash + new event + schedule value to compute new hash
+        /// This allows tracking hash evolution as events are added without recomputing all events
+        /// </summary>
+        /// <param name="previousHash">Hash from previous iteration (empty string for initial hash)</param>
+        /// <param name="latestEvent">The most recent event added to the schedule (null for empty schedule)</param>
+        /// <param name="scheduleValue">Current schedule value (truncated to 2 decimals)</param>
+        /// <returns>New incremental hash</returns>
+        public static string ComputeIncrementalHash(string previousHash, Event? latestEvent, double scheduleValue)
+        {
+            // If no previous hash, this is the initial hash (empty schedule or first event)
+            // For initial hash, use full computation if we have an event, otherwise just value
+            if (string.IsNullOrEmpty(previousHash))
+            {
+                if (latestEvent == null)
+                {
+                    // Empty schedule - just value
+                    string combined = $"value{scheduleValue:F2}||";
+                    using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                    {
+                        byte[] hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(combined));
+                        return BitConverter.ToString(hashBytes).Replace("-", "").ToLower().Substring(0, 16);
+                    }
+                }
+                else
+                {
+                    // First event - combine value + event
+                    string eventHash = ComputeEventHashString(latestEvent);
+                    string combined = $"value{scheduleValue:F2}||{eventHash}";
+                    using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                    {
+                        byte[] hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(combined));
+                        return BitConverter.ToString(hashBytes).Replace("-", "").ToLower().Substring(0, 16);
+                    }
+                }
+            }
+            else
+            {
+                // Incremental update: previous hash + new event + current value
+                // Blockchain-style: hash(previousHash || event || value)
+                string eventHash = latestEvent != null ? ComputeEventHashString(latestEvent) : "";
+                string combined = $"{previousHash}||{eventHash}||value{scheduleValue:F2}";
+                using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                {
+                    byte[] hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(combined));
+                    return BitConverter.ToString(hashBytes).Replace("-", "").ToLower().Substring(0, 16);
+                }
+            }
         }
     }
 }

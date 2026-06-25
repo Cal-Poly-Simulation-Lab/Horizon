@@ -7,13 +7,13 @@
 ## How to Generate Observation Data
 
 **Run the script:**
-```bash
+   ```bash
 cd /Users/jason/source/Horizon/test/HSFSchedulerUnitTest/MethodUnitTests/GenerateSchedules/ObservationGenerator
 ./run_observation_capture.sh
 ```
 
 **Data will be saved to:**
-```
+   ```
 Output/Run_1/OneAsset_OneTask.json
 Output/Run_1/OneAsset_OneTask.txt
 Output/Run_1/OneAsset_ThreeTasks.json

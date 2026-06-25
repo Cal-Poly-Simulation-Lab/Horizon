@@ -17,7 +17,9 @@ namespace UserModel
         public static double SimEndSeconds { get; private set; } = 60;
         public static double SimStepSeconds { get; private set; } = 12;
         public static string ScenarioName { get; private set; } = "Default Scenario";
-        public static string OutputDirectory { get; private set; } = "";
+        public static string OutputDirectory { get; set; } = "";
+        public static int NumSchedulesForStateOutput { get; private set; } = 5;  // Default: top 5 schedules
+        public static bool EnableHashTracking { get; private set; } = true;  // Default: enabled
 
         private static bool _isInitialized = false;
         #endregion
@@ -73,6 +75,35 @@ namespace UserModel
                     Console.WriteLine(msg);
                     throw new ArgumentException(msg);
                 }
+                
+                // Optional: Number of schedules to output state data for
+                if (JsonLoader<int>.TryGetValue("numSchedulesForStateOutput", simulationJson, out int numScheds))
+                {
+                    NumSchedulesForStateOutput = numScheds;
+                    Console.WriteLine($"\tState Output: Top {NumSchedulesForStateOutput} schedules");
+                }
+                else if (JsonLoader<string>.TryGetValue("numSchedulesForStateOutput", simulationJson, out string numSchedsStr))
+                {
+                    if (numSchedsStr.ToLower().Contains("all") || numSchedsStr.ToLower().Contains("max"))
+                    {
+                        NumSchedulesForStateOutput = int.MaxValue;
+                        Console.WriteLine($"\tState Output: ALL schedules");
+                    }
+                    else if (int.TryParse(numSchedsStr, out int parsed))
+                    {
+                        NumSchedulesForStateOutput = parsed;
+                        Console.WriteLine($"\tState Output: Top {NumSchedulesForStateOutput} schedules");
+                    }
+                }
+                // else: use default (5)
+
+                // Optional: Enable/disable hash tracking
+                if (JsonLoader<bool>.TryGetValue("enableHashTracking", simulationJson, out bool enableHashTracking))
+                {
+                    EnableHashTracking = enableHashTracking;
+                    Console.WriteLine($"\tHash Tracking: {(enableHashTracking ? "Enabled" : "Disabled")}");
+                }
+                // else: use default (true)
 
                 return true;
             }

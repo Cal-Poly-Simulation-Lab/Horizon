@@ -162,10 +162,10 @@ Input files are rather
 
 ### Evaluator Configuration
 
-- **`SchedulerTestEval.py`**: Python scripted evaluator
+- **`DefaultEvaluator`**: C# default evaluator
 - **Evaluator Behavior:**
-  - `type: "scripted"` - Python scripted evaluator
-  - `className: "eval"` - Python class name
+  - `type: "DefaultEvaluator"` - C# default evaluator
+  - `className: "DefaultEvaluator"` - C# class name
   - **Note:** Evaluator is loaded but **Checker is never called** in these tests
   - **Purpose:** Complete system setup without evaluation logic
 
@@ -211,7 +211,7 @@ Input files are rather
 4. `DefaultThreeTaskInput.json` - Three task definitions
 5. `TwoTaskInput.json` - Two task definitions
 6. `AlwaysTrueSubsystem.cs` - Test subsystem implementation
-7. `SchedulerTestEval.py` - Test evaluator (loaded but not used)
+7. `DefaultEvaluator` - Default C# evaluator (loaded but not used)
 
    **Required Files Filepaths (Reposity-root-relative):**
 
@@ -221,7 +221,6 @@ Input files are rather
 	4. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/SystemScheduleConstructor/DefaultThreeTaskInput.json`
 	5. `test/HSFSchedulerUnitTest/MethodUnitTests/TimeDeconfliction/SystemScheduleConstructor/TwoTaskInput.json`
 	6. `test/HSFSchedulerUnitTest/Subsystems/AlwaysTrueSubsystem.cs`
-	7. `test/HSFSchedulerUnitTest/SchedulerTestEval.py`
 
 ## Maintenance Notes
 

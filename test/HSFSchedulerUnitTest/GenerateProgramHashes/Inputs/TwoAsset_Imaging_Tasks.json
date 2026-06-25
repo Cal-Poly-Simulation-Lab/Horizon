@@ -1,0 +1,71 @@
+{
+  "tasks": [
+    {
+      "name": "RechargeTask1",
+      "type": "RECHARGE",
+      "maxTimes": 1000,
+      "target": {
+        "name": "asset",
+        "type": "AssetTarget",
+        "value": 1,
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "integratorType": "None",
+          "stateData": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "Imaging Task 1",
+      "type": "IMAGING",
+      "maxTimes": 100,
+      "target": {
+        "name": "Any",
+        "type": "AnyTarget",
+        "value": 10,
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "integratorType": "None",
+          "stateData": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "Transmit Task 1",
+      "type": "TRANSMIT",
+      "maxTimes": 100,
+      "target": {
+        "name": "Any",
+        "type": "AnyTarget",
+        "value": 50,
+        "dynamicState": {
+          "type": "NULL_STATE",
+          "integratorType": "None",
+          "stateData": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    }
+  ]
+}
+

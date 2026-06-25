@@ -52,8 +52,8 @@
     "dependencies": [],
 
     "evaluator": {
-      "type": "TargetValueEvaluator",
-      "className": "EVAL",
+      "type": "DefaultEvaluator",
+      "className": "DefaultEvaluator",
       "states": []
     }
     

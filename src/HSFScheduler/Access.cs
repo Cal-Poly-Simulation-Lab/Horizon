@@ -135,8 +135,15 @@ namespace HSFScheduler
             string outputDir = SimParameters.OutputDirectory;
             string filename = "AccessReport.csv"; 
             string fullFilename = "";
-            if (outputDir != null) { fullFilename = Path.Combine(outputDir,filename); }
-            else { fullFilename = Path.Combine(DevEnvironment.RepoDirectory,"output","HorizonLog",filename); }
+            if (!string.IsNullOrEmpty(outputDir)) 
+            { 
+                fullFilename = Path.Combine(outputDir, filename); 
+            }
+            else 
+            { 
+                // Fallback if OutputDirectory not set (shouldn't happen)
+                fullFilename = Path.Combine(DevEnvironment.RepoDirectory, "output", filename); 
+            }
 
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullFilename))
             {

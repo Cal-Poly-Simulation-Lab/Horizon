@@ -145,6 +145,22 @@
       "stopAtEntry": false
     },
     {
+      "name": "Debug Easy Scenario",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
+      "args": [
+        "-s", "${workspaceFolder}/test/HSFSchedulerUnitTest/MethodUnitTests/Checker/CheckDependentSubsystems/Inputs/SimInput_CanPerform.json",
+        "-m", "${workspaceFolder}/test/HSFSchedulerUnitTest/MethodUnitTests/Checker/CheckDependentSubsystems/Inputs/TwoAsset_Imaging_Model.json",
+        "-t", "${workspaceFolder}/test/HSFSchedulerUnitTest/MethodUnitTests/Checker/CheckDependentSubsystems/Inputs/TwoAsset_Imaging_Tasks.json",
+        "-o", "${workspaceFolder}/test/HSFSchedulerUnitTest/Output"
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
       "name": "Run Selected Tests (Cursor)",
       "type": "node-terminal",
       "request": "launch",

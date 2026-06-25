@@ -110,55 +110,66 @@ namespace HSFSystem
         /// <returns></returns>
         public bool CheckDependentSubsystems(Event proposedEvent, Domain environment)
         {
-            if (DependentSubsystems.Count == 0)
+            // First, recursively evaluate all dependent subsystems (depth-first)
+            // If any dependency fails, propagate failure up immediately
+            foreach (var sub in DependentSubsystems)
             {
-                IsEvaluated = true;
-                Task = proposedEvent.GetAssetTask(Asset); //Find the correct task for the subsystem
-                NewState = proposedEvent.State;
-                bool result = false;
-                try
+                if (!sub.IsEvaluated)
                 {
-                    result = this.CanPerform(proposedEvent, environment);
-                    // Enforce that Task Start and End are within EVENT task start and end
-                    // Also report this out. Where to report? --> 
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                }
-                //  Need to deal with this issue in next update
-                //double te = proposedEvent.GetTaskEnd(Asset);
-                //double ee = proposedEvent.GetEventEnd(Asset);
-                //proposedEvent.SetEventEnd(Asset, Math.Max(te, ee));
-                return result;
-            }
-            else
-            {
-                foreach (var sub in DependentSubsystems)
-                {
-                    if (!sub.IsEvaluated)// && !sub.GetType().Equals(typeof(ScriptedSubsystem)))
+                    if (!sub.CheckDependentSubsystems(proposedEvent, environment))
                     {
-                        if (sub.CheckDependentSubsystems(proposedEvent, environment))
-                        {
-                            IsEvaluated = true;
-                            Task = proposedEvent.GetAssetTask(Asset); //Find the correct task for the subsystem
-                            NewState = proposedEvent.State;
-                            if (!CanPerform(proposedEvent, environment))
-                                return false;
-                            //  Need to deal with this issue in next update
-                            //double te = proposedEvent.GetTaskEnd(Asset);
-                            //double ee = proposedEvent.GetEventEnd(Asset);
-                            //proposedEvent.SetEventEnd(Asset, Math.Max(te, ee));
-                        }
-                        else
-                        {
-                            return false;
-                        }
+                        return false;
                     }
                 }
-                return true;
             }
 
+            // Now evaluate this subsystem (common logic for both leaf and parent nodes)
+            IsEvaluated = true;
+            Task = proposedEvent.GetAssetTask(Asset); //Find the correct task for the subsystem
+            NewState = proposedEvent.State;
+            
+            bool result = false;
+            try
+            {   
+                result = this.CanPerform(proposedEvent, environment);
+                // CanPerform may mutate task times (via SetTaskStart/SetTaskEnd)
+                // It may also throw if mutations cause invalid state update times
+            }
+            catch (Exception ex)
+            {
+                // CanPerform may throw (e.g., if mutation causes invalid state update time)
+                // Still need to check task times even if CanPerform failed
+                Console.WriteLine($"CanPerform threw exception for {Name}: {ex.Message}");
+            }
+            
+            // Always check task times AFTER CanPerform, even if it threw an exception
+            // This ensures mutations that cause out-of-bounds times are caught
+            // Enforce that Task Start and End are within EVENT task start and end
+            if (CheckTaskStartAndEnd(proposedEvent, Asset))
+            {
+                return result;
+            }
+            return false; // Task Start and End are not within Event Start and End so return false
+        }
+        private bool CheckTaskStartAndEnd(Event proposedEvent, Asset asset)
+        {
+                    double taskStart = proposedEvent.GetTaskStart(Asset);
+                    double taskEnd = proposedEvent.GetTaskEnd(Asset);
+                    double eventStart = proposedEvent.GetEventStart(Asset);
+                    double eventEnd = proposedEvent.GetEventEnd(Asset);
+                    
+                    if (taskStart < eventStart || 
+                        taskEnd < eventStart ||
+                        taskStart > eventEnd ||
+                        taskEnd > eventEnd ||
+                        taskStart > taskEnd)  // Task start must be <= task end
+                    {
+                        log.Info($"Task Start and End are not within Event Start and End for subsystem {Name}"
+                                + $"Task Start: {taskStart}, Event Start: {eventStart},"
+                                + $"Task End: {taskEnd}, Event End: {eventEnd}");
+                        return false;
+                    }
+                    return true;
         }
         /// <summary>
         /// The default canExtend function. May be over written for additional functionality.

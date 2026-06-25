@@ -192,7 +192,7 @@ Start simple → increase complexity:
 - Run TimeDeconfliction to generate ~100 schedules
 - MaxNumScheds = 50
 - NumSchedCropTo = 10
-- Use real evaluator (TargetValueEvaluator)
+- Use real evaluator (DefaultEvaluator)
 
 **Expected Output:**
 - Output count ≤ 11

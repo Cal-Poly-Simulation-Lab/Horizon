@@ -25,20 +25,25 @@ using Newtonsoft.Json.Linq;
 //using System.Web.Configuration;
 using IronPython.Compiler.Ast;
 using System.Diagnostics.Eventing.Reader;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 //using System.Net.Configuration;
 
 namespace Horizon
 {
     public class Program
     {
-        public ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        public ILog? log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public string SimulationFilePath { get; set; }
         public string TaskDeckFilePath { get; set; }
         public string ModelFilePath { get; set; }
-        public string OutputPath { get; set; }
+        public string OutputPath { get; private set; }
+        public static string StaticOutputPath { get; private set; }  // For static methods (AccessReport, etc.)
         public bool outputSet { get; set; } = false;
-        public string basePath { get; set; } = Utilities.DevEnvironment.RepoDirectory; 
+        public string basePath { get; set; } = Utilities.DevEnvironment.RepoDirectory;
+        
+        private ConsoleLogger _consoleLogger;
+        private DateTime _runDateTime; 
 
         // Load the environment. First check if there is an ENVIRONMENT XMLNode in the input file
         public Domain SystemUniverse { get; set; }
@@ -69,35 +74,60 @@ namespace Horizon
         public List<SystemSchedule> Schedules { get; set; }
         public SystemClass SimSystem { get; set; }
         public Stack<Task> SystemTasks { get; set; } = new Stack<Task>();
+        private System.Diagnostics.Stopwatch programStopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-        public static int Main(string[] args) //
+
+        public static int Main(string[] args) // The Horizon Simulation Framework (HSF) main entry point
         {
-            var programStopwatch = System.Diagnostics.Stopwatch.StartNew();
-            
-            Program program = new Program();
+        
+            Program program = new Program(); // Instantiate program object
+            program._runDateTime = DateTime.Now; // Set run date and time
 
             // Begin the Logger
-            program.log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-            program.log.Info("STARTING HSF RUN"); //Do not delete
+            program.log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()?.DeclaringType);
+            program.log.Info("STARTING HSF RUN"); // Log start of run
             
-            List<string> argsList = args.ToList();
-            program.InitInput(argsList);
-            program.InitOutput(argsList);
-            program.LoadScenario();
-            program.LoadTasks();
-            program.LoadSubsystems();
-            program.LoadEvaluator();
-            program.CreateSchedules();
-            double maxSched = program.EvaluateSchedules();
+            List<string> argsList = args.ToList(); // Obtain command line arguments
+            program.InitInput(argsList); // Initialize input files
+            program.LoadScenario();  // Load simulation scenario, environment
+            program.InitOutput(argsList);  // Init output dir and start logging
+            program.LoadTasks(); // Load tasks: objectives, constraints, etc
+            program.LoadSubsystems(); // Load subsystems: power, communication, etc
+            program.LoadEvaluator(); // Load scheule evaluator
+            program.CreateSchedules(); // MAIN SCHEDULING ALGORITHM: Generate schedules
+            program.LogDataOut(); // Log schedule summaries, state history data, visualization metadata
+
+            // Return success code: 0 indicates successful execution
+            return 0;
+        }
+        #region Program.Main() Method Calls
+        public void LogDataOut()
+        {
+                        
+            // Generate hash outputs if enabled (right after GenerateSchedules() returns, before EvaluateSchedules() sorts them)
+            if (SimParameters.EnableHashTracking)
+            {
+                SaveScheduleHashBlockchainSummary(this.Schedules, this.OutputPath);
+            }
+            
+            double maxSched = this.EvaluateSchedules();
 
             int i = 0;
-            //Morgan's Way
-            Console.WriteLine($"Publishing simulation results to {program.OutputPath}");
-
-            StreamWriter sw = File.CreateText(program.OutputPath + "\\ScheduleResults.txt");
-            foreach (SystemSchedule sched in program.Schedules)
+            
+            // Write schedule summary text file
+            string summaryPath = Path.Combine(this.OutputPath, "schedules_summary.txt");
+            Console.WriteLine($"Publishing simulation results to {this.OutputPath}");
+            
+            // MERGE RESOLUTION: Kept enhanced version (jebeals)
+            // - Uses Path.Combine for cross-platform compatibility (vs Eric's hardcoded "\\" backslash)
+            // - Uses "using" statement for proper StreamWriter disposal
+            // - Writes to "schedules_summary.txt" in versioned run directory
+            // Eric's version: OutputPath + "\\ScheduleResults.txt" (simpler, but Windows-only path)
+            using (StreamWriter sw = File.CreateText(summaryPath))
             {
-                sw.WriteLine("Schedule Number: " + i + "Schedule Value: " + program.Schedules[i].ScheduleValue);
+            foreach (SystemSchedule sched in this.Schedules)
+            {
+                sw.WriteLine("Schedule Number: " + i + "Schedule Value: " + this.Schedules[i].ScheduleValue);
                 foreach (var eit in sched.AllStates.Events)
                 {
                     if (i < 5)//just compare the first 5 schedules for now
@@ -107,11 +137,23 @@ namespace Horizon
                 }
                 i++;
             }
-            program.log.Info("Max Schedule Value: " + maxSched);
+            } // StreamWriter auto-closes here
+            
+            this.log.Info("Max Schedule Value: " + maxSched);
 
-            // Mehiel's way
-            string stateDataFilePath = Path.Combine(DevEnvironment.RepoDirectory, "output/HorizonLog/Scratch");// + string.Format("output-{0:yyyy-MM-dd-hh-mm-ss}", DateTime.Now);
-            SystemSchedule.WriteSchedule(program.Schedules[0], program.OutputPath); // stateDataFilePath);
+            // MERGE RESOLUTION: Kept enhanced version (jebeals)
+            // New approach:
+            //   - WriteScheduleData(): Outputs top N schedules in clean CSV format
+            //     * TopSchedule_valueXXX_{asset}_Data.csv (one per asset)
+            //     * additional_schedule_data/{rank}_Schedule_valueXXX_{schedID}.csv
+            //   - Heritage format kept in data/heritage/ for backward compatibility
+            // Eric's version: Single WriteSchedule() call to OutputPath (simpler, less organized)
+            // Write detailed state data using new clean CSV format
+            SystemSchedule.WriteScheduleData(this.Schedules, this.OutputPath, SimParameters.NumSchedulesForStateOutput);
+            
+            // Also keep old format for backward compatibility (best schedule only, in data/heritage/)
+            string heritageDir = Path.Combine(this.OutputPath, "data", "heritage");
+            SystemSchedule.WriteSchedule(this.Schedules[0], heritageDir);
 
             //  Move this to a method that always writes out data about the dynamic state of assets, the target dynamic state data, other data?
             //var csv = new StringBuilder();
@@ -121,8 +163,19 @@ namespace Horizon
             //    File.WriteAllText(@"..\..\..\" + asset.Name + "_dynamicStateData.csv", asset.AssetDynamicState.ToString());
             //}
 
-            //Console.ReadKey();
-            return 0;
+            // MERGE RESOLUTION: Kept enhanced version (jebeals)
+            // New features:
+            //   - Program timing with Stopwatch
+            //   - Console output capture to run_log.txt (via StopConsoleLogging)
+            //   - Formatted output confirmation message
+            // Eric's version: Just "return 0;" (simpler, no timing or logging)
+            //Console.ReadKey()
+            this.programStopwatch.Stop();
+            Console.WriteLine($"Simulation results published to {this.OutputPath}"); // Not an actual verification? 
+            Console.WriteLine($"TOTAL PROGRAM TIME: {programStopwatch.Elapsed.TotalSeconds:F3} seconds\n");
+            
+            // Stop console logging before exiting
+            this._consoleLogger?.StopLogging();
         }
         public void InitInput(List<string> argsList)
         {
@@ -173,9 +226,25 @@ namespace Horizon
                 switch (input)
                 {
                     case "-scen":
-                        switch (argsList[i])
+                        // Case-insensitive scenario name comparison
+                        string scenarioName = argsList[i];
+                        string scenarioNameLower = scenarioName.ToLower();
+                        
+                        switch (scenarioNameLower)
                         {
-                            case "Aeolus_scriptedpy":
+                            case "toy":
+                            case "twoassetimaging_toyexample":
+                                // Toy example (TwoAsset_Imaging scenario)
+                                // Use relative paths from repo root
+                                subPath = Path.Combine(DevEnvironment.RepoDirectory, "test", "HSFSchedulerUnitTest", "MethodUnitTests", "Checker", "CheckSchedule", "Inputs");
+                                SimulationFilePath = Path.Combine(subPath, "SimInput_TwoAssetImaging_ToyExample.json");
+                                TaskDeckFilePath = Path.Combine(subPath, "TwoAsset_Imaging_Tasks.json");
+                                ModelFilePath = Path.Combine(subPath, "TwoAsset_Imaging_Model.json");
+                                simulationSet = true;
+                                targetSet = true;
+                                modelSet = true;
+                                break;
+                            case "aeolus_scriptedpy":
                                 // Set Defaults
                                 //subpath = @"..\..\..\..\samples\Aeolus\";
                                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
@@ -190,7 +259,7 @@ namespace Horizon
                                 modelSet = true;
                                 outputSet = true;
                                 break;
-                            case "Aeolus_CS":
+                            case "aeolus_cs":
                                 // Set Defaults
                                 //subpath = @"..\..\..\..\samples\Aeolus\";
                                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
@@ -207,7 +276,7 @@ namespace Horizon
                                 targetSet = true;
                                 modelSet = true;
                                 break;
-                            case "myFirstHSFProject":
+                            case "myfirsthsfproject":
                                 // Set myFirstHSFProject file paths
                                 //subpath = @"..\..\..\..\samples\myFirstHSFProject\";
                                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
@@ -219,7 +288,7 @@ namespace Horizon
                                 targetSet = true;
                                 modelSet = true;
                                 break;
-                            case "myFirstHSFProjectConstraint":
+                            case "myfirsthsfprojectconstraint":
                                 // Set myFirstHSFProjectConstraint file paths
                                 //subpath = @"..\..\..\..\samples\myFirstHSFProjectConstraint\";
                                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
@@ -231,7 +300,7 @@ namespace Horizon
                                 targetSet = true;
                                 modelSet = true;
                                 break;
-                            case "myFirstHSFProjectDependency":
+                            case "myfirsthsfprojectdependency":
                                 // Set myFirstHSFProjectDependency file paths
                                 //subpath = @"..\..\..\..\samples\myFirstHSFProjectDependency\";
                                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
@@ -325,49 +394,107 @@ namespace Horizon
         }
         public void InitOutput(List<string> argsList)
         {
-            // Initialize Output File
-            var outputPathName = string.Format("output-{0:yyyy-MM-dd}-*", DateTime.Now);
-            string outputPath = "";
+            // MERGE RESOLUTION: Kept enhanced version (jebeals)
+            // New output system features:
+            //   - Versioned run directories (last_run → Run_00A, Run_00B, etc.)
+            //   - All outputs organized in single run directory
+            //   - Default: <repo>/output/last_run_{timestamp}_{scenarioName}/
+            //   - Supports custom output via -o flag
+            //   - Sets static paths for AccessReport and other static methods
+            // Eric's version: timestamp-based folders in output/HorizonLog (simpler, no versioning)
+            
+            // NOTE: Output path logic handled here. InitInput() may set outputSet flag but actual path creation happens here.
 
+            // Detect if running from test runner and route to test output handler
+            var assembly = System.Reflection.Assembly.GetEntryAssembly();
+            if (assembly != null && (assembly.FullName.Contains("testhost") || assembly.FullName.Contains("NUnit")))
+            {
+                InitTestOutput(argsList);
+                return;
+            }
+
+            string baseOutputDir = "";
+
+            // Determine base output directory (parent of all run directories)
             if (argsList.Contains("-o"))
             {
                 int indx = argsList.IndexOf("-o");
-                outputPath = argsList[indx + 1];
+                baseOutputDir = argsList[indx + 1];
                 outputSet = true;
             }
             else if (outputSet)
             {
-                outputPath = OutputPath;
-            }
-            else if (this.OutputPath != null)
-            {
-                outputPath = this.OutputPath; // Use user-specified if applicable
+                baseOutputDir = OutputPath;  // Set from scenario in InitInput
             }
             else
             {
-                outputPath = Path.Combine(DevEnvironment.RepoDirectory, "output\\HorizonLog");
+                // MERGE RESOLUTION: Default output directory
+                // Eric's version: output/HorizonLog (hardcoded)
+                // Our version: output/ (cleaner, versioned subdirs handle organization)
+                baseOutputDir = Path.Combine(DevEnvironment.RepoDirectory, "output");
             }
 
-
-            // Filter out other output files for naming convention
-            var txt = ".txt";
-            string[] fileNames = System.IO.Directory.GetDirectories(outputPath, outputPathName, System.IO.SearchOption.TopDirectoryOnly);
-            double number = 0;
-            foreach (var fileName in fileNames)
+            // Create base output directory if it doesn't exist
+            Directory.CreateDirectory(baseOutputDir);
+            
+            // Generate timestamp and scenario name for run directory
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+            string scenarioName = SimParameters.ScenarioName ?? "Unknown";
+            
+            // Handle last_run → Run_XXY versioning
+            var lastRunDirs = Directory.GetDirectories(baseOutputDir, "last_run_*");
+            
+            if (lastRunDirs.Length > 0)
             {
-                char version = fileName[fileName.Length - txt.Length - 10];
-                if (number < Char.GetNumericValue(version))
-                    number = Char.GetNumericValue(version);
+                // Rename existing last_run to Run_XXY
+                string lastRunDir = lastRunDirs[0];  // Should only be one
+                string nextVersion = GetNextRunVersion(baseOutputDir);
+                string versionedName = Path.GetFileName(lastRunDir).Replace("last_run_", $"Run_{nextVersion}_");
+                string versionedPath = Path.Combine(baseOutputDir, versionedName);
+                
+                Directory.Move(lastRunDir, versionedPath);
+                Console.WriteLine($"Archived previous run: {Path.GetFileName(versionedPath)}");
             }
-            number++;
-            outputPathName = outputPathName.Remove(outputPathName.Length - 1) + number + string.Format("_{0:HH:mm:ss}",DateTime.Now);
-            outputPathName = outputPathName.Replace(':', '_');
-            outputPath = Path.Combine(outputPath, outputPathName);
-            // Create the output directory if it doesn't already exist.
-            Directory.CreateDirectory(outputPath); 
-            this.OutputPath = outputPath;
+            
+            // Create new last_run directory with actual scenario name
+            string runDirName = $"last_run_{timestamp}_{scenarioName}";
+            string runDirPath = Path.Combine(baseOutputDir, runDirName);
+            Directory.CreateDirectory(runDirPath);
+            
+            this.OutputPath = runDirPath;
+            StaticOutputPath = runDirPath;  // Set static for Access.cs and other static methods
+            SimParameters.OutputDirectory = runDirPath;  // Set for AccessReport and other static methods
+            
+            // Initialize hash history file tracking if enabled
+            if (SimParameters.EnableHashTracking)
+            {
+                HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(runDirPath);
+                HSFScheduler.StateHistory.InitializeStateHashHistoryFile(runDirPath);
+            }
+            
+            // MERGE RESOLUTION: Removed Eric's old directory filtering/numbering logic
+            // No longer needed with our versioned run directory system (Run_00A, Run_00B, etc.)
+            
+            // Logging
+            if (outputSet)
+            {
+                Console.WriteLine($"Using output directory: {runDirPath}");
+                log.Info($"Using output directory: {runDirPath}");
+            }
+            else
+            {
+                Console.WriteLine($"Using default output directory: {runDirPath}");
+                log.Info($"Using output directory: {runDirPath}");
+            }
+            // MERGE RESOLUTION: Kept enhanced version (jebeals)
+            // Eric's removed code here was old timestamp-based naming logic
+            // Already replaced by the versioning system above (Run_00A, Run_00B, etc.)
+            
+            // Start console logging now that output directory is created and scenario name is known
+            _consoleLogger = new ConsoleLogger(OutputPath, SimParameters.ScenarioName ?? "Unknown", 
+                                               SimulationFilePath, ModelFilePath, TaskDeckFilePath, _runDateTime);
+            _consoleLogger.StartLogging();
         }
-
         public void LoadScenario()
         {
             StreamReader jsonStream = new StreamReader(SimulationFilePath);
@@ -582,7 +709,6 @@ namespace Horizon
                 throw new ArgumentException(msg);
             }
         }
-
         public void LoadEvaluator()
         {
             StreamReader jsonStream = new StreamReader(ModelFilePath);
@@ -636,6 +762,8 @@ namespace Horizon
         public double EvaluateSchedules()
         {
             // Evaluate the schedules and set their values
+            // Note: Schedules were already evaluated during GenerateSchedules loop, so values won't change
+            // Hash updates only occur when schedule data changes (new events), not on re-evaluation
             foreach (SystemSchedule systemSchedule in Schedules)
             {
                 systemSchedule.ScheduleValue = SchedEvaluator.Evaluate(systemSchedule);
@@ -649,453 +777,284 @@ namespace Horizon
                 }
             }
 
-            // Sort the sysScheds by their values
-            Schedules.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
-            Schedules.Reverse();
+            // Sort the sysScheds by their values, then by ScheduleID for deterministic ordering
+            // This ensures schedules with the same value are ordered consistently across runs
+            // OLD: Schedules.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
+            // OLD: Schedules.Reverse();
+            HSFScheduler.Scheduler.SortSchedulesDeterministic(Schedules, descending: true, context: "EvalSort");
             double maxSched = Schedules[0].ScheduleValue;
             return maxSched;
         }
+        #endregion
+        
+        #region Helper Methods
+        /// <summary>
+        /// Test output: auto-detects test project root, simple "last_test_run" (no versioning)
+        /// </summary>
+        private void InitTestOutput(List<string> argsList)
+        {
+            // Auto-detect test project directory by finding .csproj from assembly location
+            var testAssembly = System.Reflection.Assembly.GetExecutingAssembly();
+            string assemblyDir = Path.GetDirectoryName(testAssembly.Location) ?? DevEnvironment.RepoDirectory;
+            string testProjectRoot = assemblyDir;
+            bool foundCsproj = false;
+            
+            // Walk up until we find a .csproj file
+            while (testProjectRoot != null && Directory.Exists(testProjectRoot))
+            {
+                if (Directory.GetFiles(testProjectRoot, "*.csproj").Length > 0)
+                {
+                    foundCsproj = true;
+                    break;
+                }
+                var parent = Directory.GetParent(testProjectRoot);
+                if (parent == null) break;
+                testProjectRoot = parent.FullName;
+            }
+            
+            // Fallback if .csproj not found
+            if (!foundCsproj)
+            {
+                testProjectRoot = Path.Combine(DevEnvironment.RepoDirectory, "test");
+                Console.WriteLine($"Test .csproj root directory not found, using fallback test output directory: {testProjectRoot}/output");
+            }
+            
+            // Use -o if specified (test passes this), otherwise auto-detect
+            string baseOutputDir = argsList.Contains("-o") 
+                ? argsList[argsList.IndexOf("-o") + 1] 
+                : Path.Combine(testProjectRoot, "output");
+            
+            Directory.CreateDirectory(baseOutputDir);
+            
+            // Check if full test output is requested via environment variable
+            bool fullTestOutput = Environment.GetEnvironmentVariable("HORIZON_TEST_OUTPUT")?.ToLower() == "full";
+            
+            string testRunPath;
+            if (fullTestOutput)
+            {
+                // Full output: unique directories with hash for parallel test execution
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmssfff");
+                string hash = Math.Abs($"{DateTime.Now.Ticks}_{System.Threading.Thread.CurrentThread.ManagedThreadId}".GetHashCode()).ToString("X6");
+                testRunPath = Path.Combine(baseOutputDir, $"test_run_{hash}_{timestamp}");
+            }
+            else
+            {
+                // Default: simple "last_test_run" that overwrites (prevents directory bloat)
+                testRunPath = Path.Combine(baseOutputDir, "last_test_run");
+                if (Directory.Exists(testRunPath))
+                {
+                    try { Directory.Delete(testRunPath, true); } catch { /* Ignore deletion errors */ }
+                }
+            }
+            
+            Directory.CreateDirectory(testRunPath);
+            
+            this.OutputPath = testRunPath;
+            StaticOutputPath = testRunPath;
+            SimParameters.OutputDirectory = testRunPath;
+            
+            // Initialize hash history file tracking if enabled
+            if (SimParameters.EnableHashTracking)
+            {
+                HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(testRunPath);
+                HSFScheduler.StateHistory.InitializeStateHashHistoryFile(testRunPath);
+            }
+            
+            // Write test info file
+            string infoPath = Path.Combine(testRunPath, "TEST_OUTPUT_INFO.txt");
+            var info = new StringBuilder();
+            info.AppendLine("Test Output Information");
+            info.AppendLine("=======================");
+            info.AppendLine($"Test Run Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            info.AppendLine();
+            info.AppendLine("Default Action: Test results muted by Program.cs");
+            info.AppendLine("  → InitOutput() detected test execution and routed to InitTestOutput()");
+            info.AppendLine();
+            info.AppendLine("To Enable Full Test Output:");
+            info.AppendLine("  Set environment variable before running tests:");
+            info.AppendLine("    export HORIZON_TEST_OUTPUT=full");
+            info.AppendLine("    dotnet test <test-project>");
+            info.AppendLine();
+            info.AppendLine("WARNING: Full test output creates unique directories per test");
+            info.AppendLine("         This can generate hundreds of directories if tests run in parallel.");
+            info.AppendLine();
+            info.AppendLine("TODO: Future implementation should capture NUnit test results");
+            info.AppendLine("      (passed/failed counts) and write to test_summary.txt");
+            info.AppendLine("      This requires test framework integration.");
+            File.WriteAllText(infoPath, info.ToString());
+            
+            // Console logging for tests (only if full output enabled)
+            if (fullTestOutput)
+            {
+                string scenarioName = SimParameters.ScenarioName ?? "Test";
+                _consoleLogger = new ConsoleLogger(OutputPath, scenarioName, SimulationFilePath, ModelFilePath, TaskDeckFilePath, _runDateTime);
+                _consoleLogger.StartLogging();
+            }
+        }
+
+        /// <summary>
+        /// Parse run version string (e.g., "00A", "99Z") and increment to next version
+        /// Format: XXY where XX = 00-99, Y = A-Z
+        /// </summary>
+        private static string IncrementRunVersion(string currentVersion)
+        {
+            if (string.IsNullOrEmpty(currentVersion) || currentVersion.Length != 3)
+                return "00A";
+            
+            int number = int.Parse(currentVersion.Substring(0, 2));
+            char letter = currentVersion[2];
+            
+            number++;
+            if (number > 99)
+            {
+                number = 0;
+                letter++;
+                if (letter > 'Z')
+                    throw new InvalidOperationException("Run version overflow! Exceeded 99Z.");
+            }
+            
+            return $"{number:D2}{letter}";
+        }
+        
+        /// <summary>
+        /// Get the next run version by scanning existing Run_* directories
+        /// </summary>
+        private static string GetNextRunVersion(string outputDir)
+        {
+            if (!Directory.Exists(outputDir))
+                return "00A";
+            
+            var runDirs = Directory.GetDirectories(outputDir, "Run_*");
+            if (runDirs.Length == 0)
+                return "00A";
+            
+            string maxVersion = "00A";
+            foreach (var dir in runDirs)
+            {
+                string dirName = Path.GetFileName(dir);
+                // Extract version: "Run_00A_..." → "00A"
+                if (dirName.StartsWith("Run_") && dirName.Length > 8)
+                {
+                    string version = dirName.Substring(4, 3);
+                    if (string.Compare(version, maxVersion) > 0)
+                        maxVersion = version;
+                }
+            }
+            
+            return IncrementRunVersion(maxVersion);
+        }
+
+        /// <summary>
+        /// Static method: Computes a hash for a schedule based on schedule data only (NOT ScheduleID).
+        /// Delegates to SystemSchedule.ComputeScheduleHash for consistent hash computation.
+        /// </summary>
+        public static string ComputeScheduleHash(HSFScheduler.SystemSchedule schedule)
+        {
+            return HSFScheduler.SystemSchedule.ComputeScheduleHash(schedule);
+        }
+
+        /// <summary>
+        /// Computes a combined hash from schedule hash and state hash
+        /// Format: hash(scheduleHash + stateHash)
+        /// </summary>
+        private static string ComputeCombinedHash(string scheduleHash, string stateHash)
+        {
+            if (string.IsNullOrEmpty(scheduleHash) || string.IsNullOrEmpty(stateHash))
+                return "";
+            
+            string combined = $"{scheduleHash}||{stateHash}";
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                byte[] hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(combined));
+                return System.BitConverter.ToString(hashBytes).Replace("-", "").ToLower().Substring(0, 16);  // 16 char hash
+            }
+        }
+        
+        /// <summary>
+        /// Static method: Saves blockchain schedule hash summary to file in HashData/ subdirectory
+        /// Outputs final ScheduleHash (top of last iteration's stack) for each schedule
+        /// Also includes StateHash and CombinedHash after checks
+        /// Can be called from both Program.Main() and test runs
+        /// </summary>
+        public static void SaveScheduleHashBlockchainSummary(List<HSFScheduler.SystemSchedule> schedules, string outputPath)
+        {
+            // Create HashData subdirectory if it doesn't exist
+            string hashDataDir = Path.Combine(outputPath, "HashData");
+            Directory.CreateDirectory(hashDataDir);
+            
+            // Sort schedules deterministically: by Value (descending), then by ScheduleHash (ascending)
+            // This ensures reproducible output for git diff
+            var sortedSchedules = schedules.ToList(); // Create a copy to avoid modifying original list
+            sortedSchedules.Sort((x, y) => 
+            {
+                int valueCompare = x.ScheduleValue.CompareTo(y.ScheduleValue);
+                if (valueCompare != 0)
+                {
+                    return -valueCompare; // Descending order (higher values first)
+                }
+                // Tie-breaker: Sort by ScheduleHash (ascending, alphabetical)
+                // Use ScheduleHash property (blockchain hash) if available, otherwise compute full hash
+                string hashX = x.ScheduleInfo.ScheduleHash;
+                if (string.IsNullOrEmpty(hashX))
+                {
+                    hashX = HSFScheduler.SystemSchedule.ComputeScheduleHash(x);
+                }
+                string hashY = y.ScheduleInfo.ScheduleHash;
+                if (string.IsNullOrEmpty(hashY))
+                {
+                    hashY = HSFScheduler.SystemSchedule.ComputeScheduleHash(y);
+                }
+                return string.CompareOrdinal(hashX, hashY);
+            });
+            
+            string summaryPath = Path.Combine(hashDataDir, "scheduleHashBlockchainSummary.txt");
+            using (StreamWriter sw = File.CreateText(summaryPath))
+            {
+                sw.WriteLine($"ScheduleHash Blockchain Summary - {sortedSchedules.Count} schedules");
+                sw.WriteLine(new string('=', 120));
+                sw.WriteLine($"{"ScheduleID",-20} {"Value",-12} {"Events",-8} {"ScheduleHash",-20} {"StateHash",-20} {"CombinedHash",-20}");
+                sw.WriteLine(new string('-', 120));
+                
+                foreach (var schedule in sortedSchedules)
+                {
+                    string scheduleHash = schedule.ScheduleInfo.ScheduleHash;
+                    
+                    // Find corresponding state hash using final schedule hash and last step
+                    string stateHash = "";
+                    string combinedHash = "";
+                    var stateHistory = schedule.AllStates;
+                    
+                    // Get the last step where state hash was recorded
+                    if (stateHistory.StateHashHistory.Count > 0 && !string.IsNullOrEmpty(scheduleHash))
+                    {
+                        // Try to find state hash for this schedule hash at the last step
+                        int lastStep = stateHistory.StateHashHistory.Keys.Max(k => k.Step);
+                        if (stateHistory.StateHashHistory.TryGetValue((lastStep, scheduleHash), out stateHash))
+                        {
+                            // Compute combined hash
+                            combinedHash = ComputeCombinedHash(scheduleHash, stateHash);
+                        }
+                        else
+                        {
+                            // Fallback: find any entry with matching schedule hash
+                            var matchingEntry = stateHistory.StateHashHistory
+                                .Where(kvp => kvp.Key.ScheduleHash == scheduleHash)
+                                .OrderByDescending(kvp => kvp.Key.Step)
+                                .FirstOrDefault();
+                            
+                            if (matchingEntry.Key != default)
+                            {
+                                stateHash = matchingEntry.Value;
+                                combinedHash = ComputeCombinedHash(scheduleHash, stateHash);
+                            }
+                        }
+                    }
+                    
+                    sw.WriteLine($"{schedule._scheduleID,-20} {schedule.ScheduleValue,-12:F2} {schedule.AllStates.Events.Count,-8} {scheduleHash,-20} {stateHash,-20} {combinedHash,-20}");
+                }
+            }
+        }
+        #endregion
     }
 }
-
-
-
-
-
-
-// // Copyright (c) 2016 California Polytechnic State University
-// // Authors: Morgan Yost (morgan.yost125@gmail.com) Eric A. Mehiel (emehiel@calpoly.edu)
-
-// using System;
-// using System.Collections.Generic;
-// using System.IO;
-// using System.Xml;
-// using System.Text;
-// using HSFScheduler;
-// using MissionElements;
-// using UserModel;
-// using HSFUniverse;
-// using HSFSystem;
-// using log4net;
-// using Utilities;
-// using Microsoft.Scripting.Actions.Calls;
-// using System.Net.Http.Headers;
-// using Task = MissionElements.Task; // error CS0104: 'Task' is an ambiguous reference between 'MissionElements.Task' and 'System.Threading.Tasks.Task'
-// using System.Diagnostics;
-// using System.CodeDom;
-
-// namespace Horizon
-// {
-//     public class Program
-//     {
-//         public ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-//         public string SimulationInputFilePath { get; set; }
-//         public string TargetDeckFilePath { get; set; }
-//         public string ModelInputFilePath { get; set; }
-//         public string OutputPath { get; set; }
-
-//         // Load the environment. First check if there is an ENVIRONMENT XMLNode in the input file
-//         public Domain SystemUniverse { get; set; }
-
-//         //Create singleton dependency dictionary
-//         public Dependency Dependencies { get; } = Dependency.Instance;
-
-//         // Initialize Lists to hold assets, subsystems and evaluators
-//         public List<Asset> AssetList { get; set; } = new List<Asset>();
-//         public List<Subsystem> SubList { get; set; } = new List<Subsystem>();
-
-//         // Maps used to set up preceeding nodes
-//         //public Dictionary<ISubsystem, XmlNode> SubsystemXMLNodeMap { get; set; } = new Dictionary<ISubsystem, XmlNode>(); //Depreciated (?)
-
-//         public List<KeyValuePair<string, string>> DependencyList { get; set; } = new List<KeyValuePair<string, string>>();
-//         public List<KeyValuePair<string, string>> DependencyFcnList { get; set; } = new List<KeyValuePair<string, string>>();
-        
-//         // Create Constraint list 
-//         public List<Constraint> ConstraintsList { get; set; } = new List<Constraint>();
-
-//         //Create Lists to hold all the dependency nodes to be parsed later
-//         //List<XmlNode> _depNodes = new List<XmlNode>();
-//         public SystemState InitialSysState { get; set; } = new SystemState();
-
-//         //XmlNode _evaluatorNode; //Depreciated (?)
-//         public Evaluator SchedEvaluator;
-//         public List<SystemSchedule> Schedules { get; set; }
-//         public SystemClass SimSystem { get; set; }
-
-//         public Stack<Task> SystemTasks { get; set; } = new Stack<Task>();
-
-//         // Main Program
-//         public static int Main(string[] args) //
-//         {
-//             Program program = new Program();
-
-//             // Begin the Logger
-//             program.log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-//             program.log.Info("STARTING HSF RUN"); //Do not delete
-
-//             List<string> argsList = args.ToList();
-//             program.InitInput(argsList);
-//             program.InitOutput();
-//             program.LoadScenario();
-//             program.LoadTargets();
-//             program.LoadSubsystems();
-//             program.LoadEvaluator();
-//             program.CreateSchedules();
-//             double maxSched = program.EvaluateSchedules();
-
-//             int i = 0;
-//             //Morgan's Way
-//             StreamWriter sw = File.CreateText(program.OutputPath);
-//             foreach (SystemSchedule sched in program.Schedules)
-//             {
-//                 sw.WriteLine("Schedule Number: " + i + "Schedule Value: " + program.Schedules[i].ScheduleValue);
-//                 foreach (var eit in sched.AllStates.Events)
-//                 {
-//                     if (i < 5)//just compare the first 5 schedules for now
-//                     {
-//                         sw.WriteLine(eit.ToString());
-//                     }
-//                 }
-//                 i++;
-//             }
-//             program.log.Info("Max Schedule Value: " + maxSched);
-
-//             // Mehiel's way
-//             string stateDataFilePath = Path.Combine(DevEnvironment.RepoDirectory, "output/HorizonLog/Scratch");// + string.Format("output-{0:yyyy-MM-dd-hh-mm-ss}", DateTime.Now);
-//             SystemSchedule.WriteSchedule(program.Schedules[0], stateDataFilePath);
-
-//             //  Move this to a method that always writes out data about the dynamic state of assets, the target dynamic state data, other data?
-//             //var csv = new StringBuilder();
-//             //csv.Clear();
-//             //foreach (var asset in program.simSystem.Assets)
-//             //{
-//             //    File.WriteAllText(@"..\..\..\" + asset.Name + "_dynamicStateData.csv", asset.AssetDynamicState.ToString());
-//             //}
-
-//             //Console.ReadKey();
-//             return 0;
-//         }
-
-//         public void InitInput(List<string> argsList)
-//         {
-//             // This would be in a config file - not used right now (4/26/24)
-//             string basePath = @"C:\Users\emehiel\Source\Repos\Horizon8\";
-//             string subPath = "";
-
-//             if (argsList.Contains("-scen"))
-//             {
-//                 List<string> tags = new List<string>() { "-subpath", "-s", "-t", "-m", "-o" };
-//                 foreach (var tag in tags)
-//                 {
-//                     if (argsList.Contains(tag))
-//                     {
-//                         Console.WriteLine("The input argument -scen cannot be used with other arguments.");
-//                         Console.ReadKey();
-//                         Environment.Exit(0);
-//                     }
-//                 }
-//             }
-
-//             if (argsList.Contains("-subpath"))
-//             {
-//                 int indx = argsList.IndexOf("-subpath");
-//                 subPath = Path.Combine(basePath, argsList[indx + 1]);
-//             }
-
-//             if (argsList.Count == 0)
-//             {
-//                 argsList.Add("-scen");
-//                 // Set this to the default scenario you would like to run
-//                 string scenarioName = "myFirstHSFProject";
-//                 argsList.Add(scenarioName);
-//                 // This is the path or "subpath" to the Horizon/samples/ directory where the simulation input files are stored.
-//                 subPath = Path.Combine(DevEnvironment.RepoDirectory, "samples");
-//             }
-
-//             bool simulationSet = false, targetSet = false, modelSet = false; bool outputSet = false;
-
-//             // Get the input filenames
-//             int i = 0;
-//             foreach (var input in argsList)
-//             {
-//                 i++;
-//                 switch (input)
-//                 {
-//                     case "-scen":
-//                         switch(argsList[i])
-//                         { 
-//                             case "Aeolus":
-//                                 // Set Defaults
-//                                 //subpath = @"..\..\..\..\samples\Aeolus\";
-//                                 subPath = Path.Combine(subPath, "Aeolus");
-//                                 SimulationInputFilePath = Path.Combine(subPath, "AeolusSimulationInput.xml");
-//                                 TargetDeckFilePath = Path.Combine(subPath, "v2.2-300targets.xml");
-//                                 // Asset 1 Scripted, Asset 2 C#
-//                                 ModelInputFilePath = Path.Combine(subPath, "DSAC_Static_Mod_Scripted.xml");
-//                                 // Asset 1 mix Scripted/C#, Asset 2 C#
-//                                 //ModelInputFilePath = subpath + @"DSAC_Static_Mod_PartialScripted.xml"; 
-//                                 // Asset 1 C#, Asset 2 C#
-//                                 //ModelInputFilePath = subpath + @"DSAC_Static_Mod.xml";
-//                                 simulationSet = true;
-//                                 targetSet = true;
-//                                 modelSet = true;
-//                                 break;
-//                             case "myFirstHSFProject":
-//                                 // Set myFirstHSFProject file paths
-//                                 //subpath = @"..\..\..\..\samples\myFirstHSFProject\";
-//                                 subPath = Path.Combine(subPath, "myFirstHSFProject");
-//                                 SimulationInputFilePath = Path.Combine(subPath, "myFirstHSFScenario.xml");
-//                                 TargetDeckFilePath = Path.Combine(subPath, "myFirstHSFTargetDeck.xml");
-//                                 ModelInputFilePath = Path.Combine(subPath, "myFirstHSFSystem.xml");
-//                                 simulationSet = true;
-//                                 targetSet = true;
-//                                 modelSet = true;
-//                                 break;
-//                             case "myFirstHSFProjectConstraint":
-//                                 // Set myFirstHSFProjectConstraint file paths
-//                                 //subpath = @"..\..\..\..\samples\myFirstHSFProjectConstraint\";
-//                                 subPath = Path.Combine(subPath, "myFirstHSFProjectConstraint");
-//                                 SimulationInputFilePath = Path.Combine(subPath, "myFirstHSFScenario.xml");
-//                                 TargetDeckFilePath = Path.Combine(subPath, "myFirstHSFTargetDeck.xml");
-//                                 ModelInputFilePath = Path.Combine(subPath, "myFirstHSFSystemLook.xml");
-//                                 simulationSet = true;
-//                                 targetSet = true;
-//                                 modelSet = true;
-//                                 break;
-//                             case "myFirstHSFProjectDependency":
-//                                 // Set myFirstHSFProjectDependency file paths
-//                                 //subpath = @"..\..\..\..\samples\myFirstHSFProjectDependency\";
-//                                 subPath = Path.Combine(subPath, "myFirstHSFProjectDependency");
-//                                 SimulationInputFilePath = Path.Combine(subPath, "myFirstHSFScenario.xml");
-//                                 TargetDeckFilePath = Path.Combine(subPath, "myFirstHSFTargetDeck.xml");
-//                                 ModelInputFilePath = Path.Combine(subPath, "myFirstHSFSystemDependency.xml");
-//                                 simulationSet = true;
-//                                 targetSet = true;
-//                                 modelSet = true;
-//                                 break;
-//                         }
-//                         break;
-//                     case "-s":
-//                         SimulationInputFilePath = Path.Combine(subPath, argsList[i]);
-//                         simulationSet = true;
-//                         break;
-//                     case "-t":
-//                         TargetDeckFilePath = Path.Combine(subPath, argsList[i]);
-//                         targetSet = true;
-//                         break;
-//                     case "-m":
-//                         ModelInputFilePath = Path.Combine(subPath, argsList[i]);
-//                         modelSet = true;
-//                         break;
-//                     case "-o": // In the CLI args-in, this would be set as a directory path. 
-//                         OutputPath = Path.Combine(subPath, argsList[i]);
-//                         outputSet = true;
-//                         break;
-//                 }
-//             }
-//             ///add usage statement
-
-//             if (simulationSet)
-//             {
-//                 Console.WriteLine("Using simulation file: " + SimulationInputFilePath);
-//                 log.Info("Using simulation file: " + SimulationInputFilePath);
-//             }
-
-//             if (targetSet)
-//             {
-//                 Console.WriteLine("Using target deck file: " + TargetDeckFilePath);
-//                 log.Info("Using simulation file: " + TargetDeckFilePath);
-//             }
-
-//             if (modelSet)
-//             {
-//                 Console.WriteLine("Using model file: " + ModelInputFilePath);
-//                 log.Info("Using model file: " + ModelInputFilePath);
-//             }
-//             if (outputSet)
-//             {
-//                 Console.WriteLine("Using output path: " + OutputPath);
-//                 log.Info("Using output path: " + OutputPath);
-//             }
-
-//         }
-//         public void InitOutput()
-//         {
-//             // Initialize Output File
-//             var outputFileName = string.Format("output-{0:yyyy-MM-dd}-*", DateTime.Now);
-//             string outputPath = Path.Combine(DevEnvironment.RepoDirectory, "output/HorizonLog");
-//             if (this.OutputPath != null) {outputPath = this.OutputPath; } // Update the outputPath to the user specified input, if applicable
-//             Directory.CreateDirectory(outputPath); // Create the output directory if it doesn't already exist. 
-//             var txt = ".txt";
-//             string[] fileNames = System.IO.Directory.GetFiles(outputPath, outputFileName, System.IO.SearchOption.TopDirectoryOnly);
-//             double number = 0;
-//             foreach (var fileName in fileNames)
-//             {
-//                 char version = fileName[fileName.Length - txt.Length - 1];
-//                 if (number < Char.GetNumericValue(version))
-//                     number = Char.GetNumericValue(version);
-//             }
-//             number++;
-//             outputFileName = outputFileName.Remove(outputFileName.Length - 1) + number;
-//             outputPath += outputFileName + txt;
-//             this.OutputPath = outputPath;
-//         }
-
-//         public void LoadScenario()
-//         {
-//             // Find the main input node from the XML input files
-//             XmlParser.ParseSimulationInput(SimulationInputFilePath);
-//         }
-//         public void LoadTargets()
-//         {
-//             // Load the target deck into the targets list from the XML target deck input file
-//             bool targetsLoaded = Task.loadTargetsIntoTaskList(XmlParser.GetTargetNode(TargetDeckFilePath), SystemTasks);
-//             if (!targetsLoaded)
-//             {
-//                 throw new Exception("Targets were not loaded.");
-//             }
-
-//         }
-//         public void LoadSubsystems()
-//         {
-
-//             // Find the main model node from the XML model input file
-//             var modelInputXMLNode = XmlParser.GetModelNode(ModelInputFilePath);
-
-//             var environments = modelInputXMLNode.SelectNodes("ENVIRONMENT");
-
-//             // Check if environment count is empty, default is space
-//             if (environments.Count == 0)
-//             {
-//                 SystemUniverse = new SpaceEnvironment();
-//                 Console.WriteLine("Default Space Environment Loaded");
-//                 log.Info("Default Space Environment Loaded");
-//             }
-            
-//             // Load Environments
-//             foreach (XmlNode environmentNode in environments)
-//             {
-//                 SystemUniverse = UniverseFactory.GetUniverseClass(environmentNode);
-//             }
-
-//             var snakes = modelInputXMLNode.SelectNodes("PYTHON");
-//             foreach (XmlNode pythonNode in snakes)
-//             {
-//                 throw new NotImplementedException();
-//             }
-
-//             // Load Assets
-//             var assets = modelInputXMLNode.SelectNodes("ASSET");
-//             foreach(XmlNode assetNode in assets)
-//             {
-//                 Asset asset = new Asset(assetNode);
-//                 asset.AssetDynamicState.Eoms.SetEnvironment(SystemUniverse);
-//                 AssetList.Add(asset);
-
-//                 // Load Subsystems
-//                 var subsystems = assetNode.SelectNodes("SUBSYSTEM");
-
-//                 foreach (XmlNode subsystemNode in subsystems)
-//                 {
-//                     Subsystem subsys = SubsystemFactory.GetSubsystem(subsystemNode, asset);
-//                     SubList.Add(subsys);
-
-//                     // Load States (Formerly ICs)
-//                     var States = subsystemNode.SelectNodes("STATE");
-
-//                     foreach (XmlNode StateNode in States)
-//                     {
-//                         // Parse state node for key name and state type, add the key to the subsys's list of keys, return the key name
-//                         string keyName = SubsystemFactory.SetStateKeys(StateNode, subsys);
-//                         // Use key name and state type to set initial conditions 
-//                         InitialSysState.SetInitialSystemState(StateNode, keyName);
-//                     }
-
-//                     if (subsys.Type == "scripted")
-//                     {
-//                         // Load Subsystem Parameters
-//                         var parameters = subsystemNode.SelectNodes("PARAMETER");
-
-//                         foreach (XmlNode parameterNode in parameters)
-//                         {
-//                             SubsystemFactory.SetParamenters(parameterNode, subsys);
-//                         }
-//                     }
-//                 }
-
-//                 // Load Constraints
-//                 var constraints = assetNode.SelectNodes("CONSTRAINT");
-
-//                 foreach (XmlNode constraintNode in constraints)
-//                 {
-//                     ConstraintsList.Add(ConstraintFactory.GetConstraint(constraintNode, SubList, asset));
-//                 }
-//             }
-//             Console.WriteLine("Environment, Assets, and Constraints Loaded");
-//             log.Info("Environment, Assets, and Constraints Loaded");
-
-//             // Load Dependencies
-//             var dependencies = modelInputXMLNode.SelectNodes("DEPENDENCY");
-
-//             foreach (XmlNode dependencyNode in dependencies)
-//             {
-//                 //var SubFact = new SubsystemFactory();
-//                 SubsystemFactory.SetDependencies(dependencyNode, SubList);
-//             }
-//             Console.WriteLine("Dependencies Loaded");
-//             log.Info("Dependencies Loaded");
-//         }
-
-//         public void LoadEvaluator()
-//         {
-//             var modelInputXMLNode = XmlParser.GetModelNode(ModelInputFilePath);
-//             var evalNodes = modelInputXMLNode.SelectNodes("EVALUATOR");
-//             if (evalNodes.Count > 1)
-//             {
-//                 throw new NotImplementedException("Too many evaluators in input!");
-//                 Console.WriteLine("Too many evaluators in input");
-//                 log.Info("Too many evaluators in input");
-//             }
-//             else
-//             {
-//                 SchedEvaluator = EvaluatorFactory.GetEvaluator(evalNodes[0],SubList);
-//                 Console.WriteLine("Evaluator Loaded");
-//                 log.Info("Evaluator Loaded");
-//             }
-//         }
-//         public void CreateSchedules()
-//         {
-//             SimSystem = new SystemClass(AssetList, SubList, ConstraintsList, SystemUniverse);
-
-//             if (SimSystem.CheckForCircularDependencies())
-//                 throw new NotFiniteNumberException("System has circular dependencies! Please correct then try again.");
-
-//             Scheduler _scheduler = new Scheduler(SchedEvaluator);
-//             Schedules = _scheduler.GenerateSchedules(SimSystem, SystemTasks, InitialSysState);
-//         }
-//         public double EvaluateSchedules()
-//         {
-//             // Evaluate the schedules and set their values
-//             foreach (SystemSchedule systemSchedule in Schedules)
-//             {
-//                 systemSchedule.ScheduleValue = SchedEvaluator.Evaluate(systemSchedule);
-//                 bool canExtendUntilEnd = true;
-//                 // Extend the subsystem states to the end of the simulation 
-//                 foreach (var subsystem in SimSystem.Subsystems)
-//                 {
-//                     if (systemSchedule.AllStates.Events.Count > 0)
-//                             if (!subsystem.CanExtend(systemSchedule.AllStates.Events.Peek(), (Domain)SimSystem.Environment, SimParameters.SimEndSeconds))
-//                             log.Error("Cannot Extend " + subsystem.Name + " to end of simulation");
-//                 }
-//             }
-
-//             // Sort the sysScheds by their values
-//             Schedules.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
-//             Schedules.Reverse();
-//             double maxSched = Schedules[0].ScheduleValue;
-//             return maxSched;
-//         }
-//     }
-// }
 

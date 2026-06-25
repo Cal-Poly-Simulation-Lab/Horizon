@@ -21,7 +21,6 @@ output/
 **/AccessReport.*
 **/**/AccessReport.*
 **/**/**/AccessReport.*
- */
 
 # Exclude my notes:
 **/notes.*
@@ -275,3 +274,5 @@ user-compiled-subsystems.txt
 test/HSFSchedulerUnitTest/thesis_notes.md
 test/HSFSchedulerUnitTest/ParallelizationStrategy.md
 
+
+thesis

@@ -258,6 +258,265 @@ namespace HSFSchedulerUnitTest
             string baseTestDir = Utilities.DevEnvironment.GetTestDirectory();
             return Path.Combine(baseTestDir, "HSFSchedulerUnitTest");
         }
+
+        /// <summary>
+        /// Get the next run version by scanning existing Run_* directories
+        /// </summary>
+        private static string GetNextRunVersion(string outputDir)
+        {
+            if (!Directory.Exists(outputDir))
+                return "00A";
+            
+            var runDirs = Directory.GetDirectories(outputDir, "Run_*");
+            if (runDirs.Length == 0)
+                return "00A";
+            
+            string maxVersion = "00A";
+            foreach (var dir in runDirs)
+            {
+                string dirName = Path.GetFileName(dir);
+                // Extract version: "Run_00A_..." → "00A"
+                if (dirName.StartsWith("Run_") && dirName.Length > 8)
+                {
+                    string version = dirName.Substring(4, 3);
+                    if (string.Compare(version, maxVersion) > 0)
+                        maxVersion = version;
+                }
+            }
+            
+            return IncrementRunVersion(maxVersion);
+        }
+
+        /// <summary>
+        /// Increment run version (00A → 00B → ... → 00Z → 01A → ...)
+        /// </summary>
+        private static string IncrementRunVersion(string currentVersion)
+        {
+            if (string.IsNullOrEmpty(currentVersion) || currentVersion.Length != 3)
+                return "00A";
+            
+            int number = int.Parse(currentVersion.Substring(0, 2));
+            char letter = currentVersion[2];
+            
+            number++;
+            if (number > 99)
+            {
+                number = 0;
+                letter++;
+                if (letter > 'Z')
+                    throw new InvalidOperationException("Run version overflow! Exceeded 99Z.");
+            }
+            
+            return $"{number:D2}{letter}";
+        }
+
+        /// <summary>
+        /// Runs a scenario two ways and generates hash summaries for comparison:
+        /// 1. Direct GenerateSchedules call - runs full scheduler and saves hash summary
+        /// 2. MainSchedulingLoopHelper - runs iteration-by-iteration and saves hash summary after each iteration
+        /// All outputs go to test/output/ with subdirectories for each run type.
+        /// </summary>
+        /// <param name="simInputFile">Path to simulation input file</param>
+        /// <param name="taskInputFile">Path to task input file</param>
+        /// <param name="modelInputFile">Path to model input file</param>
+        public void RunScenarioWithHashSummaries(string simInputFile, string taskInputFile, string modelInputFile, string? outputDirectory = null, bool muteSubsystemTracking = true)
+        {
+            // Determine base output directory: use provided one, or default to test/HSFSchedulerUnitTest/output/
+            string baseOutputDir = outputDirectory ?? Path.Combine(ProjectTestDir, "output");
+            
+            // Create run directory with timestamp and scenario name (similar to main program)
+            // We'll get the scenario name after loading, but create the directory structure first
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+            string runDir = Path.Combine(baseOutputDir, $"run_{timestamp}_Loading");
+            Directory.CreateDirectory(runDir);
+            
+            // Set up run log capture BEFORE loading to capture all output
+            string directOutputDir = Path.Combine(runDir, "direct_generateschedules");
+            Directory.CreateDirectory(directOutputDir);
+            
+            // Mute SubsystemCallTracker console output by default (to reduce log verbosity)
+            // Can be enabled by setting muteSubsystemTracking = false
+            if (muteSubsystemTracking)
+            {
+                HSFSystem.SubsystemCallTracker.SetConsoleOutput(false);
+            }
+            
+            // Create and start console logger to capture output during loading AND GenerateSchedules
+            DateTime runDateTime = DateTime.Now;
+            Horizon.ConsoleLogger directLogger = new Horizon.ConsoleLogger(
+                directOutputDir, 
+                "Loading", // Will be updated after loading
+                simInputFile, 
+                modelInputFile, 
+                taskInputFile, 
+                runDateTime
+            );
+            directLogger.StartLogging();
+            
+            Console.WriteLine($"\n=== Output Directory: {runDir} ===");
+            
+            // Load scenario using HorizonLoadHelper (output will be captured to run_log.txt)
+            // Note: EnableHashTracking defaults to true and can be set in the simulation JSON file
+            HorizonLoadHelper(simInputFile, taskInputFile, modelInputFile);
+            
+            // Get scheduler and evaluator from loaded program
+            if (program.scheduler == null || program.SchedEvaluator == null || program.SimSystem == null || program.SystemTasks == null || program.InitialSysState == null)
+            {
+                directLogger.StopLogging();
+                throw new InvalidOperationException("Failed to load scenario - required program components are null");
+            }
+            
+            // Update run directory name with actual scenario name now that it's loaded
+            string scenarioName = UserModel.SimParameters.ScenarioName;
+            
+            // Handle last_run → Run_XXY versioning (similar to main program)
+            var lastRunDirs = Directory.GetDirectories(baseOutputDir, "last_run_*");
+            
+            if (lastRunDirs.Length > 0)
+            {
+                // Rename existing last_run to Run_XXY
+                string lastRunDir = lastRunDirs[0];  // Should only be one
+                string nextVersion = GetNextRunVersion(baseOutputDir);
+                string versionedName = Path.GetFileName(lastRunDir).Replace("last_run_", $"Run_{nextVersion}_");
+                string versionedPath = Path.Combine(baseOutputDir, versionedName);
+                
+                try
+                {
+                    Directory.Move(lastRunDir, versionedPath);
+                    Console.WriteLine($"Archived previous run: {Path.GetFileName(versionedPath)}");
+                }
+                catch
+                {
+                    // If rename fails, continue anyway
+                    Console.WriteLine($"Warning: Could not archive previous run directory");
+                }
+            }
+            
+            // Create new last_run directory with actual scenario name
+            string finalRunDir = Path.Combine(baseOutputDir, $"last_run_{timestamp}_{scenarioName}");
+            
+            // Rename directory if it's different from the temporary "Loading" name
+            if (runDir != finalRunDir)
+            {
+                try
+                {
+                    Directory.Move(runDir, finalRunDir);
+                    runDir = finalRunDir;
+                    // Update logger output path (need to stop, update, restart)
+                    directLogger.StopLogging();
+                    directOutputDir = Path.Combine(runDir, "direct_generateschedules");
+                    Directory.CreateDirectory(directOutputDir);
+                    directLogger = new Horizon.ConsoleLogger(
+                        directOutputDir, 
+                        scenarioName, 
+                        simInputFile, 
+                        modelInputFile, 
+                        taskInputFile, 
+                        runDateTime
+                    );
+                    directLogger.StartLogging();
+                }
+                catch
+                {
+                    // If rename fails, just continue with original directory name
+                    Console.WriteLine($"Warning: Could not rename directory to include scenario name. Using: {runDir}");
+                }
+            }
+            
+            var scheduler = program.scheduler;
+            var evaluator = program.SchedEvaluator;
+            var system = program.SimSystem;
+            var tasks = program.SystemTasks;
+            var initialState = program.InitialSysState;
+
+            // Set SimParameters.OutputDirectory to our test output directory
+            // This ensures all hash history files (including combined hash history) write to the correct location
+            // Safe in test context - we control the entire execution
+            UserModel.SimParameters.OutputDirectory = directOutputDir;
+            
+            // Initialize hash history files BEFORE GenerateSchedules (so they can be written to during execution)
+            // This ensures the files exist and are ready to receive data during GenerateSchedules
+            if (UserModel.SimParameters.EnableHashTracking)
+            {
+                HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(directOutputDir);
+                HSFScheduler.StateHistory.InitializeStateHashHistoryFile(directOutputDir);
+                HSFScheduler.SystemScheduleInfo.InitializeCombinedHashHistoryFile(directOutputDir);
+            }
+            
+            Console.WriteLine("\n=== Method 1: Direct GenerateSchedules Call ===");
+            
+            // Direct GenerateSchedules call (output will be captured to run_log.txt)
+            // Hash history files will be written to during this execution
+            List<SystemSchedule> directSchedules = scheduler.GenerateSchedules(system, tasks, initialState);
+            
+            // Match Program.cs flow: EvaluateSchedules() is called after GenerateSchedules()
+            // This re-evaluates schedules and sorts them, which writes an additional hash history line
+            program.Schedules = directSchedules;
+            program.EvaluateSchedules();
+            directSchedules = program.Schedules; // Update reference in case it was modified
+            
+            // Stop logging after EvaluateSchedules completes
+            directLogger.StopLogging();
+            
+            // Use Program.cs static method to write hash summary (same as main program does)
+            // Hash history files were already written during GenerateSchedules execution
+            if (UserModel.SimParameters.EnableHashTracking)
+            {
+                Horizon.Program.SaveScheduleHashBlockchainSummary(directSchedules, directOutputDir);
+                Console.WriteLine($"Saved hash summary: {Path.Combine(directOutputDir, "HashData", "scheduleHashBlockchainSummary.txt")}");
+            }
+            
+            Console.WriteLine($"\n=== Complete: Hash summaries saved to {runDir} ===");
+        }
+
+        /// <summary>
+        /// Helper method to save schedule hash blockchain summary to test output directory.
+        /// Creates the same hash summary files as the main program, but outputs to test/output/HashData/.
+        /// Optionally initializes hash history files (FullScheduleHashHistory.txt, FullStateHistoryHash.txt, FullScheduleStateHashHistory.txt)
+        /// so they can be written to during scheduler execution.
+        /// Can be called between iterations or after GenerateSchedules runs.
+        /// </summary>
+        /// <param name="schedules">List of schedules to generate summary for</param>
+        /// <param name="subdirectory">Optional subdirectory name (e.g., "iteration_0", "after_generate"). 
+        /// If empty, outputs directly to baseOutputDir/HashData/. Defaults to empty string.</param>
+        /// <param name="baseOutputDir">Base output directory. If null, defaults to test/HSFSchedulerUnitTest/output/</param>
+        /// <param name="skipHashHistoryInit">If true, skips initializing hash history files (use when they were already initialized before execution)</param>
+        /// <returns>Path to the created summary file</returns>
+        protected string SaveTestHashSummary(List<SystemSchedule> schedules, string subdirectory = "", string? baseOutputDir = null, bool skipHashHistoryInit = false)
+        {
+            // Get test output directory (default: test/HSFSchedulerUnitTest/output/)
+            // Or use provided baseOutputDir
+            string testOutputDir = baseOutputDir ?? Path.Combine(ProjectTestDir, "output");
+            if (!Directory.Exists(testOutputDir))
+            {
+                Directory.CreateDirectory(testOutputDir);
+            }
+
+            // If subdirectory specified, create it (e.g., "iteration_0", "after_generate")
+            // If not specified, output directly to baseOutputDir/HashData/
+            string outputPath = testOutputDir;
+            if (!string.IsNullOrEmpty(subdirectory))
+            {
+                outputPath = Path.Combine(testOutputDir, subdirectory);
+                Directory.CreateDirectory(outputPath);
+            }
+
+            // Initialize hash history files (same as main program does)
+            // This creates the files and sets up tracking so they can be written to during execution
+            // Skip if they were already initialized before GenerateSchedules (to avoid clearing existing data)
+            if (UserModel.SimParameters.EnableHashTracking && !skipHashHistoryInit)
+            {
+                HSFScheduler.SystemScheduleInfo.InitializeHashHistoryFile(outputPath);
+                HSFScheduler.StateHistory.InitializeStateHashHistoryFile(outputPath);
+                // Combined hash history file is initialized automatically when first used
+            }
+
+            // Call the main program's method to create the summary
+            Horizon.Program.SaveScheduleHashBlockchainSummary(schedules, outputPath);
+
+            // Return path to the created summary file
+            return Path.Combine(outputPath, "HashData", "scheduleHashBlockchainSummary.txt");
+        }
         # endregion
 
 

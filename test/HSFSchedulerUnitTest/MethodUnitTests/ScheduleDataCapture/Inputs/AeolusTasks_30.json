@@ -1,0 +1,664 @@
+{
+  "tasks": [
+    {
+      "name": "COMM Task 0",
+      "type": "COMM",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "groundstation1",
+        "type": "FacilityTarget",
+        "value": 100.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            -33.47,
+            -70.65,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "COMM Task 1",
+      "type": "COMM",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "groundstation2",
+        "type": "FacilityTarget",
+        "value": 100.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            18.59,
+            -155.4,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "COMM Task 2",
+      "type": "COMM",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "groundstation3",
+        "type": "FacilityTarget",
+        "value": 100.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            -2.9,
+            40.2,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 4",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget1",
+        "type": "LocationTarget",
+        "value": 3.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            39.2945,
+            -71.1559,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 5",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget2",
+        "type": "LocationTarget",
+        "value": 5.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            41.1158,
+            -67.8102,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 6",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget3",
+        "type": "LocationTarget",
+        "value": 2.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            25.5397,
+            -73.8852,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 7",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget4",
+        "type": "LocationTarget",
+        "value": 1.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            41.2675,
+            -86.2858,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 8",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget5",
+        "type": "LocationTarget",
+        "value": 9.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            35.6472,
+            -70.0174,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 9",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget6",
+        "type": "LocationTarget",
+        "value": 6.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            24.9508,
+            -68.3201,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 10",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget7",
+        "type": "LocationTarget",
+        "value": 9.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            28.57,
+            -73.4253,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 11",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget8",
+        "type": "LocationTarget",
+        "value": 7.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            33.9376,
+            -71.8452,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 12",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget9",
+        "type": "LocationTarget",
+        "value": 6.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            42.1501,
+            -72.1374,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 13",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget10",
+        "type": "LocationTarget",
+        "value": 8.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            42.2978,
+            -79.1555,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 14",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget11",
+        "type": "LocationTarget",
+        "value": 9.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            26.1523,
+            -73.8904,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 15",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget12",
+        "type": "LocationTarget",
+        "value": 10.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            42.4119,
+            -83.5763,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 16",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget13",
+        "type": "LocationTarget",
+        "value": 1.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            42.1433,
+            -72.8791,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 17",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget14",
+        "type": "LocationTarget",
+        "value": 9.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            32.7075,
+            -86.3633,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 18",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget15",
+        "type": "LocationTarget",
+        "value": 7.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            39.0056,
+            -81.4615,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 19",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget16",
+        "type": "LocationTarget",
+        "value": 10.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            25.8377,
+            -86.0766,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 20",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget17",
+        "type": "LocationTarget",
+        "value": 6.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            31.4352,
+            -85.0574,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 21",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget18",
+        "type": "LocationTarget",
+        "value": 5.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            41.3147,
+            -70.5308,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 22",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget19",
+        "type": "LocationTarget",
+        "value": 8.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            21.8966,
+            -73.62,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 23",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget20",
+        "type": "LocationTarget",
+        "value": 3.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            14.342,
+            -66.0327,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 24",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget21",
+        "type": "LocationTarget",
+        "value": 5.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            27.0044,
+            -56.8051,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 25",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget22",
+        "type": "LocationTarget",
+        "value": 9.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            8.68892,
+            -69.1923,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 26",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget23",
+        "type": "LocationTarget",
+        "value": 6.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            16.7749,
+            -64.2946,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 27",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget24",
+        "type": "LocationTarget",
+        "value": 9.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            15.6312,
+            -71.5238,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 28",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget25",
+        "type": "LocationTarget",
+        "value": 8.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            23.3103,
+            -60.9747,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 29",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget26",
+        "type": "LocationTarget",
+        "value": 6.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            23.904,
+            -70.8981,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    },
+    {
+      "name": "IMAGING Task 30",
+      "type": "IMAGING",
+      "maxTimes": 10.0,
+      "target": {
+        "name": "imagetarget27",
+        "type": "LocationTarget",
+        "value": 3.0,
+        "dynamicState": {
+          "type": "STATIC_LLA",
+          "integratorType": "None",
+          "stateData": [
+            11.7375,
+            -65.8809,
+            0.0
+          ],
+          "eoms": {
+            "type": "static"
+          }
+        }
+      }
+    }
+  ]
+}

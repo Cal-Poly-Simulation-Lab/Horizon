@@ -29,17 +29,17 @@ namespace HSFScheduler
         public override double Evaluate(SystemSchedule schedule)
         {
             //double sum = 0;
-            double count = 0;
+            double value = 0;
             foreach(Event eit in schedule.AllStates.Events)
             {
-                count += 1; 
+                value += eit.Tasks.Values.Sum(task => task.Target.Value);
                 //foreach (KeyValuePair<Asset, Task> assetTask in eit.Tasks)
                 //{
                 //    Task task = assetTask.Value;
                 //    sum += task.Target.Value;
                 //}
             }
-            return count; // Returns number of events in schedule
+            return value; // Returns number of events in schedule
             //return sum; // Returns sum of task target values
         }
         #endregion

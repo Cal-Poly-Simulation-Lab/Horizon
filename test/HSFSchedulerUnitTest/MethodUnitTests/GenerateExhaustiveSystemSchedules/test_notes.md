@@ -128,7 +128,7 @@
 
 ### Evaluator Configuration
 
-- **`SchedulerTestEval.py`**: Python scripted evaluator
+- **`DefaultEvaluator`**: C# default evaluator
 - **Note:** Evaluator is loaded but **Checker is never called** in these tests
 - **Purpose:** Complete system setup without evaluation logic
 
@@ -163,7 +163,6 @@
 4. `ThreeTaskTestInput.json` - Three task definitions
 5. `SixteenTaskTestInput.json` - Sixteen task definitions (stress test)
 6. `SchedulerSubTest.cs` - Test subsystem implementation
-7. `SchedulerTestEval.py` - Test evaluator (loaded but not used)
 
    **Required Files Filepaths (Reposity-root-relative):**
 
@@ -173,7 +172,6 @@
  	4. `test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedules/ThreeTaskTestInput.json`
  	5. `test/HSFSchedulerUnitTest/MethodUnitTests/GenerateExhaustiveSystemSchedules/SixteenTaskTestInput.json`
  	6. `test/HSFSchedulerUnitTest/Subsystems/SchedulerSubTest.cs`
- 	7. `test/HSFSchedulerUnitTest/SchedulerTestEval.py`
 
 ## Maintenance Notes
 

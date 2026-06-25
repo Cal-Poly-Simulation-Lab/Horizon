@@ -199,6 +199,9 @@ namespace HSFScheduler
             // Final crop
             systemSchedules = CropToMaxSchedules(systemSchedules, Scheduler.emptySchedule, ScheduleEvaluator, logging: false);
             
+            // Ensure final output is sorted best-to-worst (cropping can prepend the empty schedule)
+            SortSchedulesDeterministic(systemSchedules, descending: true, context: "FinalSummary");
+            
             schedulerStopwatch.Stop();
             
             // Print final schedules in both "all" and "kept" modes
@@ -266,12 +269,18 @@ namespace HSFScheduler
         public static void CropSchedules(List<SystemSchedule> schedulesToCrop, Evaluator scheduleEvaluator, SystemSchedule emptySched, int _numSchedCropTo)
         {
             // Evaluate the schedules and set their values
+            // Note: Schedules were already evaluated in EvaluateAndSortCanPerformSchedules, so values won't change
+            // Hash updates only occur when schedule data changes (new events), not on re-evaluation
             foreach (SystemSchedule systemSchedule in schedulesToCrop)
+            {
                 systemSchedule.ScheduleValue = scheduleEvaluator.Evaluate(systemSchedule);
+            }
 
-            // Sort the sysScheds by their values
-            schedulesToCrop.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
-
+            // Sort the sysScheds by their values, then by ScheduleID for deterministic ordering
+            // This ensures schedules with the same value are ordered consistently across runs
+            // OLD: schedulesToCrop.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
+            SortSchedulesDeterministic(schedulesToCrop, descending: false, context: "CropToMax");
+            
             // Delete the sysScheds that don't fit
             int numSched = schedulesToCrop.Count;
             for (int i = 0; i < numSched - _numSchedCropTo; i++)
@@ -365,30 +374,109 @@ namespace HSFScheduler
         {
                 int numSched = 0;
                 List<SystemSchedule> _canPerformList = new List<SystemSchedule>();
+                double currentTime = Scheduler.CurrentTime;
+                
                 foreach (var potentialSchedule in potentialSystemSchedules)
                 {
+                    // Get schedule hash (blockchain hash, consistent with ScheduleHash property)
+                    // This must match what RecordCombinedHashHistory uses for lookup
+                    string scheduleHash = potentialSchedule.ScheduleInfo.ScheduleHash;
+                    // if (string.IsNullOrEmpty(scheduleHash)) { scheduleHash = SystemSchedule.ComputeScheduleHash(potentialSchedule); }
 
-
-                    if (Checker.CheckSchedule(system, potentialSchedule)) {
-                        //potentialSchedule.GetEndState().GetLastValue()
-
-                        
+                    // Check if schedule passes
+                    bool checkResult = Checker.CheckSchedule(system, potentialSchedule);
+                    
+                    // Update state hash after CheckSchedule completes (blockchain-style)
+                    if (SimParameters.EnableHashTracking) {StateHistory.UpdateStateHashAfterCheck(potentialSchedule.AllStates,currentTime, checkResult,scheduleHash); }
+                    
+                    if (checkResult) {
                         _canPerformList.Add(potentialSchedule);
                         numSched++;
                     }
                 }
+                
+                // Record state hash history after CheckSchedule (sorted by schedule hash) 
+                // (This is for all schedules even if they wont pass check --> track failed schedules too)
+                if (SimParameters.EnableHashTracking && potentialSystemSchedules.Count > 0)
+                {
+                    StateHistory.RecordStateHashHistory(potentialSystemSchedules, "Check", currentTime);
+                    // Record combined schedule-state hash history
+                    SystemScheduleInfo.RecordCombinedHashHistory(potentialSystemSchedules, "Check", Scheduler.SchedulerStep);
+                }
+                
                 return _canPerformList;
+        }
+
+        /// <summary>
+        /// Sorts schedules deterministically by ScheduleValue (descending), then by content hash (ascending) for tie-breaking
+        /// This ensures schedules with the same value are ordered consistently across runs
+        /// Records schedule hash history after sorting for debugging
+        /// </summary>
+        /// <param name="schedules">List of schedules to sort</param>
+        /// <param name="descending">True for descending order (high to low), false for ascending (low to high)</param>
+        /// <param name="context">Context for hash history tracking ("CropToMax" or "EvalSort"), auto-detected if empty</param>
+        public static void SortSchedulesDeterministic(List<SystemSchedule> schedules, bool descending = true, string context = "")
+        {
+            schedules.Sort((x, y) => 
+            {
+                int valueCompare = x.ScheduleValue.CompareTo(y.ScheduleValue);
+                if (valueCompare != 0)
+                {
+                    // For descending order, negate the comparison (higher values come first)
+                    return descending ? -valueCompare : valueCompare;
+                }
+                // Tie-breaker: Use content hash for deterministic ordering of equal-value schedules
+                // Content hash is based on schedule data (events, times, tasks) and provides stable ordering
+                // Hash comparison is always ascending (lexicographic order)
+                string hashX = SystemSchedule.ComputeScheduleHash(x);
+                string hashY = SystemSchedule.ComputeScheduleHash(y);
+                return string.CompareOrdinal(hashX, hashY);
+            });
+            
+            // Record hash history after sorting (ScheduleHashHistory)
+            SystemScheduleInfo.RecordSortHashHistory(schedules, context);
         }
 
         public static List<SystemSchedule> EvaluateAndSortCanPerformSchedules(Evaluator scheduleEvaluator, List<SystemSchedule> _canPerformList)
         {
-           // Evaluate Schedule Step --> 
+            double currentTime = Scheduler.CurrentTime;
+            
+            // Evaluate Schedule Step --> 
             foreach (SystemSchedule systemSchedule in _canPerformList)
+            {
                 systemSchedule.ScheduleValue = scheduleEvaluator.Evaluate(systemSchedule);
+                // Update schedule hash when value is evaluated (blockchain-style)
+                // This pushes a second hash to the current iteration's stack (after event hash)
+                SystemScheduleInfo.UpdateHashAfterValueEvaluation(systemSchedule, systemSchedule.ScheduleValue);
+            }
 
-            // Sort the schedule by their values:
-            _canPerformList.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
-            _canPerformList.Reverse();
+            // Sort the schedule by their values, then by ScheduleID for deterministic ordering
+            // OLD: _canPerformList.Sort((x, y) => x.ScheduleValue.CompareTo(y.ScheduleValue));
+            // OLD: _canPerformList.Reverse();
+            SortSchedulesDeterministic(_canPerformList, descending: true, context: "EvalSort");
+            
+            // Update state hash after evaluation (schedule hashes must be computed first, done above)
+            // Note: CheckSchedule result is true for all schedules in _canPerformList (they all passed Check)
+            if (SimParameters.EnableHashTracking)
+            {
+                foreach (SystemSchedule systemSchedule in _canPerformList)
+                {
+                    string scheduleHash = systemSchedule.ScheduleInfo.ScheduleHash;
+                    StateHistory.UpdateStateHashAfterEval(
+                        systemSchedule.AllStates, 
+                        currentTime, 
+                        checkScheduleResult: true,  // All passed CheckSchedule
+                        scheduleHash);
+                }
+                
+                // Record state hash history after evaluation (sorted by schedule hash)
+                if (_canPerformList.Count > 0)
+                {
+                    StateHistory.RecordStateHashHistory(_canPerformList, "EvalAll", currentTime);
+                    // Record combined schedule-state hash history
+                    SystemScheduleInfo.RecordCombinedHashHistory(_canPerformList, "EvalAll", Scheduler.SchedulerStep);
+                }
+            }
             
             // I used an interal can perform list to prevent conrfuision and not change attribute within static method. 
             // Need to return to caller (scheduelr) to update the list as sorted:
