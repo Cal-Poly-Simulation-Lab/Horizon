@@ -153,7 +153,7 @@ namespace Horizon
             
             // Also keep old format for backward compatibility (best schedule only, in data/heritage/)
             string heritageDir = Path.Combine(this.OutputPath, "data", "heritage");
-            SystemSchedule.WriteSchedule(this.Schedules[0], heritageDir);
+            SystemSchedule.WriteSchedule(this.Schedules[0], this.AssetList, heritageDir);
 
             //  Move this to a method that always writes out data about the dynamic state of assets, the target dynamic state data, other data?
             //var csv = new StringBuilder();

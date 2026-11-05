@@ -1,6 +1,6 @@
-# Horizon Space Flight Scheduler (HSF)
+# Horizon Simulation Framework (HSF)
 
-**Horizon** is an autonomous scheduling framework for spacecraft mission planning. It generates task schedules hueristics for multi-asset systems under complex subsystem constraints, maximizing mission value while respecting power, data storage, sensor, and communication limitations.
+**HSF** is a simulation and scheduling framework for spacecraft mission planning. It generates task schedules hueristics for multi-asset systems under complex subsystem constraints, maximizing mission value while respecting power, data storage, sensor, and communication limitations.
 
 ## What It Does
 

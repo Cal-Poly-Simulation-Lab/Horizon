@@ -89,6 +89,17 @@ namespace Utilities
             return s;
         }
 
+        public string ToCSVString()
+        {
+            string s = "";
+
+            foreach (double element in _elements)
+                s += element.ToString() + ",";
+
+            s = s.Substring(0, s.Length - 1);
+            return s;
+        }
+
         /// <summary>
         /// Determines if two matricies are equal by comparing ToString() method
         /// </summary>

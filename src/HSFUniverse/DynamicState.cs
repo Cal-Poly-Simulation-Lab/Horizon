@@ -37,7 +37,7 @@ namespace HSFUniverse
         // Do we want to change DynamicsStateType from ENUM to string?
         public DynamicStateType Type { get; private set; }
         //public IntegratorType IntegratorType { get; private set; }
-        private SortedList<double, Vector> StateData { get; set; }
+        public SortedList<double, Vector> StateData { get; set; }
         private IntegratorOptions IntegratorOptions = new IntegratorOptions();
         public IntegratorParameters IntegratorParameters = new IntegratorParameters();
         public DynamicEOMS Eoms { get; private set; }
@@ -339,22 +339,6 @@ namespace HSFUniverse
             // Should we also add a list to Dyanmic State that holds the names of each of the states?
             //     Like StateNames = ['Latitude', 'Longitude', 'Altitude']
             return Type.ToString();
-            //    var csv = new StringBuilder();
-            //    string t = Name + "_time,";
-            //    string rx = Name + "_R_x,";
-            //    string ry = Name + "_R_y,";
-            //    string rz = Name + "_R_z,";
-            //    string vx = Name + "_V_x,";
-            //    string vy = Name + "_V_y,";
-            //    string vz = Name + "_V_z,";
-            //    // header
-            //    csv.AppendLine(t + rx + ry + rz + vx + vy + vz );
-
-            //    // data
-            //    foreach (var d in _stateData)
-            //        csv.AppendLine(d.Key + "," + d.Value[1] + "," + d.Value[2] + "," + d.Value[3] + "," + d.Value[4] + "," + d.Value[5] + "," + d.Value[6]);
-
-            //    return csv.ToString();
         }
 
         public IntegratorOptions getIntegratorOptions()
@@ -363,9 +347,31 @@ namespace HSFUniverse
         }
     }
 
-    // Dynamic states type supported by HSF
-    // Need to think about this and the alternative below.  This is an issue that Christian may have looked at.
-    public enum DynamicStateType { STATIC_LLA, STATIC_ECI, PREDETERMINED_LLA, PREDETERMINED_ECI, DYNAMIC_LLA, DYNAMIC_ECI, STATIC_LVLH, NULL_STATE };
+    /// <summary>
+    /// Enumeration of the different types of dynamic states supported by HSF
+    /// 
+    /// Type descriptions:
+    /// STATIC - The dynamic state is static and does not change over time.  The initial conditions are used for all simulation times.
+    /// PREDETERMINED - The dynamic state is either predetermined or can be predetermined and can be calcuated before the simulation starts.  The dynamic state is calculated for all simulation times before the simulation starts.
+    /// DYNAMIC - The dynamic state is dynamic and must be calculated during the simulation.  The dynamic state is calculated for each simulation time as the simulation progresses.
+    /// 
+    /// Frame descriptions:
+    /// LLA - The dynamic state is in the Latitude, Longitude, Altitude frame.
+    /// ECI - The dynamic state is in the Earth Centered Inertial frame.
+    /// ECEF - The dynamic state is in the Earth Centered Earth Fixed frame.
+    /// LVLH - The dynamic state is in the Local Vertical Local Horizontal frame.
+    /// 
+    /// NULL_STATE - Should only be used when the dynamic state of the object is not applicable.
+    /// </summary>
+    public enum DynamicStateType { 
+        STATIC_LLA,
+        STATIC_ECI,
+        PREDETERMINED_LLA,
+        PREDETERMINED_ECI,
+        DYNAMIC_LLA,
+        DYNAMIC_ECI,
+        STATIC_LVLH,
+        NULL_STATE };
     //public enum DynamicStateType { STATIC, DYNAMIC, PREDETERMINED, NULL };
     // Propagator types supported by HSF
     // public enum IntegratorType { TRAPZ, RK4, RK45, SPG4, NONE };

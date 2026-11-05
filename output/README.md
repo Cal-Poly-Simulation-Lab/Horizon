@@ -29,14 +29,17 @@ output/
 ## Configuration
 
 ### Custom Output Location
+
 ```bash
 dotnet run -- -s <sim> -m <model> -t <tasks> -o /custom/path
 ```
 
 ### Number of Schedules to Output
+
 Controls how many top schedules get full state data written to `data/additional_schedule_data/`.
 
 Add to simulation JSON at root level:
+
 ```json
 {
   "name": "MyScenario",
@@ -48,18 +51,20 @@ Add to simulation JSON at root level:
 ```
 
 **Output behavior:**
+
 - Top schedule: Always written to `TopSchedule_value{N}_{asset}_Data.csv` (one per asset)
 - Top N schedules: Written to `additional_schedule_data/{rank}_Schedule_value{N}_{id}.csv`
 
 ## Defaults
+
 - **Location**: `<repo>/output/`
 - **Directory**: `last_run_{YYYY-MM-DD_HH-mm-ss}_{ScenarioName}/`
 - **State Output**: Top 5 schedules
 - **Versioning**: Previous runs archived automatically
 
 ## Notes
+
 - Implemented: Nov 11-12, 2025 (commits `80a2606`, `ad48eb3`)
 - Versioning prevents overwriting previous results
 - Git state captured in `.repo_state/` for full reproducibility
 - See `last_run` for example output structure
-

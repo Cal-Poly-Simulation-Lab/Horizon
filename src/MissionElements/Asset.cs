@@ -8,6 +8,7 @@ using Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UserModel;
+using System.Collections.Generic;
 
 namespace MissionElements
 {
@@ -52,6 +53,17 @@ namespace MissionElements
         }
         #endregion
 
+        public string WriteDynamicState()
+        {
+            System.Text.StringBuilder output = new System.Text.StringBuilder();
+            foreach(KeyValuePair<double, Vector> kvp in AssetDynamicState.StateData)
+            {
+                var time = kvp.Key;
+                var stateValue = kvp.Value;
+                output.AppendLine($"Asset: {Name}, Time: {time}, Value: {stateValue}");
+            }
+            return output.ToString();
+        }
         #region Overrides
         /// <summary>
         /// Override of the Object Equals method

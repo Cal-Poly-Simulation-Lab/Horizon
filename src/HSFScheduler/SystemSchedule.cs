@@ -333,14 +333,14 @@ namespace HSFScheduler
             Directory.CreateDirectory(dataDir);
             
             // Get all unique assets from all schedules
-            var allAssets = new HashSet<string>();
+            var allAssets = new HashSet<Asset>();
             foreach (var schedule in sortedSchedules.Take(numToWrite))
             {
                 foreach (var evt in schedule.AllStates.Events)
                 {
                     foreach (var assetTaskPair in evt.Tasks)
                     {
-                        allAssets.Add(assetTaskPair.Key.Name);
+                        allAssets.Add(assetTaskPair.Key);
                     }
                 }
             }
@@ -351,9 +351,9 @@ namespace HSFScheduler
                 var topSchedule = sortedSchedules[0];
                 int topValue = (int)topSchedule.ScheduleValue;  // Truncate to integer
                 
-                foreach (var assetName in allAssets.OrderBy(a => a))
+                foreach (var asset in allAssets.OrderBy(a => a.Name))
                 {
-                    WriteTopScheduleAssetCSV(topSchedule, assetName, dataDir, topValue);
+                    WriteTopScheduleAssetCSV(topSchedule, asset, dataDir, topValue);
                 }
             }
             
@@ -366,7 +366,7 @@ namespace HSFScheduler
                 for (int rank = 0; rank < numToWrite; rank++)
                 {
                     var schedule = sortedSchedules[rank];
-                    WriteRankedScheduleCSV(schedule, rank, additionalDir, allAssets.ToList());
+                    //WriteRankedScheduleCSV(schedule, rank, additionalDir, allAssets.ToList());
                 }
             }
         }
@@ -375,14 +375,15 @@ namespace HSFScheduler
         /// Write top schedule data for a single asset: TopSchedule_{value}_{asset}_Data.csv
         /// Format: Time, state1, state2, ... (asset data only, headers are state names)
         /// </summary>
-        private static void WriteTopScheduleAssetCSV(SystemSchedule schedule, string assetName, string dataDir, int scheduleValue)
+        private static void WriteTopScheduleAssetCSV(SystemSchedule schedule, Asset asset, string dataDir, int scheduleValue)
         {
+            //var dynamicStateData = schedule.AllStates.Events.Peek().Tasks[assetName]; // Get the dynamic state data for the asset
             var csv = new StringBuilder();
             var stateData = ExtractAllStatesWithTime(schedule);
             
-            if (!stateData.ContainsKey(assetName)) return;
+            if (!stateData.ContainsKey(asset.Name)) return;
             
-            var assetData = stateData[assetName];
+            var assetData = stateData[asset.Name];
             if (assetData.Count == 0) return;
             
             // Build header: Time, then all state variables for this asset
@@ -423,7 +424,7 @@ namespace HSFScheduler
                 csv.AppendLine();
             }
             
-            string fileName = $"TopSchedule_value{scheduleValue}_{assetName}_Data.csv";
+            string fileName = $"TopSchedule_value{scheduleValue}_{asset.Name}_Data.csv";
             File.WriteAllText(Path.Combine(dataDir, fileName), csv.ToString());
         }
         
@@ -589,13 +590,16 @@ namespace HSFScheduler
             // bool debugStateOutput = Environment.GetEnvironmentVariable("HSF_DEBUG_STATE_OUTPUT") == "1";
             
             SystemState sysState = null;
+
             if (schedule.AllStates.Events.Count != 0)
             {
                 sysState = schedule.AllStates.Events.Peek().State;
+                //var sysDynamicState = schedule.AllStates.Events.Peek().Tasks[];
             }
-            
+
             while (sysState != null)
             {
+                //foreach(var kvpDynamicState in sysState.)
                 // Extract all double states (most common: DOD, databuffer, pixels, etc.)
                 foreach (var kvpDoubleProfile in sysState.Ddata)
                 {
@@ -651,7 +655,7 @@ namespace HSFScheduler
         //     return $"value{schedule.ScheduleValue:F2}";
         // }
 
-        public static void WriteSchedule(SystemSchedule schedule, String scheduleWritePath) //TODO: Unit Test.
+        public static void WriteSchedule(SystemSchedule schedule, List<Asset> assets, String scheduleWritePath) //TODO: Unit Test.
         {
             var csv = new StringBuilder();
             Dictionary<StateVariableKey<double>, SortedList<double, double>> stateTimeDData = new Dictionary<StateVariableKey<double>, SortedList<double, double>>();
@@ -664,9 +668,11 @@ namespace HSFScheduler
             csv.Clear();
 
             SystemState sysState=null;
+            Asset sysAssets=null;
             if (schedule.AllStates.Events.Count!= 0)
             {
                 sysState = schedule.AllStates.Events.Peek().State;
+                sysAssets = schedule.AllStates.Events.Peek().Tasks.Keys.First();
             }
             
 
@@ -745,6 +751,20 @@ namespace HSFScheduler
                 writeStateVariable(list, scheduleWritePath);
             foreach (var list in stateTimeQData)
                 writeStateVariable(list, scheduleWritePath);
+
+            foreach(var asset in assets)
+            {
+                csv.Clear();
+                string fileName = asset.Name + "_DynamicStateData.csv";
+                csv.AppendLine("time,x,y,z,vz,vy,vz");
+                foreach(KeyValuePair<double, Vector> kvp in asset.AssetDynamicState.StateData)
+                {
+                    var time = kvp.Key;
+                    var stateValue = kvp.Value;
+                    csv.AppendLine($"{time}, {stateValue.ToCSVString()}");
+                }
+                System.IO.File.WriteAllText(Path.Combine(scheduleWritePath, fileName), csv.ToString());
+            }
         }
         
         /// <summary>

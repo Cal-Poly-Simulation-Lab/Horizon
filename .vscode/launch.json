@@ -1,6 +1,21 @@
 {
   "version": "0.2.0",
   "configurations": [
+    {
+      "name": "Samples - My First HSF Project",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
+      "args": [
+        "-s", "${workspaceFolder}/samples/myFirstHSFProject/myFirstHSFScenario.json",
+        "-m", "${workspaceFolder}/samples/myFirstHSFProject/myFirstHSFModel.json",
+        "-t", "${workspaceFolder}/samples/myFirstHSFProject/myFirstHSFTaskList.json",
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
 
     {
       "name": "Debug Horizon ScriptedCS- Aeolus (VS Code)",
