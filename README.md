@@ -9,9 +9,9 @@ HSF is a simulation framework for exploring feasible task schedules for complex 
   <img src="assets/hsf-logo.png" align="right" alt="HSF logo" width="180">
 </p>
 
-Many system-level requirements describe how a system must perform in use. Those requirements can be difficult to verify before the full system is operational. HSF lets a user model system behavior and evaluate candidate schedules against that model.
+System-level requirements describe how a system must perform in use. Those requirements can be difficult to verify before the full system is operational. HSF lets a user model system behavior and evaluate candidate schedules against that model.
 
-The framework separates schedule generation from system behavior. The scheduler proposes tasks and candidate schedules. A modular system model determines whether each task can be performed and how it changes the system state.
+The framework separates schedule generation from system behavior. The scheduler proposes tasks and candidate schedules. A modular system model determines whether each task can be performed and how it changes the system state.  All elements of HSF, like tasks, schedules, and systems, are user defined to maximize flexibility and application.
 
 ## How it works
 
@@ -23,16 +23,20 @@ At a high level, HSF:
 
 Core concepts include:
 
+- **Asset:** the core system modeling element that simulates the motion of the system and how all states of the system change in time and in response to a proposed task.
+- **Subsystem:** the modeling element that defines system capabilities and state changes.  Collections of **subsystems** form an **asset**.
 - **Task:** an action for an asset to perform at a target.
 - **Event:** a task together with the system state at a simulation time step.
-- **Schedule:** a time-ordered collection of events.
-- **Subsystem:** a modular model element that defines system capabilities and state changes.
-- **Constraint:** a condition that a subsystem or system state must satisfy.
+- **Schedule:** a time-ordered collection of events including full system state data and asset information.
+
+- **Constraint:** a condition that a subsystem or system state must satisfy - allows the user to impose system and subsystem requierments.
 - **Dependency:** a defined interface through which subsystems exchange information.
 
 ## Visualization with Cesium ion
 
-A Cesium ion-based visualization effort is underway as an important companion to the simulation framework. It is intended to make mission scenarios and simulation results easier to explore in an interactive geospatial view. The visualization project is in progress; add its current capabilities, data flow, and relationship to HSF runs here as those details are established.
+![HSF in Cesium Ion](assets/cesium-example.png)
+
+A CesiumIon-based visualization effort is underway as an important companion to HSF. The visualization project is intended to make mission scenarios and simulation results easier to explore in an interactive geospatial view. For updates on the project, check out the GitHub [HSF Cesium Viewer](https://github.com/Cal-Poly-Simulation-Lab/cesium-viewer).
 
 ## Example: Aeolus mission
 
