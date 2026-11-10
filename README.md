@@ -1,12 +1,11 @@
+# Horizon Simulation Framework (HSF)
 ![Horizon Simulation Framework banner](assets/hsf-banner.png)
 
-<p align="center">
-  <img src="assets/hsf-logo.png" alt="HSF logo" width="180">
-</p>
-
-# Horizon Simulation Framework (HSF)
-
 HSF is a simulation framework for exploring feasible task schedules in complex systems. It combines dynamic programming with discrete-event simulation and a user-defined system model. The model evaluates proposed tasks, checks system constraints, and tracks changes in system state over time.
+
+<p align="center">
+  <img src="assets/hsf-logo.png" align="right" alt="HSF logo" width="180">
+</p>
 
 ## Why HSF
 
