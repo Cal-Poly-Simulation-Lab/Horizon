@@ -1,13 +1,13 @@
 # Horizon Simulation Framework (HSF)
 ![Horizon Simulation Framework banner](assets/hsf-banner.png)
 
-HSF is a simulation framework for exploring feasible task schedules in complex systems. It combines dynamic programming with discrete-event simulation and a user-defined system model. The model evaluates proposed tasks, checks system constraints, and tracks changes in system state over time.
+HSF is a simulation framework for exploring feasible task schedules for complex systems. It combines dynamic programming based optimization algorithms with a hybrid, discrete-event simulation and a user-defined system model. HSF combines an optimal scheduling algorithm based on user defined requirements and system constraints, and a dynamic system theory modeling paradigm to produce simulations of complex systems in operation.  HSF evaluates proposed tasks, checks system constraints, and tracks changes in system state over time.
+
+## Why HSF
 
 <p align="center">
   <img src="assets/hsf-logo.png" align="right" alt="HSF logo" width="180">
 </p>
-
-## Why HSF
 
 Many system-level requirements describe how a system must perform in use. Those requirements can be difficult to verify before the full system is operational. HSF lets a user model system behavior and evaluate candidate schedules against that model.
 
