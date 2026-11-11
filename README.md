@@ -3,7 +3,7 @@
 
 HSF is a simulation framework for exploring feasible task schedules for complex systems. It combines dynamic programming based optimization algorithms with a hybrid, discrete-event simulation and a user-defined system model. HSF combines an optimal scheduling algorithm based on user defined requirements and system constraints, and a dynamic system theory modeling paradigm to produce simulations of complex systems in operation.  HSF evaluates proposed tasks, checks system constraints, and tracks changes in system state over time.
 
-## Why HSF
+## Why HSF?
 
 <p align="center">
   <img src="assets/hsf-logo.png" align="right" alt="HSF logo" width="180">
@@ -15,11 +15,13 @@ The framework separates schedule generation from system behavior. The scheduler 
 
 ## How it works
 
+![How HSF works](/assets/Infographic%20with%20rounded%20transparent%20corners.png)
+
 At a high level, HSF:
 
-1. Generates candidate schedules by proposing tasks within their available access windows.
-2. Evaluates each proposed task against the system model and its constraints.
-3. Retains feasible schedules and scores them against user-defined objectives or requirements.
+1. Generates candidate schedules by proposing tasks within their available access windows.  An access window is the time and place a task can be preformed by the system.
+2. Evaluates each proposed task against the system model and its constraints.  Constraints are both imposed requierments and physical limitations.
+3. Retains feasible schedules and scores them against user-defined objectives or requirements.  The output supports mission design and planning.
 
 Core concepts include:
 
@@ -40,13 +42,19 @@ A Cesium ion-based visualization effort is underway as an important companion to
 
 ## Example: Aeolus mission
 
-The project presentation demonstrates HSF with an Earth-observing satellite scenario named Aeolus. The example models a three-revolution mission and reports target-imaging and asset-state outputs. The presentation's v3.0 target-imaging chart reports **307 hits** for that example; treat this as an illustrative result, not a general performance benchmark.
+Aeolus is the Greek God of the winds.  The mission of the Aeouls Space System (as proposed) is to study major wind driven events in the lower Earth atmosphere from space.  The HSF Aeolus project is an example of how HSF can be used to simulate a complex system in operation. The example models a constellation of two spacecraft in orbit with simple Earth Observing capability for two orbits.  HSF runs the simulation and reports target-imaging and asset-state outputs for all mission time for overall **utilitiy analysis** and helps engineers answer the question, "does the system as designed meet the system level requierments?  And can the subsystems meet the requierments of the proposed mission profile?"
 
-Example outputs shown include target hits, sensor on/off state, solar-panel power, battery depth of discharge, data rate, buffer fill ratio, and image pixel count.
+Example outputs from HSF Aeolus shown below include target hits, sensor on/off state, solar-panel power, battery depth of discharge, data rate, buffer fill ratio, and image pixel count.
+
+ADD AEOLUS PLOTS
+
+## Tutorials
+
+The HSF Aeolus Example is great for mid-level users.  But we created an example for new users that model a single spacecraft in orbit taking images of Earth.  In this example, HSF tracks various constraints and state data of the systems.  Your first HSF project is here (ADD LINK)
 
 ## Example applications
 
-The project materials identify examples involving:
+Over the years, the HSF modeling and simulation paradighm has been applied to a number of cases.  These projects have been described in a handfule of MS theses by Cal Poly Students.  (ADD LINKS)
 
 - Thermal soaring
 - CubeSats
@@ -65,8 +73,10 @@ The project materials identify examples involving:
 
 ## Documentation
 
-- [Academic documentation](https://github.com/emehiel/Horizon/wiki/Academic-Documentation)
-- **Cesium ion visualization documentation:** [add repository or project link]
+- **Examples** [Add link]
+- **Developer Documentation** [Add link]
+- [Academic/Thesis documentation](https://github.com/emehiel/Horizon/wiki/Academic-Documentation)
+- [Cesium ion visualization documentation](https://github.com/Cal-Poly-Simulation-Lab/cesium-viewer)
 
 ## Project status
 
