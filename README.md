@@ -15,7 +15,7 @@ The framework separates schedule generation from system behavior. The scheduler 
 
 ## How it works
 
-![How HSF works](/assets/Infographic%20with%20rounded%20transparent%20corners.png)
+![How HSF works](/assets/HSF%20infographic.png)
 
 At a high level, HSF:
 
