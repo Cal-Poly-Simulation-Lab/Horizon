@@ -1,4 +1,7 @@
 # Horizon Simulation Framework (HSF)
+
+**Project website:** [Horizon Simulation Framework](https://cal-poly-simulation-lab.github.io/Horizon/)
+
 ![Horizon Simulation Framework banner](assets/hsf-banner.png)
 
 HSF is a simulation framework for exploring feasible task schedules for complex systems. It combines dynamic programming based optimization algorithms with a hybrid, discrete-event simulation and a user-defined system model. HSF combines an optimal scheduling algorithm based on user defined requirements and system constraints, and a dynamic system theory modeling paradigm to produce simulations of complex systems in operation.  HSF evaluates proposed tasks, checks system constraints, and tracks changes in system state over time.
