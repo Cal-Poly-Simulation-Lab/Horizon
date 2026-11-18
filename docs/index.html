@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore the Horizon Simulation Framework, an open-source framework for modeling systems and evaluating feasible mission schedules.">
+  <meta name="theme-color" content="#071522">
+  <title>Horizon Simulation Framework</title>
+  <link rel="icon" href="assets/hsf-logo.png" type="image/png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Horizon Simulation Framework home">
+      <span class="brand-mark">H</span>
+      <span>Horizon <span class="brand-light">Simulation Framework</span></span>
+    </a>
+    <nav aria-label="Main navigation">
+      <a href="#framework">Framework</a>
+      <a href="#examples">Examples</a>
+      <a href="#learn">Learn</a>
+      <a class="nav-github" href="https://github.com/Cal-Poly-Simulation-Lab/Horizon">View on GitHub <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-backdrop" aria-hidden="true"></div>
+      <div class="hero-content">
+        <p class="eyebrow"><span class="status-dot"></span> Open-source mission scheduling &amp; simulation</p>
+        <h1>Model the system.<br><span>Explore the schedule space.</span></h1>
+        <p class="hero-copy">Horizon Simulation Framework (HSF) helps engineers explore feasible task schedules for complex systems—by combining schedule generation with a user-defined model of how the system behaves.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#framework">Explore the framework <span aria-hidden="true">↓</span></a>
+          <a class="button button-quiet" href="https://github.com/Cal-Poly-Simulation-Lab/Horizon">Browse the source <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+      <div class="hero-caption"><span class="caption-line"></span> Horizon Simulation Framework</div>
+    </section>
+
+    <section class="intro section-wrap" id="framework">
+      <div class="section-heading">
+        <p class="eyebrow">A framework for system-level questions</p>
+        <h2>From possible tasks<br>to feasible schedules.</h2>
+      </div>
+      <div class="intro-copy">
+        <p>System requirements are difficult to evaluate before a system is built. HSF lets you describe assets, subsystems, tasks, constraints, and objectives, then simulate candidate schedules against that model.</p>
+        <p>The scheduler proposes what a system might do; the model determines what it can do. The result is a ranked set of feasible schedules to support mission design and analysis.</p>
+      </div>
+    </section>
+
+    <section class="workflow section-wrap" aria-labelledby="workflow-title">
+      <div class="workflow-image">
+        <img src="assets/HSF%20infographic.png" alt="HSF workflow: generate candidate schedules, evaluate the system model and constraints, and score feasible schedules." loading="lazy">
+      </div>
+      <div class="workflow-steps">
+        <p class="eyebrow">How it works</p>
+        <h2 id="workflow-title">Three steps.<br>One model-driven loop.</h2>
+        <ol class="step-list">
+          <li><span class="step-number">01</span><div><h3>Generate candidates</h3><p>Propose tasks within the access windows available to each asset.</p></div></li>
+          <li><span class="step-number">02</span><div><h3>Check feasibility</h3><p>Simulate the system and test subsystem states against constraints.</p></div></li>
+          <li><span class="step-number">03</span><div><h3>Score schedules</h3><p>Keep feasible options and evaluate them against user-defined objectives.</p></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="concepts section-wrap">
+      <div class="section-heading section-heading-wide">
+        <p class="eyebrow">Designed for modular models</p>
+        <h2>Represent the system<br>at the level that matters.</h2>
+        <p>HSF keeps the scheduler separate from the system model, so system behavior can be defined through reusable, user-defined components.</p>
+      </div>
+      <div class="concept-grid">
+        <article class="concept-card"><span class="card-index">01 / MODEL</span><h3>Assets &amp; subsystems</h3><p>Represent a system as assets composed of subsystems, each with its own capabilities and state.</p></article>
+        <article class="concept-card"><span class="card-index">02 / DEFINE</span><h3>Constraints</h3><p>Express limits on system states and check whether candidate tasks satisfy them.</p></article>
+        <article class="concept-card"><span class="card-index">03 / CONNECT</span><h3>Dependencies</h3><p>Define how subsystems exchange information while keeping their models modular.</p></article>
+        <article class="concept-card"><span class="card-index">04 / EVALUATE</span><h3>Schedules &amp; objectives</h3><p>Compare feasible task sequences using the values and evaluation criteria you choose.</p></article>
+      </div>
+    </section>
+
+    <section class="examples section-wrap" id="examples">
+      <div class="section-heading section-heading-wide">
+        <p class="eyebrow">See HSF in action</p>
+        <h2>Start simple. Scale to a mission.</h2>
+      </div>
+      <div class="example-grid">
+        <article class="example-card example-aeolus">
+          <div class="example-visual"><span class="visual-tag">MISSION EXAMPLE</span><span class="orbit orbit-one"></span><span class="orbit orbit-two"></span><span class="planet"></span><span class="satellite">✦</span></div>
+          <div class="example-body">
+            <p class="eyebrow">Earth observation</p>
+            <h3>Aeolus</h3>
+            <p>A two-spacecraft scenario that demonstrates coordinated imaging tasks and subsystem models for spacecraft capabilities and resources.</p>
+            <a class="text-link" href="https://github.com/Cal-Poly-Simulation-Lab/Horizon/tree/main/samples/Aeolus">Explore the Aeolus sample <span aria-hidden="true">↗</span></a>
+          </div>
+        </article>
+        <article class="example-card">
+          <div class="example-image"><img src="assets/cesium-example.png" alt="Cesium visualization of a spacecraft, ground targets, and a field of view over Earth." loading="lazy"></div>
+          <div class="example-body">
+            <p class="eyebrow">Geospatial visualization</p>
+            <h3>See the scenario in context</h3>
+            <p>A companion Cesium viewer project explores how mission scenarios and simulation results can be presented in an interactive geospatial view.</p>
+            <a class="text-link" href="https://github.com/Cal-Poly-Simulation-Lab/cesium-viewer">Visit the Cesium Viewer project <span aria-hidden="true">↗</span></a>
+          </div>
+        </article>
+      </div>
+      <div class="examples-foot"><span>Also in the repository</span><a href="https://github.com/Cal-Poly-Simulation-Lab/Horizon/tree/main/src/Horizon/examples">Small scheduler examples and runnable scenarios <span aria-hidden="true">↗</span></a></div>
+    </section>
+
+    <section class="learn section-wrap" id="learn">
+      <div class="section-heading section-heading-wide">
+        <p class="eyebrow">Learn &amp; explore</p>
+        <h2>Find your next step.</h2>
+      </div>
+      <div class="learn-grid">
+        <a class="learn-card" href="https://github.com/Cal-Poly-Simulation-Lab/Horizon/wiki/My-First-HSF-Project">
+          <span class="learn-type">TUTORIAL · 01</span><h3>Build your first HSF project</h3><p>Start with a spacecraft, camera subsystem, task list, and simulation scenario.</p><span class="learn-arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="learn-card" href="https://github.com/Cal-Poly-Simulation-Lab/Horizon/wiki/My-First-HSF-Project----Add-a-Constraint">
+          <span class="learn-type">TUTORIAL · 02</span><h3>Add a system constraint</h3><p>See how a modeled look-angle requirement filters candidate schedules.</p><span class="learn-arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="learn-card" href="https://github.com/Cal-Poly-Simulation-Lab/Horizon/wiki/My-First-HSF-Project-Add-a-Dependency">
+          <span class="learn-type">TUTORIAL · 03</span><h3>Connect subsystem models</h3><p>Explore dependencies as modular interfaces between subsystems.</p><span class="learn-arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="learn-card learn-card-accent" href="https://github.com/Cal-Poly-Simulation-Lab/Horizon/wiki/Publications-about-and-using-the-Horizon-Simulation-Framework">
+          <span class="learn-type">RESEARCH &amp; HISTORY</span><h3>Explore HSF publications</h3><p>Browse student theses and projects that have developed or applied the framework.</p><span class="learn-arrow" aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="getting-started section-wrap">
+      <div>
+        <p class="eyebrow">Ready to try it?</p>
+        <h2>Start with the code<br>and a working example.</h2>
+        <p>HSF targets .NET 8. The repository’s example guide covers prerequisites, building the framework, and running sample scenarios.</p>
+      </div>
+      <div class="start-panel">
+        <span class="terminal-label"><span></span><span></span><span></span> QUICK START</span>
+        <code>cd src/Horizon<br>dotnet build<br>dotnet run -- -scen Aeolus_CS</code>
+        <p>Run from the repository root’s <code>src/Horizon</code> directory.</p>
+        <a class="text-link" href="https://github.com/Cal-Poly-Simulation-Lab/Horizon/blob/main/src/Horizon/examples/README.md">Read the complete examples guide <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <a class="brand" href="#top"><span class="brand-mark">H</span><span>Horizon <span class="brand-light">Simulation Framework</span></span></a>
+    <p>Open-source research software from Cal Poly’s Simulation Lab.</p>
+    <div class="footer-links"><a href="https://github.com/Cal-Poly-Simulation-Lab/Horizon">GitHub</a><a href="https://github.com/Cal-Poly-Simulation-Lab/Horizon/wiki">Wiki</a><a href="https://github.com/Cal-Poly-Simulation-Lab/Horizon/issues">Issues</a></div>
+  </footer>
+</body>
+</html>

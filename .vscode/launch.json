@@ -8,9 +8,20 @@
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
       "args": [
-        "-s", "${workspaceFolder}/samples/myFirstHSFProject/myFirstHSFScenario.json",
-        "-m", "${workspaceFolder}/samples/myFirstHSFProject/myFirstHSFModel.json",
-        "-t", "${workspaceFolder}/samples/myFirstHSFProject/myFirstHSFTaskList.json",
+        "-scen", "myFirstHSFProject"
+      ],
+      "cwd": "${workspaceFolder}/src/Horizon",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Samples - My First HSF Project with Constraint",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Horizon/bin/Debug/net8.0/Horizon",
+      "args": [
+        "-scen", "myFirstHSFProjectConstraint"
       ],
       "cwd": "${workspaceFolder}/src/Horizon",
       "console": "internalConsole",
